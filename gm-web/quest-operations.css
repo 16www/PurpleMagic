@@ -1,0 +1,8 @@
+.quest-operations{margin-top:20px;border-top:1px solid var(--app-border);padding-top:16px}
+.quest-operations fieldset{border:0;padding:0;margin:0;min-width:0}
+.quest-fields{display:grid;grid-template-columns:minmax(180px,1fr) minmax(220px,2fr);gap:12px;margin-bottom:12px}
+.quest-fields label{display:grid;gap:7px}
+.quest-confirm{background:var(--surface-subtle);border:1px solid var(--app-border);border-radius:12px;padding:16px;margin-top:16px}
+.quest-confirm .actions{margin-top:14px;flex-wrap:wrap}
+.character-resources input[type=checkbox]{width:17px;height:17px;min-height:17px;padding:0;accent-color:var(--primary-color)}
+@media(max-width:640px){.quest-fields{grid-template-columns:1fr}.quest-operations .actions{flex-wrap:wrap}.quest-confirm{padding:12px}}

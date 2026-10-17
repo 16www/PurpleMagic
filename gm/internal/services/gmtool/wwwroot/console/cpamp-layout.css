@@ -1,0 +1,71 @@
+/* Layout proportions adapted from the pinned CPAMP MainLayout and layout.scss. */
+:root{--sidebar-width:210px;--shell-sidebar:210px;--header-height:50px;--app-gap:20px}
+body.sidebar-collapsed{--shell-sidebar:54px}
+.sidebar{width:var(--shell-sidebar);padding:0}
+.brand{height:50px;min-height:50px;padding:0 22px;gap:10px;white-space:nowrap;border-bottom:1px solid var(--app-border)}
+.brand .brand-name{font-size:22px;letter-spacing:-.5px;line-height:1}
+.brand-initial{display:none;font-size:22px;font-weight:750;color:var(--accent-ink)}
+nav{padding:10px;flex:1}
+nav a{min-height:50px;margin:0;padding:12px;gap:12px;border-radius:8px;font-size:14px}
+nav a svg{width:20px;height:20px}
+.nav-divider{margin:18px 10px;border:0;border-top:1px solid var(--app-border);opacity:.6}
+.sidebar-collapsed nav{padding:10px 4px}
+.sidebar-collapsed nav a{padding:12px;justify-content:center}
+.sidebar-collapsed nav a span,.sidebar-collapsed .brand-name{display:none}
+.sidebar-collapsed .brand{padding:0;justify-content:center}
+.sidebar-collapsed .brand-initial{display:block}
+.sidebar-collapsed .nav-divider{margin:18px 8px}
+.shell-content{margin-left:var(--shell-sidebar);min-height:100vh}
+.topbar{height:50px;min-height:50px;position:sticky;top:0;padding:0 20px 0 0;background:var(--app-surface);border-bottom:1px solid var(--app-border);box-shadow:none;z-index:35}
+.topbar-left{gap:8px;min-width:0}
+#nav-toggle{display:inline-flex;width:50px;height:50px;border:0;border-radius:0;align-items:center;justify-content:center;background:transparent}
+.breadcrumb{font-size:14px;color:var(--app-text-muted);white-space:nowrap}
+.breadcrumb strong{font-weight:400;color:inherit}
+.topbar-actions{gap:6px}
+#theme-open{width:34px;height:34px;min-height:34px;padding:0;border:0;background:transparent}
+#theme-open span{display:none}
+.preview-badge{padding:2px 8px;font-size:11px;font-weight:400}
+.main-content{padding:20px;max-width:none;width:100%;margin:0}
+.page-heading{min-height:66px;padding:14px 18px;margin-bottom:18px;background:var(--app-surface);border:1px solid var(--app-border);border-radius:var(--app-radius-lg);gap:16px}
+.page-heading h1{font-size:18px;line-height:1.4;letter-spacing:0}
+.page-heading p{font-size:12px;margin-top:4px}
+.page-heading .eyebrow{display:none}
+.card{padding:18px;border-radius:var(--app-radius-lg);box-shadow:none}
+.card-head{margin-bottom:16px}
+.card-head h2{font-size:16px}
+.button{min-height:36px;padding:7px 12px;font-size:13px}
+.icon-button{width:36px;height:36px}
+input,select{min-height:36px;padding:8px 12px;font-size:13px}
+.query-strip{padding-bottom:16px;gap:10px}
+.query-strip .search-input input{padding-left:34px}
+.query-strip label>span:first-child{font-size:12px}
+.filter-tabs{gap:4px;margin-bottom:14px}
+.filter-tabs button{min-height:34px;font-size:13px;padding:7px 12px}
+.split-view{gap:18px;grid-template-columns:minmax(0,1.85fr) minmax(300px,1fr)}
+table{font-size:13px}thead th{font-size:12px;font-weight:500;color:var(--app-text-regular)}td{padding-top:14px;padding-bottom:14px}td.muted{color:var(--app-text-regular)}tr.selected td.muted{color:var(--app-text-primary)}
+.table-footer{font-size:12px;padding-top:14px}
+.stats{gap:12px;margin:18px 0}.stats .stat{padding:16px;min-height:126px}
+.stat-top{justify-content:flex-start;gap:10px;flex-direction:row-reverse;justify-content:flex-end;font-size:12px}
+.stat-icon{width:32px;height:32px;border-radius:8px}.stat-icon svg{width:18px;height:18px}
+.stat-value{font-size:28px;margin:12px 0 4px;line-height:1.1}.stat-note{font-size:12px}
+.summary-panels{display:grid;grid-template-columns:1.35fr 1fr;gap:16px;margin-bottom:18px}
+.service-tiles{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.service-tile{display:flex;align-items:center;gap:10px;padding:12px;border:1px solid var(--app-border);border-radius:12px;min-width:0}
+.service-tile .service-icon{width:36px;height:36px;background:var(--app-surface-strong);border:1px solid var(--app-border);border-radius:10px}
+.service-tile small{display:block;color:var(--app-text-muted);font-size:11px;margin-bottom:4px}
+.service-tile strong{font-size:13px}.service-tile>div{min-width:0}.service-tile .badge{font-size:11px;padding:2px 6px}
+.dashboard-grid{grid-template-columns:minmax(0,1.8fr) minmax(280px,1fr);gap:18px;align-items:start}
+.quick-actions{display:flex;flex-direction:column;gap:8px}.quick-action{padding:14px;min-height:64px;border-radius:10px}
+.quick-action strong{font-size:13px}.quick-action small{font-size:12px}
+.quick-action>svg:last-child{margin-left:auto}
+.overview-status{display:flex;align-items:center;gap:12px}.overview-status .status-dot{width:8px;height:8px}
+.status-caption{font-size:11px;color:var(--app-text-muted)}.overview-title{display:flex;align-items:center;gap:18px}.overview-title h1{font-size:16px}
+.overview-updated{font-size:12px;color:var(--app-text-muted);margin-right:6px}
+.section-label{font-size:14px;font-weight:600;margin-top:18px}
+.settings-row{padding:18px 0}.settings-row p{font-size:13px}.settings-row h2{font-size:15px}
+.source-option{margin-bottom:18px;padding:14px}
+.page-footer,.workspace,.sidebar-bottom{display:none}
+@media(max-width:1100px){.summary-panels{grid-template-columns:1fr}.split-view{grid-template-columns:minmax(0,1.5fr) minmax(280px,1fr)}.main-content{padding:16px}}
+@media(max-width:900px){.split-view{grid-template-columns:1fr}.dashboard-grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:760px){:root{--shell-sidebar:0px}.sidebar{width:210px;z-index:40}.shell-content{margin-left:0}.topbar{padding-right:12px}.main-content{padding:12px}.page-heading{padding:14px;align-items:center;flex-wrap:wrap}.page-heading h1{font-size:17px}.service-tiles{grid-template-columns:1fr}.service-tile{padding:10px}.summary-panels{gap:12px}.card{padding:14px}.table-wrap{margin-inline:-14px;padding-inline:14px}.preview-badge{display:inline-flex}.overview-title{gap:10px}.overview-updated{display:none}.page-heading .actions{margin-top:0}.nav-scrim{z-index:38}.overview-status{display:none}}
+@media(prefers-reduced-motion:reduce){.sidebar,.shell-content{transition:none}}

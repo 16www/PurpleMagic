@@ -1,0 +1,8 @@
+.currency-fields{display:grid;grid-template-columns:160px 200px minmax(180px,1fr);gap:16px;margin-bottom:16px}
+.currency-fields label{display:flex;flex-direction:column;gap:8px}
+.currency-confirm{margin-top:20px;padding:20px;border:1px solid var(--app-border);border-radius:var(--app-radius-lg);background:var(--app-surface)}
+.currency-balance{font-size:24px;font-variant-numeric:tabular-nums;margin-left:12px;color:var(--app-text)}
+.currency-ledger-head{margin-top:28px}
+[aria-label="账号点券"] fieldset,[aria-label="角色金币"] fieldset{border:0;margin:0;padding:0;min-width:0}
+.account-tabs{margin-bottom:20px}
+@media(max-width:760px){.currency-fields{grid-template-columns:1fr 1fr}.currency-reason{grid-column:1/-1}}

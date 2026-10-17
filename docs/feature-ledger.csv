@@ -1,0 +1,72 @@
+﻿id,group,feature,status,ui,api,facilities,implementedScope,remaining,source
+GM-01,GM,账号/角色检索、归属、基础资料,已接入,账号/角色列表与详情,GET accounts; accounts/{a}; accounts/{a}/characters; characters; characters/{c},"F01,F02,F03",分页、检索、归属与基础资料,前端重组为独立玩家详情页,G/A/R
+GM-02,GM,账号货币、金币与共享晶块,部分完成,点券/金币/金库/共享资源,accounts/{a}/currency; currency-adjustments; characters/{c}/gold-operations; accounts/{a}/vault-operations; inventory-operations,"F03,F04,F05,F09",点券增减、角色与金库金币、12槽晶块/灵魂及各自流水,统一资产入口；其他货币按权威钱包逐项核对,G/A/S
+GM-03,GM,冒险团等级、成长胶囊,旧版实现,待迁入账号详情,旧 /api/accounts/{id}/honor-level; growth-capsule,"F03,F04,F05",旧版冒险团等级与胶囊操作,迁入v1、预览/回执及新页面,G/A
+GM-04,GM,密码重置、登录限制与绑定管理,待接入,账号安全页待建,无当前v1管理路由,"F01,F03,F09,F12",参考目标已收录,密码、绑定与登录限制接游戏准入,A/R
+GM-05,GM,角色战斗属性、SP/TP,部分完成,技能点页签,characters/{c}/skill-points; skill-point-operations,"F04,F05,F06,F09",额外SP/TP、归零/重算与流水,持续战斗属性需游戏侧覆写契约,G/A
+GM-06,GM,等级、转职/觉醒、副职业,部分完成,等级/职业/副职业页签,characters/{c}/level; level-operations; profession; profession-operations; expert-job; expert-job-operations,"F04,F05,F06,F09",等级、转职与觉醒已验证；副职业代码已接,副职业开发中：数据库夹具/网页脚本失败未收尾,G/A
+GM-07,GM,负重、金币携带上限、背包/仓库容量、装备槽与副本权限,部分完成,容量页签,characters/{c}/containers; container-operations,"F04,F05,F06,F09",主背包、装扮栏、个人仓库档位扩容,负重/携金阶段/装备槽/副本权限迁入；持久覆写,G/A
+GM-08,GM,契约查询与发放,旧版实现,契约页面待迁,旧 /api/characters/{id}/premium,"F03,F04,F06,F09",旧版契约查询与发放,v1及期限/归属/回执页面,G/A
+GM-09,GM,改名、克隆、删除角色,旧版实现,角色管理页面待迁,旧 /api/characters/{id}/rename; clone; delete,"F03,F04,F09",旧版改名、克隆、删除,新接口、关联数据计划与事务验收,G/A
+GM-10,GM,玩家背包、穿戴及分类浏览,已接入,角色资源/容器列表,GET characters/{c}/inventory,"F02,F03",背包、穿戴及分类分页,按完整玩家工作区重排布局,G/A/U
+GM-11,GM,玩家持有物品的实例详情,部分完成,实例详情面板,GET characters/{c}/inventory/{container}/{slot},"F03,F06",槽位/实例值/PVF定义及已孵化宠物详情,附魔、徽章等完整实例字段继续适配,G/A/U
+GM-12,GM,装备/装扮配置,部分完成,物品配置/批量预览,inventory/{container}/{slot}/options; inventory-operations,"F04,F05,F06,F09",品级、强化/增幅、锻造、期限、堆叠及宠物装备期限,装扮属性、附魔、徽章、宠物成长等细项,G/A
+GM-13,GM,单格删除、选中批量删除、分类清理,部分完成,物品删除与本页选择,characters/{c}/inventory-operations,"F04,F05,F09",单格/选中批次、穿戴、宠物关联删除及回执,跨页分类清理、宠物蛋关联处理,G/A
+GM-14,GM,个人仓库、账号金库与共享资源,部分完成,容器/金库/共享资源,characters/{c}/inventory; accounts/{a}/vault; vault-operations; inventory-operations,"F03,F04,F05,F06,F09",个人仓库、账号金库、共享资源读取编辑与容量/金币,统一账号视图；完整物品实例细项,G/A
+GM-15,GM,物品目录、完整说明、套装与条件字段,已接入,物品目录与详情,GET items; items/{itemId},F06,物品定义、说明、套装/条件字段及磁盘索引,客户端分片缓存与内存继续压缩,G/A/U
+GM-16,GM,发放参数、装备属性与期限选项,部分完成,邮件/福利附件参数,items/{itemId}/grant-options; mail/preview; benefits,"F04,F05,F06,F07",品级/强化/增幅/锻造/期限；福利跨PVF核对,装扮属性选项与直接背包发放,G/A
+GM-17,GM,角色邮箱、附件、单封删除/清理,部分完成,邮箱列表/详情/清理,characters/{c}/mailbox; mailbox/{mailId}; mailbox-operations; mailbox-cleanups,"F03,F04,F05,F07",筛选、正文附件、选中删除和跨页固定名单清理,附件完整实例字段,G/A
+GM-18,GM,单角色邮件预览与发放,已接入,发放页,POST mail/preview; tasks/{id}/run,"F04,F05,F07",单角色预览、邮件投递及永久回执,新版页面重组,G/A/U
+GM-19,GM,批量邮件、选定/在线角色发放,部分完成,名单/在线发放,POST mail/preview; mail/online-preview; tasks/{id}/run,"F04,F05,F07,F09",指定最多100人、在线最多5000人，固定快照/分批恢复,游戏online_snapshot适配部署联调,G/A/R
+GM-20,GM,注册/新手福利与历史补发,已接入,福利规则/记录,benefits; benefits/{id}/state; benefits/{id}/preview; benefits/{id}/pvf-preview; pvf-apply,"F04,F05,F06,F07",按账号一次/按角色一次、自动扫描、参数附件、跨PVF保留去重,统一规则编辑体验；初始资产政策仍归游戏创建链路,G/R/U
+GM-21,GM,运营作业、进度和失败重试,部分完成,运营作业页,GET tasks; tasks/{id}; tasks/{id}/recipients; POST tasks/{id}/run,"F05,F07",邮件/福利批次、进度、重试；邮箱清理另有持久进度,通用调度租约、扫描/索引/快照作业,G/A/U
+GM-22,GM,进行中、已完成游戏任务,已接入,角色游戏任务,GET characters/{c}/quests,"F02,F03,F06",已接/完成/全部筛选、进度及读取时刻,新版任务工作区,G/A/U
+GM-23,GM,任务库、可接条件、前置关系、说明与奖励,部分完成,任务库与详情,GET quests; quests/{questId},F06,名称/ID查询、条件/前置/说明/奖励,角色可接资格和等级/地区筛选,G/A/U
+GM-24,GM,接取、放弃、标记可交,部分完成,游戏任务操作,POST characters/{c}/quest-operations/preview; quest-operations,"F04,F05,F06,F09",接取、放弃、标记可交及回执,涉及物品的联合事务、游戏编辑锁,G/A
+GM-25,GM,标记完成、恢复未完成、重置任务链,已接入,任务完成/恢复/重置,POST characters/{c}/quest-operations/preview; quest-operations,"F04,F05,F06,F09",无奖励完成、普通任务恢复、关联家族重置,上线前游戏编辑锁；职业变更走专用流程,G/A
+GM-26,GM,批量处理当前已接任务,部分完成,游戏任务本页选择,characters/{c}/quest-operations,"F04,F05,F06",选中最多200项，前后值及整批原子提交,跨页全部已接任务,G/A
+GM-27,GM,按等级/分类处理主线、支线、成就、称号、每日与职业任务,待实现,任务库分类批处理,无当前分类批次路由,"F04,F05,F06,F07",主线/支线/成就/称号/每日/职业目标已收录,分类资格、奖励语义及批次事务,A
+GM-28,GM,游戏活动查询与开关,旧版实现,游戏活动页待迁,旧 /api/activities；游戏运行适配,"F04,F09",旧版活动读取/保存,v1、实际生效状态和新页面,G/R
+GM-29,GM,账号封禁、IP 封禁、期限、原因及解除,待实现,治理·封禁/IP,无当前v1封禁路由,"F03,F04,F09,F12",账号/IP、期限、原因、解除目标已收录,权威准入执行点、审计及页面,A/R/U
+GM-30,GM,在线角色、踢下线、登录记录,部分完成,在线名单用于邮件,POST mail/online-preview → online_snapshot,"F03,F09",完整在线快照、采集时间与代次,独立在线页、踢下线、登录历史,A/R
+GM-31,GM,通关记录、排行、间隔、耗时分布、单局详情,待实现,通关记录与统计,无当前通关查询路由,"F03,F07,F13",耗时、排行、间隔、单局记录目标已收录,权威事件采集、幂等入库、聚合与页面,A/U
+GM-32,GM,收益交叉核查、未结算进入、疑似异常与人工复核,待实现,异常调查,无当前异常查询路由,"F07,F12,F13",收益核查、未结算进入、规则与人工复核目标,事件来源、缺口、规则版本、人工结论,A/R/U
+GM-33,GM,背包异常检查、无效引用与数据修复,待实现,资产扫描与修复计划,无当前扫描路由,"F03,F04,F07,F12",无效引用与背包异常目标已收录,有界扫描、修复预览/事务/回执,A
+GM-34,GM,外部只读玩家背包/穿戴/通关快照,设计已定,公开范围与快照管理,PUBLIC_PLAYER_SNAPSHOTS.md；无当前公开路由,"F06,F07,F13,F14",GM选名单或全量含未来角色；默认每天一次,低优先级生成、原子发布、公开只读接口,U
+GM-35,GM,登录器公告编辑、排序与发布,部分完成,Hub公告；console入口待统一,GET /admin/api/state; PUT /admin/api/news,"F01,F08",Hub编辑/排序/修订校验/签名公告已有,gm-web仅在/gm/模式启用；/console/会话与页面接入,R/U
+GM-36,GM,游戏广播、弹窗、事件播报,待实现,广播/弹窗/事件播报,无当前v1广播路由,"F09,F12",接收对象与事件目标已收录,适配游戏通知、权限与结果,R
+GM-37,GM,登录器更新、Linux 网关与外部更新源,部分完成,更新Hub独立管理页,/admin/api/source; check; publish; /launcher/v2/bootstrap.json,"F08,F10",登录器、源配置、更新及单网关代码已整合,统一管理入口；已发行登录器源码对齐,R/U
+GM-38,GM,服务状态、日志、维护、PVF/索引版本管理,部分完成,能力信息/离线索引工具,GET capabilities; /api/status；GMIndex CLI,"F02,F06,F08,F15",索引代次/能力信息与本地检查脚本,状态、日志、维护、构建及切换管理页,G/R
+GM-39,GM,账号导出/恢复、服务数据备份,旧版实现,账号导出/恢复待迁,旧 /api/accounts/{id}/backup; /api/accounts/restore,"F03,F04,F12,F15",旧版导出恢复；服务备份归部署工具,v1预览与版本核对、恢复验收,G/A/R
+GM-40,GM,操作审计与查询,部分完成,各功能历史与回执,*-operations; currency-adjustments; tasks/{id}/recipients,"F05,F12",资产/成长/任务/邮箱独立历史，邮件福利持久回执,跨功能审计、管理员身份和统一筛选,A/R/U/S
+GM-41,GM,决斗胜点、等级与段位,待接入,决斗成长,无当前v1决斗管理路由,"F03,F04,F06",胜点、等级、段位目标已收录,PVF选项、事务和页面,A：`duel-progress`
+GM-42,GM,副本进入次数与额度,待接入,副本额度,无当前v1额度管理路由,"F03,F04,F09",基础/额外/已用、账号/角色/日期目标,与游戏进入校验一致的额度管理,A：`stats/dungeon-entry-limits`
+GM-43,GM,异常统计白名单,待实现,异常白名单,无当前v1白名单路由,"F12,F13",加入/移除/原因/操作者及原始记录目标,规则生效和复查过滤,A：`clear-stats/whitelist` 列表/加入/移除
+GM-44,GM,IP 注册额度,待接入,IP注册额度,无当前v1注册额度路由,"F04,F09,F12",设置和恢复默认目标,接实际注册准入与读回,A：`moderation/registration-limit`、`clear`
+GM-45,GM,释放卡住的角色会话,待接入,释放卡住会话,无当前v1释放会话路由,"F09,F12",卡角色会话释放目标,游戏权威执行与返回结果,A：`moderation/release-character`
+GM-46,GM,账号同步与批量管理,待接入,批量账号管理,无当前v1批量账号路由,"F03,F04,F05,F07,F09",同步/创建/删除/批量重置密码目标,关联数据预览、任务、事务及权限,R：`sync-game-accounts`、`delete-account(s)`、`reset-all-passwords`；A/G：`create-for-clone`
+GM-47,GM,客户端文件完整性与允许版本,部分完成,登录器文件检查/Hub发布,Host check/update；签名bootstrap与内容清单,"F08,F10",签名更新与文件摘要校验已有,允许版本管理与新版统一页面,R：`integrity` 查询/上传/添加/移除/allow
+GM-48,GM,网关端口与连接策略,待接入,系统连接与维护,现有网关配置/部署脚本；无统一v1路由,"F08,F09,F15",端口/来源/维护目标与工具已有,统一编辑、发布、生效读回与回退,R：`game-ports`、`launcher-config`、`maintenance`
+L-01,登录器,启动初始化与偏好,已接入,Flutter首页/设置,Host initialize/preferences,F10,目录、偏好与引擎状态,与新项目品牌/发行基线对齐,本仓源码/用户需求
+L-02,登录器,账号注册/登录,已接入,注册登录表单,Host register/login → /api/account/register; /api/account/login,"F08,F10",调用玩家网关，凭据与游戏管理鉴权分开,与实际游戏实例联调,本仓源码/用户需求
+L-03,登录器,客户端目录发现,已接入,客户端目录选择,ClientDirectoryDiscovery,F10,保留0.2.6自动目录发现,合入已发布版本时保留回归,本仓源码/用户需求
+L-04,登录器,健康与频道诊断,已接入,状态/诊断,Host health；ChannelProbe/NativeChannelHistory,F10,状态、频道配置与检查逻辑,实际发布profile联调,本仓源码/用户需求
+L-05,登录器,检查/自动/手动更新与暂停,已接入,更新进度,Host check/autoUpdate/update/pause,"F08,F10",文件摘要、进度、取消与恢复,对齐最新发行内容源契约,本仓源码/用户需求
+L-06,登录器,签名与兼容性校验,已接入,启动/更新流程,SignedUpdate/NativeClientGate/NativeGuildCompatibility,"F08,F10",签名、EXE/PVF兼容与完整性检查,对齐当前批准profile和实际玩家资源,本仓源码/用户需求
+L-07,登录器,游戏启动与进程管理,已接入,启动游戏,LauncherEngine/BundleProcesses,F10,原生客户端启动与进程生命周期,真实客户端验收,本仓源码/用户需求
+L-08,登录器,配置重置,已接入,设置页,Host resetGameConfiguration,F10,恢复游戏配置入口,统一新版设置布局,本仓源码/用户需求
+L-09,登录器,公告显示,已接入,公告列表/正文,Hub签名bootstrap.news,"F08,F10",读取已发布公告,GM独立console编辑入口待统一,本仓源码/用户需求
+L-10,登录器,登录器自更新/便携安装,已接入,自更新与安装包,Host updateLauncher；BundleInstaller/FileTransaction/Portable,"F08,F10",文件事务、回退和打包逻辑,最新发行基线与资源输入对齐,本仓源码/用户需求
+L-11,登录器,品牌/视觉/主题,部分完成,Flutter界面,Flutter main.dart/launcher_controller.dart,"F10,F11",当前登录器界面已有,PurpleMagic命名/资产与产品界面重构,本仓源码/用户需求
+L-12,登录器,其他系统客户端,待规划,当前为Windows,无当前Android/Linux桌面发行,F10,需求边界保留,如需扩展，复用API并单独适配平台,本仓源码/用户需求
+GW-01,网关,玩家白名单转发,已接入,无独立操作页,POST /api/account/login/register；GET /api/status,F08,剥离伪造来源/凭据头，注入可信来源,新页面配置入口,本仓源码/用户需求
+GW-02,网关,私有监听与GM挂载,已接入,/console/,ManagementHandler + privateHandler,"F01,F02",同进程分离玩家/管理监听,跨域客户端另定鉴权方案,本仓源码/用户需求
+GW-03,网关,源配置与检查,已接入,/admin/,PUT /admin/api/source；POST /admin/api/check,F08,固定源配置、状态、修订与检查,统一到新GM系统页,本仓源码/用户需求
+GW-04,网关,签名发布与资源服务,已接入,/admin/,POST /admin/api/publish；/launcher/v2/*,F08,签名发布、缓存与包服务,对齐当前线上源/profile，不从旧候选覆盖,本仓源码/用户需求
+GW-05,网关,安装包上传,已接入,Hub管理页,POST /admin/api/bundle/{version},F08,包输入、校验与缓存,新统一管理页面,本仓源码/用户需求
+GW-06,网关,公告发布,已接入,Hub公告页,GET /admin/api/state；PUT /admin/api/news,F08,If-Match修订、CSRF、签名发布,独立console接入,本仓源码/用户需求
+GW-07,网关,管理schema初始化,已接入,安装CLI,--init-management-schema,"F03,F04,F05",显式初始化、启动检查已有schema,版本迁移/回退流程继续规范,本仓源码/用户需求
+GW-08,网关,单进程运行与构建,已接入,配置/脚本,cmd/playergateway；build_gateway.py,"F08,F15",Windows/Linux产物，无游戏服务源码依赖,完整线上安装和容量验收,本仓源码/用户需求
+UI-01,前端,页面布局与主题编辑,已接入,GM导航/主题面板,gm-web/shell.js；vendor/theme-studio.js,F11,主题调色、偏好保存及响应式,按完整功能重新组织页面,本仓源码/用户需求
+UI-02,前端,独立静态GM分发,已接入,/console/,gm-web/index.html；package_gm_web.py,"F01,F11",无需Node后台，私有网关同源提供,发行版本协商和部署管理,本仓源码/用户需求
+UI-03,前端,PWA/Android,待实现,可选后续客户端,复用v1；当前无原生端或完整PWA,"F01,F02,F11",Web已适配移动布局,安装/离线能力、设备凭据和原生适配,本仓源码/用户需求

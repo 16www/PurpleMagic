@@ -1,0 +1,301 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:flutter/foundation.dart';
+
+enum UpdatePhase {
+  ready,
+  checking,
+  downloading,
+  paused,
+  installing,
+  loggingIn,
+  resetting,
+  error,
+}
+
+abstract class CoreClient {
+  void Function(Map<String, dynamic>)? onState;
+  Future<Map<String, dynamic>> call(
+    String method, [
+    Map<String, dynamic>? args,
+  ]);
+  void dispose();
+}
+
+/// Only an owned child's standard streams carry account requests. No localhost
+/// listener, shell interpolation, credential arguments or credential logging.
+class ProcessCoreClient extends CoreClient {
+  Process? _process;
+  Future<void>? _starting;
+  int _sequence = 0;
+  final _pending = <int, Completer<Map<String, dynamic>>>{};
+  bool _disposed = false;
+  Future<void> _start() => _starting ??= _launch();
+  Future<void> _launch() async {
+    final directory = File(Platform.resolvedExecutable).parent.path;
+    final executable = '$directory${Platform.pathSeparator}DNF90.Core.exe';
+    if (!await File(executable).exists()) {
+      throw StateError('缺少登录器核心文件，请解压完整安装包后重试。');
+    }
+    final process = await Process.start(
+      executable,
+      const [],
+      workingDirectory: directory,
+    );
+    if (_disposed) {
+      process.kill();
+      throw StateError('登录器已关闭。');
+    }
+    _process = process;
+    process.stdout
+        .transform(utf8.decoder)
+        .transform(const LineSplitter())
+        .listen((line) {
+          try {
+            final reply = jsonDecode(line) as Map<String, dynamic>;
+            final state = reply['state'];
+            if (state is Map<String, dynamic>) onState?.call(state);
+            final completer = _pending.remove(reply['id']);
+            if (completer == null) return;
+            if (reply['ok'] == true) {
+              completer.complete(reply);
+            } else {
+              completer.completeError(
+                StateError(reply['error'] as String? ?? '操作未完成。'),
+              );
+            }
+          } catch (_) {
+            _failPending('核心通信中断，请重新打开登录器。');
+          }
+        }, onError: (_) => _failPending('核心通信中断。'));
+    // Drain diagnostic output, but never persist it or expose paths/credentials.
+    process.stderr.drain<void>();
+    unawaited(
+      process.exitCode.then((_) {
+        _failPending('登录器核心已退出；请确认没有重复运行后重新打开。');
+      }),
+    );
+  }
+
+  void _failPending(String message) {
+    for (final pending in _pending.values) {
+      if (!pending.isCompleted) pending.completeError(StateError(message));
+    }
+    _pending.clear();
+  }
+
+  @override
+  Future<Map<String, dynamic>> call(
+    String method, [
+    Map<String, dynamic>? args,
+  ]) async {
+    await _start();
+    if (_disposed) throw StateError('登录器已关闭。');
+    final id = ++_sequence;
+    final response = Completer<Map<String, dynamic>>();
+    _pending[id] = response;
+    _process!.stdin.writeln(
+      jsonEncode({'id': id, 'method': method, 'args': args ?? {}}),
+    );
+    return response.future;
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    // EOF asks the host to cancel downloads and finish any atomic file commit.
+    // Do not kill a helper that may be restoring a transaction.
+    _process?.stdin.close();
+    _failPending('登录器已关闭。');
+  }
+}
+
+class LauncherController extends ChangeNotifier {
+  LauncherController({CoreClient? client})
+    : client = client ?? ProcessCoreClient() {
+    this.client.onState = _receive;
+  }
+  final CoreClient client;
+  UpdatePhase phase = UpdatePhase.ready;
+  double progress = 0;
+  int downloaded = 0, total = 0;
+  bool reducedEffects = false, autoUpdate = true, canLogin = false;
+  bool hasUpdate = false, hasLauncherUpdate = false, connected = false;
+  String source = '本服批准源', message = '正在连接登录器核心…', version = '';
+  String clientDirectory = '', account = '';
+  bool rememberAccount = true;
+  List<Map<String, dynamic>> news = [];
+  bool _disposed = false, resettingConfiguration = false;
+  bool _automaticUpdating = false;
+  bool get busy =>
+      _automaticUpdating ||
+      resettingConfiguration ||
+      {
+        UpdatePhase.checking,
+        UpdatePhase.downloading,
+        UpdatePhase.installing,
+        UpdatePhase.loggingIn,
+        UpdatePhase.resetting,
+      }.contains(phase);
+  String get status => switch (phase) {
+    UpdatePhase.checking => '正在检查更新',
+    UpdatePhase.downloading => '正在下载更新',
+    UpdatePhase.paused => '更新已暂停',
+    UpdatePhase.installing => '正在安装更新',
+    UpdatePhase.loggingIn => '正在连接游戏',
+    UpdatePhase.resetting => '正在重置本机配置',
+    UpdatePhase.error => '操作未完成',
+    UpdatePhase.ready =>
+      hasUpdate
+          ? '有客户端更新'
+          : canLogin
+          ? '客户端已就绪'
+          : '请选择客户端目录',
+  };
+  void _receive(Map<String, dynamic> state) {
+    if (_disposed) return;
+    phase = switch (state['phase']) {
+      'checking' => UpdatePhase.checking,
+      'downloading' => UpdatePhase.downloading,
+      'paused' => UpdatePhase.paused,
+      'installing' => UpdatePhase.installing,
+      'logging-in' => UpdatePhase.loggingIn,
+      'resetting' => UpdatePhase.resetting,
+      'error' => UpdatePhase.error,
+      _ => UpdatePhase.ready,
+    };
+    progress = (state['progress'] as num?)?.toDouble() ?? 0;
+    downloaded = (state['downloaded'] as num?)?.toInt() ?? 0;
+    total = (state['total'] as num?)?.toInt() ?? 0;
+    canLogin = state['canLogin'] == true;
+    hasUpdate = state['hasUpdate'] == true;
+    hasLauncherUpdate = state['hasLauncherUpdate'] == true;
+    message = state['message'] as String? ?? '';
+    source = state['source'] as String? ?? '本服批准源';
+    version = state['version'] as String? ?? '';
+    news = (state['news'] as List? ?? []).cast<Map<String, dynamic>>();
+    final prefs = state['preferences'] as Map<String, dynamic>? ?? {};
+    clientDirectory = prefs['clientDirectory'] as String? ?? '';
+    account = prefs['account'] as String? ?? '';
+    rememberAccount = prefs['rememberAccount'] != false;
+    autoUpdate = prefs['autoCheck'] != false;
+    reducedEffects = prefs['reducedEffects'] == true;
+    connected = true;
+    notifyListeners();
+  }
+
+  Future<void> initialize() async {
+    await client.call('initialize');
+  }
+
+  Future<void> reportHealthy(String path) async {
+    await client.call('health', {'path': path});
+  }
+
+  Future<bool> automaticUpdate() async {
+    if (_disposed || !connected || !autoUpdate || busy) return false;
+    _automaticUpdating = true;
+    notifyListeners();
+    try {
+      final result = await client.call('autoUpdate', {'uiPid': pid});
+      return result['restart'] == true;
+    } catch (error) {
+      if (!_disposed) {
+        message = error.toString().replaceFirst('Bad state: ', '');
+        phase = UpdatePhase.error;
+      }
+      return false;
+    } finally {
+      _automaticUpdating = false;
+      if (!_disposed) notifyListeners();
+    }
+  }
+
+  Future<void> _background(String method) async {
+    try {
+      await client.call(method);
+    } catch (error) {
+      if (!_disposed) {
+        message = error.toString().replaceFirst('Bad state: ', '');
+        phase = UpdatePhase.error;
+        notifyListeners();
+      }
+    }
+  }
+
+  void beginUpdate() {
+    if (busy || !connected) return;
+    unawaited(
+      _background(
+        hasUpdate || phase == UpdatePhase.paused ? 'update' : 'check',
+      ),
+    );
+  }
+
+  void pauseOrResume() {
+    unawaited(_background(phase == UpdatePhase.paused ? 'update' : 'pause'));
+  }
+
+  Future<void> save({
+    String? directory,
+    String? remembered,
+    bool? remember,
+    bool? effects,
+    bool? check,
+  }) async {
+    await client.call('preferences', {
+      'clientDirectory': directory ?? clientDirectory,
+      'account': remembered ?? account,
+      'rememberAccount': remember ?? rememberAccount,
+      'autoCheck': check ?? autoUpdate,
+      'reducedEffects': effects ?? reducedEffects,
+    });
+  }
+
+  void preferences({bool? effects, bool? check}) {
+    unawaited(
+      save(effects: effects, check: check).catchError((Object error) {
+        if (!_disposed) {
+          message = error.toString().replaceFirst('Bad state: ', '');
+          notifyListeners();
+        }
+      }),
+    );
+  }
+
+  Future<void> submit(bool register, String account, String password) async {
+    await client.call(register ? 'register' : 'login', {
+      'account': account,
+      'password': password,
+    });
+  }
+
+  Future<bool> updateLauncher() async {
+    final result = await client.call('updateLauncher', {'uiPid': pid});
+    return result['restart'] == true;
+  }
+
+  Future<Map<String, dynamic>> resetGameConfiguration() async {
+    if (busy) throw StateError('当前操作完成后再重置游戏配置。');
+    resettingConfiguration = true;
+    notifyListeners();
+    try {
+      final result = await client.call('resetGameConfiguration', {
+        'confirmed': true,
+      });
+      return result['configurationReset'] as Map<String, dynamic>;
+    } finally {
+      resettingConfiguration = false;
+      if (!_disposed) notifyListeners();
+    }
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    client.dispose();
+    super.dispose();
+  }
+}

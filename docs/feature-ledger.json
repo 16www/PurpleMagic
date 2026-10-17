@@ -1,0 +1,1118 @@
+{
+  "schemaVersion": 1,
+  "project": "PurpleMagic",
+  "asOf": "2026-10-17",
+  "scope": "当前提取源码；已接入不表示已上线。GM复合需求使用部分完成保留细项。",
+  "items": [
+    {
+      "id": "GM-01",
+      "group": "GM",
+      "feature": "账号/角色检索、归属、基础资料",
+      "source": "G/A/R",
+      "status": "已接入",
+      "ui": "账号/角色列表与详情",
+      "api": "GET accounts; accounts/{a}; accounts/{a}/characters; characters; characters/{c}",
+      "facilities": [
+        "F01",
+        "F02",
+        "F03"
+      ],
+      "implementedScope": "分页、检索、归属与基础资料",
+      "remaining": "前端重组为独立玩家详情页"
+    },
+    {
+      "id": "GM-02",
+      "group": "GM",
+      "feature": "账号货币、金币与共享晶块",
+      "source": "G/A/S",
+      "status": "部分完成",
+      "ui": "点券/金币/金库/共享资源",
+      "api": "accounts/{a}/currency; currency-adjustments; characters/{c}/gold-operations; accounts/{a}/vault-operations; inventory-operations",
+      "facilities": [
+        "F03",
+        "F04",
+        "F05",
+        "F09"
+      ],
+      "implementedScope": "点券增减、角色与金库金币、12槽晶块/灵魂及各自流水",
+      "remaining": "统一资产入口；其他货币按权威钱包逐项核对"
+    },
+    {
+      "id": "GM-03",
+      "group": "GM",
+      "feature": "冒险团等级、成长胶囊",
+      "source": "G/A",
+      "status": "旧版实现",
+      "ui": "待迁入账号详情",
+      "api": "旧 /api/accounts/{id}/honor-level; growth-capsule",
+      "facilities": [
+        "F03",
+        "F04",
+        "F05"
+      ],
+      "implementedScope": "旧版冒险团等级与胶囊操作",
+      "remaining": "迁入v1、预览/回执及新页面"
+    },
+    {
+      "id": "GM-04",
+      "group": "GM",
+      "feature": "密码重置、登录限制与绑定管理",
+      "source": "A/R",
+      "status": "待接入",
+      "ui": "账号安全页待建",
+      "api": "无当前v1管理路由",
+      "facilities": [
+        "F01",
+        "F03",
+        "F09",
+        "F12"
+      ],
+      "implementedScope": "参考目标已收录",
+      "remaining": "密码、绑定与登录限制接游戏准入"
+    },
+    {
+      "id": "GM-05",
+      "group": "GM",
+      "feature": "角色战斗属性、SP/TP",
+      "source": "G/A",
+      "status": "部分完成",
+      "ui": "技能点页签",
+      "api": "characters/{c}/skill-points; skill-point-operations",
+      "facilities": [
+        "F04",
+        "F05",
+        "F06",
+        "F09"
+      ],
+      "implementedScope": "额外SP/TP、归零/重算与流水",
+      "remaining": "持续战斗属性需游戏侧覆写契约"
+    },
+    {
+      "id": "GM-06",
+      "group": "GM",
+      "feature": "等级、转职/觉醒、副职业",
+      "source": "G/A",
+      "status": "部分完成",
+      "ui": "等级/职业/副职业页签",
+      "api": "characters/{c}/level; level-operations; profession; profession-operations; expert-job; expert-job-operations",
+      "facilities": [
+        "F04",
+        "F05",
+        "F06",
+        "F09"
+      ],
+      "implementedScope": "等级、转职与觉醒已验证；副职业代码已接",
+      "remaining": "副职业开发中：数据库夹具/网页脚本失败未收尾"
+    },
+    {
+      "id": "GM-07",
+      "group": "GM",
+      "feature": "负重、金币携带上限、背包/仓库容量、装备槽与副本权限",
+      "source": "G/A",
+      "status": "部分完成",
+      "ui": "容量页签",
+      "api": "characters/{c}/containers; container-operations",
+      "facilities": [
+        "F04",
+        "F05",
+        "F06",
+        "F09"
+      ],
+      "implementedScope": "主背包、装扮栏、个人仓库档位扩容",
+      "remaining": "负重/携金阶段/装备槽/副本权限迁入；持久覆写"
+    },
+    {
+      "id": "GM-08",
+      "group": "GM",
+      "feature": "契约查询与发放",
+      "source": "G/A",
+      "status": "旧版实现",
+      "ui": "契约页面待迁",
+      "api": "旧 /api/characters/{id}/premium",
+      "facilities": [
+        "F03",
+        "F04",
+        "F06",
+        "F09"
+      ],
+      "implementedScope": "旧版契约查询与发放",
+      "remaining": "v1及期限/归属/回执页面"
+    },
+    {
+      "id": "GM-09",
+      "group": "GM",
+      "feature": "改名、克隆、删除角色",
+      "source": "G/A",
+      "status": "旧版实现",
+      "ui": "角色管理页面待迁",
+      "api": "旧 /api/characters/{id}/rename; clone; delete",
+      "facilities": [
+        "F03",
+        "F04",
+        "F09"
+      ],
+      "implementedScope": "旧版改名、克隆、删除",
+      "remaining": "新接口、关联数据计划与事务验收"
+    },
+    {
+      "id": "GM-10",
+      "group": "GM",
+      "feature": "玩家背包、穿戴及分类浏览",
+      "source": "G/A/U",
+      "status": "已接入",
+      "ui": "角色资源/容器列表",
+      "api": "GET characters/{c}/inventory",
+      "facilities": [
+        "F02",
+        "F03"
+      ],
+      "implementedScope": "背包、穿戴及分类分页",
+      "remaining": "按完整玩家工作区重排布局"
+    },
+    {
+      "id": "GM-11",
+      "group": "GM",
+      "feature": "玩家持有物品的实例详情",
+      "source": "G/A/U",
+      "status": "部分完成",
+      "ui": "实例详情面板",
+      "api": "GET characters/{c}/inventory/{container}/{slot}",
+      "facilities": [
+        "F03",
+        "F06"
+      ],
+      "implementedScope": "槽位/实例值/PVF定义及已孵化宠物详情",
+      "remaining": "附魔、徽章等完整实例字段继续适配"
+    },
+    {
+      "id": "GM-12",
+      "group": "GM",
+      "feature": "装备/装扮配置",
+      "source": "G/A",
+      "status": "部分完成",
+      "ui": "物品配置/批量预览",
+      "api": "inventory/{container}/{slot}/options; inventory-operations",
+      "facilities": [
+        "F04",
+        "F05",
+        "F06",
+        "F09"
+      ],
+      "implementedScope": "品级、强化/增幅、锻造、期限、堆叠及宠物装备期限",
+      "remaining": "装扮属性、附魔、徽章、宠物成长等细项"
+    },
+    {
+      "id": "GM-13",
+      "group": "GM",
+      "feature": "单格删除、选中批量删除、分类清理",
+      "source": "G/A",
+      "status": "部分完成",
+      "ui": "物品删除与本页选择",
+      "api": "characters/{c}/inventory-operations",
+      "facilities": [
+        "F04",
+        "F05",
+        "F09"
+      ],
+      "implementedScope": "单格/选中批次、穿戴、宠物关联删除及回执",
+      "remaining": "跨页分类清理、宠物蛋关联处理"
+    },
+    {
+      "id": "GM-14",
+      "group": "GM",
+      "feature": "个人仓库、账号金库与共享资源",
+      "source": "G/A",
+      "status": "部分完成",
+      "ui": "容器/金库/共享资源",
+      "api": "characters/{c}/inventory; accounts/{a}/vault; vault-operations; inventory-operations",
+      "facilities": [
+        "F03",
+        "F04",
+        "F05",
+        "F06",
+        "F09"
+      ],
+      "implementedScope": "个人仓库、账号金库、共享资源读取编辑与容量/金币",
+      "remaining": "统一账号视图；完整物品实例细项"
+    },
+    {
+      "id": "GM-15",
+      "group": "GM",
+      "feature": "物品目录、完整说明、套装与条件字段",
+      "source": "G/A/U",
+      "status": "已接入",
+      "ui": "物品目录与详情",
+      "api": "GET items; items/{itemId}",
+      "facilities": [
+        "F06"
+      ],
+      "implementedScope": "物品定义、说明、套装/条件字段及磁盘索引",
+      "remaining": "客户端分片缓存与内存继续压缩"
+    },
+    {
+      "id": "GM-16",
+      "group": "GM",
+      "feature": "发放参数、装备属性与期限选项",
+      "source": "G/A",
+      "status": "部分完成",
+      "ui": "邮件/福利附件参数",
+      "api": "items/{itemId}/grant-options; mail/preview; benefits",
+      "facilities": [
+        "F04",
+        "F05",
+        "F06",
+        "F07"
+      ],
+      "implementedScope": "品级/强化/增幅/锻造/期限；福利跨PVF核对",
+      "remaining": "装扮属性选项与直接背包发放"
+    },
+    {
+      "id": "GM-17",
+      "group": "GM",
+      "feature": "角色邮箱、附件、单封删除/清理",
+      "source": "G/A",
+      "status": "部分完成",
+      "ui": "邮箱列表/详情/清理",
+      "api": "characters/{c}/mailbox; mailbox/{mailId}; mailbox-operations; mailbox-cleanups",
+      "facilities": [
+        "F03",
+        "F04",
+        "F05",
+        "F07"
+      ],
+      "implementedScope": "筛选、正文附件、选中删除和跨页固定名单清理",
+      "remaining": "附件完整实例字段"
+    },
+    {
+      "id": "GM-18",
+      "group": "GM",
+      "feature": "单角色邮件预览与发放",
+      "source": "G/A/U",
+      "status": "已接入",
+      "ui": "发放页",
+      "api": "POST mail/preview; tasks/{id}/run",
+      "facilities": [
+        "F04",
+        "F05",
+        "F07"
+      ],
+      "implementedScope": "单角色预览、邮件投递及永久回执",
+      "remaining": "新版页面重组"
+    },
+    {
+      "id": "GM-19",
+      "group": "GM",
+      "feature": "批量邮件、选定/在线角色发放",
+      "source": "G/A/R",
+      "status": "部分完成",
+      "ui": "名单/在线发放",
+      "api": "POST mail/preview; mail/online-preview; tasks/{id}/run",
+      "facilities": [
+        "F04",
+        "F05",
+        "F07",
+        "F09"
+      ],
+      "implementedScope": "指定最多100人、在线最多5000人，固定快照/分批恢复",
+      "remaining": "游戏online_snapshot适配部署联调"
+    },
+    {
+      "id": "GM-20",
+      "group": "GM",
+      "feature": "注册/新手福利与历史补发",
+      "source": "G/R/U",
+      "status": "已接入",
+      "ui": "福利规则/记录",
+      "api": "benefits; benefits/{id}/state; benefits/{id}/preview; benefits/{id}/pvf-preview; pvf-apply",
+      "facilities": [
+        "F04",
+        "F05",
+        "F06",
+        "F07"
+      ],
+      "implementedScope": "按账号一次/按角色一次、自动扫描、参数附件、跨PVF保留去重",
+      "remaining": "统一规则编辑体验；初始资产政策仍归游戏创建链路"
+    },
+    {
+      "id": "GM-21",
+      "group": "GM",
+      "feature": "运营作业、进度和失败重试",
+      "source": "G/A/U",
+      "status": "部分完成",
+      "ui": "运营作业页",
+      "api": "GET tasks; tasks/{id}; tasks/{id}/recipients; POST tasks/{id}/run",
+      "facilities": [
+        "F05",
+        "F07"
+      ],
+      "implementedScope": "邮件/福利批次、进度、重试；邮箱清理另有持久进度",
+      "remaining": "通用调度租约、扫描/索引/快照作业"
+    },
+    {
+      "id": "GM-22",
+      "group": "GM",
+      "feature": "进行中、已完成游戏任务",
+      "source": "G/A/U",
+      "status": "已接入",
+      "ui": "角色游戏任务",
+      "api": "GET characters/{c}/quests",
+      "facilities": [
+        "F02",
+        "F03",
+        "F06"
+      ],
+      "implementedScope": "已接/完成/全部筛选、进度及读取时刻",
+      "remaining": "新版任务工作区"
+    },
+    {
+      "id": "GM-23",
+      "group": "GM",
+      "feature": "任务库、可接条件、前置关系、说明与奖励",
+      "source": "G/A/U",
+      "status": "部分完成",
+      "ui": "任务库与详情",
+      "api": "GET quests; quests/{questId}",
+      "facilities": [
+        "F06"
+      ],
+      "implementedScope": "名称/ID查询、条件/前置/说明/奖励",
+      "remaining": "角色可接资格和等级/地区筛选"
+    },
+    {
+      "id": "GM-24",
+      "group": "GM",
+      "feature": "接取、放弃、标记可交",
+      "source": "G/A",
+      "status": "部分完成",
+      "ui": "游戏任务操作",
+      "api": "POST characters/{c}/quest-operations/preview; quest-operations",
+      "facilities": [
+        "F04",
+        "F05",
+        "F06",
+        "F09"
+      ],
+      "implementedScope": "接取、放弃、标记可交及回执",
+      "remaining": "涉及物品的联合事务、游戏编辑锁"
+    },
+    {
+      "id": "GM-25",
+      "group": "GM",
+      "feature": "标记完成、恢复未完成、重置任务链",
+      "source": "G/A",
+      "status": "已接入",
+      "ui": "任务完成/恢复/重置",
+      "api": "POST characters/{c}/quest-operations/preview; quest-operations",
+      "facilities": [
+        "F04",
+        "F05",
+        "F06",
+        "F09"
+      ],
+      "implementedScope": "无奖励完成、普通任务恢复、关联家族重置",
+      "remaining": "上线前游戏编辑锁；职业变更走专用流程"
+    },
+    {
+      "id": "GM-26",
+      "group": "GM",
+      "feature": "批量处理当前已接任务",
+      "source": "G/A",
+      "status": "部分完成",
+      "ui": "游戏任务本页选择",
+      "api": "characters/{c}/quest-operations",
+      "facilities": [
+        "F04",
+        "F05",
+        "F06"
+      ],
+      "implementedScope": "选中最多200项，前后值及整批原子提交",
+      "remaining": "跨页全部已接任务"
+    },
+    {
+      "id": "GM-27",
+      "group": "GM",
+      "feature": "按等级/分类处理主线、支线、成就、称号、每日与职业任务",
+      "source": "A",
+      "status": "待实现",
+      "ui": "任务库分类批处理",
+      "api": "无当前分类批次路由",
+      "facilities": [
+        "F04",
+        "F05",
+        "F06",
+        "F07"
+      ],
+      "implementedScope": "主线/支线/成就/称号/每日/职业目标已收录",
+      "remaining": "分类资格、奖励语义及批次事务"
+    },
+    {
+      "id": "GM-28",
+      "group": "GM",
+      "feature": "游戏活动查询与开关",
+      "source": "G/R",
+      "status": "旧版实现",
+      "ui": "游戏活动页待迁",
+      "api": "旧 /api/activities；游戏运行适配",
+      "facilities": [
+        "F04",
+        "F09"
+      ],
+      "implementedScope": "旧版活动读取/保存",
+      "remaining": "v1、实际生效状态和新页面"
+    },
+    {
+      "id": "GM-29",
+      "group": "GM",
+      "feature": "账号封禁、IP 封禁、期限、原因及解除",
+      "source": "A/R/U",
+      "status": "待实现",
+      "ui": "治理·封禁/IP",
+      "api": "无当前v1封禁路由",
+      "facilities": [
+        "F03",
+        "F04",
+        "F09",
+        "F12"
+      ],
+      "implementedScope": "账号/IP、期限、原因、解除目标已收录",
+      "remaining": "权威准入执行点、审计及页面"
+    },
+    {
+      "id": "GM-30",
+      "group": "GM",
+      "feature": "在线角色、踢下线、登录记录",
+      "source": "A/R",
+      "status": "部分完成",
+      "ui": "在线名单用于邮件",
+      "api": "POST mail/online-preview → online_snapshot",
+      "facilities": [
+        "F03",
+        "F09"
+      ],
+      "implementedScope": "完整在线快照、采集时间与代次",
+      "remaining": "独立在线页、踢下线、登录历史"
+    },
+    {
+      "id": "GM-31",
+      "group": "GM",
+      "feature": "通关记录、排行、间隔、耗时分布、单局详情",
+      "source": "A/U",
+      "status": "待实现",
+      "ui": "通关记录与统计",
+      "api": "无当前通关查询路由",
+      "facilities": [
+        "F03",
+        "F07",
+        "F13"
+      ],
+      "implementedScope": "耗时、排行、间隔、单局记录目标已收录",
+      "remaining": "权威事件采集、幂等入库、聚合与页面"
+    },
+    {
+      "id": "GM-32",
+      "group": "GM",
+      "feature": "收益交叉核查、未结算进入、疑似异常与人工复核",
+      "source": "A/R/U",
+      "status": "待实现",
+      "ui": "异常调查",
+      "api": "无当前异常查询路由",
+      "facilities": [
+        "F07",
+        "F12",
+        "F13"
+      ],
+      "implementedScope": "收益核查、未结算进入、规则与人工复核目标",
+      "remaining": "事件来源、缺口、规则版本、人工结论"
+    },
+    {
+      "id": "GM-33",
+      "group": "GM",
+      "feature": "背包异常检查、无效引用与数据修复",
+      "source": "A",
+      "status": "待实现",
+      "ui": "资产扫描与修复计划",
+      "api": "无当前扫描路由",
+      "facilities": [
+        "F03",
+        "F04",
+        "F07",
+        "F12"
+      ],
+      "implementedScope": "无效引用与背包异常目标已收录",
+      "remaining": "有界扫描、修复预览/事务/回执"
+    },
+    {
+      "id": "GM-34",
+      "group": "GM",
+      "feature": "外部只读玩家背包/穿戴/通关快照",
+      "source": "U",
+      "status": "设计已定",
+      "ui": "公开范围与快照管理",
+      "api": "PUBLIC_PLAYER_SNAPSHOTS.md；无当前公开路由",
+      "facilities": [
+        "F06",
+        "F07",
+        "F13",
+        "F14"
+      ],
+      "implementedScope": "GM选名单或全量含未来角色；默认每天一次",
+      "remaining": "低优先级生成、原子发布、公开只读接口"
+    },
+    {
+      "id": "GM-35",
+      "group": "GM",
+      "feature": "登录器公告编辑、排序与发布",
+      "source": "R/U",
+      "status": "部分完成",
+      "ui": "Hub公告；console入口待统一",
+      "api": "GET /admin/api/state; PUT /admin/api/news",
+      "facilities": [
+        "F01",
+        "F08"
+      ],
+      "implementedScope": "Hub编辑/排序/修订校验/签名公告已有",
+      "remaining": "gm-web仅在/gm/模式启用；/console/会话与页面接入"
+    },
+    {
+      "id": "GM-36",
+      "group": "GM",
+      "feature": "游戏广播、弹窗、事件播报",
+      "source": "R",
+      "status": "待实现",
+      "ui": "广播/弹窗/事件播报",
+      "api": "无当前v1广播路由",
+      "facilities": [
+        "F09",
+        "F12"
+      ],
+      "implementedScope": "接收对象与事件目标已收录",
+      "remaining": "适配游戏通知、权限与结果"
+    },
+    {
+      "id": "GM-37",
+      "group": "GM",
+      "feature": "登录器更新、Linux 网关与外部更新源",
+      "source": "R/U",
+      "status": "部分完成",
+      "ui": "更新Hub独立管理页",
+      "api": "/admin/api/source; check; publish; /launcher/v2/bootstrap.json",
+      "facilities": [
+        "F08",
+        "F10"
+      ],
+      "implementedScope": "登录器、源配置、更新及单网关代码已整合",
+      "remaining": "统一管理入口；已发行登录器源码对齐"
+    },
+    {
+      "id": "GM-38",
+      "group": "GM",
+      "feature": "服务状态、日志、维护、PVF/索引版本管理",
+      "source": "G/R",
+      "status": "部分完成",
+      "ui": "能力信息/离线索引工具",
+      "api": "GET capabilities; /api/status；GMIndex CLI",
+      "facilities": [
+        "F02",
+        "F06",
+        "F08",
+        "F15"
+      ],
+      "implementedScope": "索引代次/能力信息与本地检查脚本",
+      "remaining": "状态、日志、维护、构建及切换管理页"
+    },
+    {
+      "id": "GM-39",
+      "group": "GM",
+      "feature": "账号导出/恢复、服务数据备份",
+      "source": "G/A/R",
+      "status": "旧版实现",
+      "ui": "账号导出/恢复待迁",
+      "api": "旧 /api/accounts/{id}/backup; /api/accounts/restore",
+      "facilities": [
+        "F03",
+        "F04",
+        "F12",
+        "F15"
+      ],
+      "implementedScope": "旧版导出恢复；服务备份归部署工具",
+      "remaining": "v1预览与版本核对、恢复验收"
+    },
+    {
+      "id": "GM-40",
+      "group": "GM",
+      "feature": "操作审计与查询",
+      "source": "A/R/U/S",
+      "status": "部分完成",
+      "ui": "各功能历史与回执",
+      "api": "*-operations; currency-adjustments; tasks/{id}/recipients",
+      "facilities": [
+        "F05",
+        "F12"
+      ],
+      "implementedScope": "资产/成长/任务/邮箱独立历史，邮件福利持久回执",
+      "remaining": "跨功能审计、管理员身份和统一筛选"
+    },
+    {
+      "id": "GM-41",
+      "group": "GM",
+      "feature": "决斗胜点、等级与段位",
+      "source": "A：`duel-progress`",
+      "status": "待接入",
+      "ui": "决斗成长",
+      "api": "无当前v1决斗管理路由",
+      "facilities": [
+        "F03",
+        "F04",
+        "F06"
+      ],
+      "implementedScope": "胜点、等级、段位目标已收录",
+      "remaining": "PVF选项、事务和页面"
+    },
+    {
+      "id": "GM-42",
+      "group": "GM",
+      "feature": "副本进入次数与额度",
+      "source": "A：`stats/dungeon-entry-limits`",
+      "status": "待接入",
+      "ui": "副本额度",
+      "api": "无当前v1额度管理路由",
+      "facilities": [
+        "F03",
+        "F04",
+        "F09"
+      ],
+      "implementedScope": "基础/额外/已用、账号/角色/日期目标",
+      "remaining": "与游戏进入校验一致的额度管理"
+    },
+    {
+      "id": "GM-43",
+      "group": "GM",
+      "feature": "异常统计白名单",
+      "source": "A：`clear-stats/whitelist` 列表/加入/移除",
+      "status": "待实现",
+      "ui": "异常白名单",
+      "api": "无当前v1白名单路由",
+      "facilities": [
+        "F12",
+        "F13"
+      ],
+      "implementedScope": "加入/移除/原因/操作者及原始记录目标",
+      "remaining": "规则生效和复查过滤"
+    },
+    {
+      "id": "GM-44",
+      "group": "GM",
+      "feature": "IP 注册额度",
+      "source": "A：`moderation/registration-limit`、`clear`",
+      "status": "待接入",
+      "ui": "IP注册额度",
+      "api": "无当前v1注册额度路由",
+      "facilities": [
+        "F04",
+        "F09",
+        "F12"
+      ],
+      "implementedScope": "设置和恢复默认目标",
+      "remaining": "接实际注册准入与读回"
+    },
+    {
+      "id": "GM-45",
+      "group": "GM",
+      "feature": "释放卡住的角色会话",
+      "source": "A：`moderation/release-character`",
+      "status": "待接入",
+      "ui": "释放卡住会话",
+      "api": "无当前v1释放会话路由",
+      "facilities": [
+        "F09",
+        "F12"
+      ],
+      "implementedScope": "卡角色会话释放目标",
+      "remaining": "游戏权威执行与返回结果"
+    },
+    {
+      "id": "GM-46",
+      "group": "GM",
+      "feature": "账号同步与批量管理",
+      "source": "R：`sync-game-accounts`、`delete-account(s)`、`reset-all-passwords`；A/G：`create-for-clone`",
+      "status": "待接入",
+      "ui": "批量账号管理",
+      "api": "无当前v1批量账号路由",
+      "facilities": [
+        "F03",
+        "F04",
+        "F05",
+        "F07",
+        "F09"
+      ],
+      "implementedScope": "同步/创建/删除/批量重置密码目标",
+      "remaining": "关联数据预览、任务、事务及权限"
+    },
+    {
+      "id": "GM-47",
+      "group": "GM",
+      "feature": "客户端文件完整性与允许版本",
+      "source": "R：`integrity` 查询/上传/添加/移除/allow",
+      "status": "部分完成",
+      "ui": "登录器文件检查/Hub发布",
+      "api": "Host check/update；签名bootstrap与内容清单",
+      "facilities": [
+        "F08",
+        "F10"
+      ],
+      "implementedScope": "签名更新与文件摘要校验已有",
+      "remaining": "允许版本管理与新版统一页面"
+    },
+    {
+      "id": "GM-48",
+      "group": "GM",
+      "feature": "网关端口与连接策略",
+      "source": "R：`game-ports`、`launcher-config`、`maintenance`",
+      "status": "待接入",
+      "ui": "系统连接与维护",
+      "api": "现有网关配置/部署脚本；无统一v1路由",
+      "facilities": [
+        "F08",
+        "F09",
+        "F15"
+      ],
+      "implementedScope": "端口/来源/维护目标与工具已有",
+      "remaining": "统一编辑、发布、生效读回与回退"
+    },
+    {
+      "id": "L-01",
+      "group": "登录器",
+      "feature": "启动初始化与偏好",
+      "source": "本仓源码/用户需求",
+      "status": "已接入",
+      "ui": "Flutter首页/设置",
+      "api": "Host initialize/preferences",
+      "facilities": [
+        "F10"
+      ],
+      "implementedScope": "目录、偏好与引擎状态",
+      "remaining": "与新项目品牌/发行基线对齐"
+    },
+    {
+      "id": "L-02",
+      "group": "登录器",
+      "feature": "账号注册/登录",
+      "source": "本仓源码/用户需求",
+      "status": "已接入",
+      "ui": "注册登录表单",
+      "api": "Host register/login → /api/account/register; /api/account/login",
+      "facilities": [
+        "F08",
+        "F10"
+      ],
+      "implementedScope": "调用玩家网关，凭据与游戏管理鉴权分开",
+      "remaining": "与实际游戏实例联调"
+    },
+    {
+      "id": "L-03",
+      "group": "登录器",
+      "feature": "客户端目录发现",
+      "source": "本仓源码/用户需求",
+      "status": "已接入",
+      "ui": "客户端目录选择",
+      "api": "ClientDirectoryDiscovery",
+      "facilities": [
+        "F10"
+      ],
+      "implementedScope": "保留0.2.6自动目录发现",
+      "remaining": "合入已发布版本时保留回归"
+    },
+    {
+      "id": "L-04",
+      "group": "登录器",
+      "feature": "健康与频道诊断",
+      "source": "本仓源码/用户需求",
+      "status": "已接入",
+      "ui": "状态/诊断",
+      "api": "Host health；ChannelProbe/NativeChannelHistory",
+      "facilities": [
+        "F10"
+      ],
+      "implementedScope": "状态、频道配置与检查逻辑",
+      "remaining": "实际发布profile联调"
+    },
+    {
+      "id": "L-05",
+      "group": "登录器",
+      "feature": "检查/自动/手动更新与暂停",
+      "source": "本仓源码/用户需求",
+      "status": "已接入",
+      "ui": "更新进度",
+      "api": "Host check/autoUpdate/update/pause",
+      "facilities": [
+        "F08",
+        "F10"
+      ],
+      "implementedScope": "文件摘要、进度、取消与恢复",
+      "remaining": "对齐最新发行内容源契约"
+    },
+    {
+      "id": "L-06",
+      "group": "登录器",
+      "feature": "签名与兼容性校验",
+      "source": "本仓源码/用户需求",
+      "status": "已接入",
+      "ui": "启动/更新流程",
+      "api": "SignedUpdate/NativeClientGate/NativeGuildCompatibility",
+      "facilities": [
+        "F08",
+        "F10"
+      ],
+      "implementedScope": "签名、EXE/PVF兼容与完整性检查",
+      "remaining": "对齐当前批准profile和实际玩家资源"
+    },
+    {
+      "id": "L-07",
+      "group": "登录器",
+      "feature": "游戏启动与进程管理",
+      "source": "本仓源码/用户需求",
+      "status": "已接入",
+      "ui": "启动游戏",
+      "api": "LauncherEngine/BundleProcesses",
+      "facilities": [
+        "F10"
+      ],
+      "implementedScope": "原生客户端启动与进程生命周期",
+      "remaining": "真实客户端验收"
+    },
+    {
+      "id": "L-08",
+      "group": "登录器",
+      "feature": "配置重置",
+      "source": "本仓源码/用户需求",
+      "status": "已接入",
+      "ui": "设置页",
+      "api": "Host resetGameConfiguration",
+      "facilities": [
+        "F10"
+      ],
+      "implementedScope": "恢复游戏配置入口",
+      "remaining": "统一新版设置布局"
+    },
+    {
+      "id": "L-09",
+      "group": "登录器",
+      "feature": "公告显示",
+      "source": "本仓源码/用户需求",
+      "status": "已接入",
+      "ui": "公告列表/正文",
+      "api": "Hub签名bootstrap.news",
+      "facilities": [
+        "F08",
+        "F10"
+      ],
+      "implementedScope": "读取已发布公告",
+      "remaining": "GM独立console编辑入口待统一"
+    },
+    {
+      "id": "L-10",
+      "group": "登录器",
+      "feature": "登录器自更新/便携安装",
+      "source": "本仓源码/用户需求",
+      "status": "已接入",
+      "ui": "自更新与安装包",
+      "api": "Host updateLauncher；BundleInstaller/FileTransaction/Portable",
+      "facilities": [
+        "F08",
+        "F10"
+      ],
+      "implementedScope": "文件事务、回退和打包逻辑",
+      "remaining": "最新发行基线与资源输入对齐"
+    },
+    {
+      "id": "L-11",
+      "group": "登录器",
+      "feature": "品牌/视觉/主题",
+      "source": "本仓源码/用户需求",
+      "status": "部分完成",
+      "ui": "Flutter界面",
+      "api": "Flutter main.dart/launcher_controller.dart",
+      "facilities": [
+        "F10",
+        "F11"
+      ],
+      "implementedScope": "当前登录器界面已有",
+      "remaining": "PurpleMagic命名/资产与产品界面重构"
+    },
+    {
+      "id": "L-12",
+      "group": "登录器",
+      "feature": "其他系统客户端",
+      "source": "本仓源码/用户需求",
+      "status": "待规划",
+      "ui": "当前为Windows",
+      "api": "无当前Android/Linux桌面发行",
+      "facilities": [
+        "F10"
+      ],
+      "implementedScope": "需求边界保留",
+      "remaining": "如需扩展，复用API并单独适配平台"
+    },
+    {
+      "id": "GW-01",
+      "group": "网关",
+      "feature": "玩家白名单转发",
+      "source": "本仓源码/用户需求",
+      "status": "已接入",
+      "ui": "无独立操作页",
+      "api": "POST /api/account/login/register；GET /api/status",
+      "facilities": [
+        "F08"
+      ],
+      "implementedScope": "剥离伪造来源/凭据头，注入可信来源",
+      "remaining": "新页面配置入口"
+    },
+    {
+      "id": "GW-02",
+      "group": "网关",
+      "feature": "私有监听与GM挂载",
+      "source": "本仓源码/用户需求",
+      "status": "已接入",
+      "ui": "/console/",
+      "api": "ManagementHandler + privateHandler",
+      "facilities": [
+        "F01",
+        "F02"
+      ],
+      "implementedScope": "同进程分离玩家/管理监听",
+      "remaining": "跨域客户端另定鉴权方案"
+    },
+    {
+      "id": "GW-03",
+      "group": "网关",
+      "feature": "源配置与检查",
+      "source": "本仓源码/用户需求",
+      "status": "已接入",
+      "ui": "/admin/",
+      "api": "PUT /admin/api/source；POST /admin/api/check",
+      "facilities": [
+        "F08"
+      ],
+      "implementedScope": "固定源配置、状态、修订与检查",
+      "remaining": "统一到新GM系统页"
+    },
+    {
+      "id": "GW-04",
+      "group": "网关",
+      "feature": "签名发布与资源服务",
+      "source": "本仓源码/用户需求",
+      "status": "已接入",
+      "ui": "/admin/",
+      "api": "POST /admin/api/publish；/launcher/v2/*",
+      "facilities": [
+        "F08"
+      ],
+      "implementedScope": "签名发布、缓存与包服务",
+      "remaining": "对齐当前线上源/profile，不从旧候选覆盖"
+    },
+    {
+      "id": "GW-05",
+      "group": "网关",
+      "feature": "安装包上传",
+      "source": "本仓源码/用户需求",
+      "status": "已接入",
+      "ui": "Hub管理页",
+      "api": "POST /admin/api/bundle/{version}",
+      "facilities": [
+        "F08"
+      ],
+      "implementedScope": "包输入、校验与缓存",
+      "remaining": "新统一管理页面"
+    },
+    {
+      "id": "GW-06",
+      "group": "网关",
+      "feature": "公告发布",
+      "source": "本仓源码/用户需求",
+      "status": "已接入",
+      "ui": "Hub公告页",
+      "api": "GET /admin/api/state；PUT /admin/api/news",
+      "facilities": [
+        "F08"
+      ],
+      "implementedScope": "If-Match修订、CSRF、签名发布",
+      "remaining": "独立console接入"
+    },
+    {
+      "id": "GW-07",
+      "group": "网关",
+      "feature": "管理schema初始化",
+      "source": "本仓源码/用户需求",
+      "status": "已接入",
+      "ui": "安装CLI",
+      "api": "--init-management-schema",
+      "facilities": [
+        "F03",
+        "F04",
+        "F05"
+      ],
+      "implementedScope": "显式初始化、启动检查已有schema",
+      "remaining": "版本迁移/回退流程继续规范"
+    },
+    {
+      "id": "GW-08",
+      "group": "网关",
+      "feature": "单进程运行与构建",
+      "source": "本仓源码/用户需求",
+      "status": "已接入",
+      "ui": "配置/脚本",
+      "api": "cmd/playergateway；build_gateway.py",
+      "facilities": [
+        "F08",
+        "F15"
+      ],
+      "implementedScope": "Windows/Linux产物，无游戏服务源码依赖",
+      "remaining": "完整线上安装和容量验收"
+    },
+    {
+      "id": "UI-01",
+      "group": "前端",
+      "feature": "页面布局与主题编辑",
+      "source": "本仓源码/用户需求",
+      "status": "已接入",
+      "ui": "GM导航/主题面板",
+      "api": "gm-web/shell.js；vendor/theme-studio.js",
+      "facilities": [
+        "F11"
+      ],
+      "implementedScope": "主题调色、偏好保存及响应式",
+      "remaining": "按完整功能重新组织页面"
+    },
+    {
+      "id": "UI-02",
+      "group": "前端",
+      "feature": "独立静态GM分发",
+      "source": "本仓源码/用户需求",
+      "status": "已接入",
+      "ui": "/console/",
+      "api": "gm-web/index.html；package_gm_web.py",
+      "facilities": [
+        "F01",
+        "F11"
+      ],
+      "implementedScope": "无需Node后台，私有网关同源提供",
+      "remaining": "发行版本协商和部署管理"
+    },
+    {
+      "id": "UI-03",
+      "group": "前端",
+      "feature": "PWA/Android",
+      "source": "本仓源码/用户需求",
+      "status": "待实现",
+      "ui": "可选后续客户端",
+      "api": "复用v1；当前无原生端或完整PWA",
+      "facilities": [
+        "F01",
+        "F02",
+        "F11"
+      ],
+      "implementedScope": "Web已适配移动布局",
+      "remaining": "安装/离线能力、设备凭据和原生适配"
+    }
+  ]
+}

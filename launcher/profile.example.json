@@ -1,0 +1,11 @@
+{
+  "ApiUrl": "https://192.0.2.1",
+  "CertificateSha256": "REPLACE_WITH_SHA256_OF_THE_EXACT_DER_CERTIFICATE",
+  "UpdatePublicKey": "REPLACE_WITH_RELEASE_RSA_PUBLIC_PEM",
+  "SettingsUrl": "https://192.0.2.1/launcher/settings.json",
+  "GameHost": "203.0.113.10",
+  "BootstrapPort": 10000,
+  "ExeSha256": "REPLACE_WITH_VERIFIED_CLIENT_SHA256",
+  "PvfSha256": "REPLACE_WITH_VERIFIED_PVF_SHA256",
+  "DefaultClientDirectory": ""
+}

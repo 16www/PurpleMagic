@@ -1,0 +1,10 @@
+[aria-label="角色职业管理"] fieldset{border:0;margin:0;padding:0;min-width:0}
+.profession-current{padding:20px;border:1px solid var(--app-border);border-radius:var(--app-radius-lg);margin:16px 0;background:var(--app-surface)}
+.profession-current>strong{font-size:26px;font-variant-numeric:tabular-nums}
+.profession-current .detail-grid{margin-bottom:0}
+.profession-fields{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.profession-fields label{display:flex;flex-direction:column;gap:8px}
+.profession-stats{margin:14px 0;padding:12px;border:1px solid var(--app-border);border-radius:var(--app-radius-md)}
+.profession-stats summary{cursor:pointer}
+[aria-label="角色职业管理"] .mono{overflow-wrap:anywhere}
+@media(max-width:600px){.profession-fields{grid-template-columns:1fr}.profession-current .detail-grid,.profession-changes,.profession-stats .detail-grid{grid-template-columns:1fr 1fr}}

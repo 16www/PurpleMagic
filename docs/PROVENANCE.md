@@ -1,0 +1,33 @@
+# Source provenance
+
+`source-manifest.json` records every imported file, its source SHA256 and the
+extraction target. Files from the server working snapshot include uncommitted
+launcher changes; the server HEAD alone does not identify that snapshot.
+
+- `gm/`: Cec1c/DNF90GM at f5235bc3034492c3f58e07ea3dd85c81c5d228a6. Its own
+  NOTICE and pinned compatibility provenance remain under gm/.
+- `launcher/`, gateway implementation and selected build helpers: the existing
+  ServerS5A3 launcher working snapshot, pinned per file. The legacy WPF Player
+  executable and game service application are excluded. Core compatibility and
+  legacy signed-update support used by tests remain.
+- `gateway/`: playergateway, launcherhub and the migrated management/domain/
+  repository packages, using the independent module `dnf90.local/gateway`.
+  It includes the MySQL driver and dependencies listed in go.mod. It has no game
+  executable or build-time dependency on a neighboring game checkout.
+
+The project was named PurpleMagic on 2026-10-17 and is hosted at
+[Cec1c/PurpleMagic](https://github.com/Cec1c/PurpleMagic). The GM source
+snapshot has no top-level license grant, as documented in gm/NOTICE.md; this
+candidate does not relicense imported code. The launcher source's original
+notices are preserved. Reference projects CPA-Manager-Plus and CPAMP Theme Studio
+are MIT licensed; the current GM Web includes Theme Studio material with its
+licenses, notices and reference manifest under gm-web/. The initial import
+manifest predates this integration work.
+
+Production secrets, player data, PVF, generated binaries and original private
+configuration are not part of the source manifest.
+
+The 2026-10-17 independent-repository extraction copied 2,110 source files from
+the integration working snapshot, checking SHA256 before and after copying.
+That source repository had no initial commit; its working-file manifest is the
+extraction identity. See [repository boundaries](REPOSITORY_BOUNDARIES.md).

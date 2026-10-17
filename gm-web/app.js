@@ -1,0 +1,113 @@
+import {accounts, items, initialTasks} from './demo-data.js';
+import {renderItemDetail} from './item-detail-view.js';
+
+import {$, escape, icon} from './ui.js';
+import {nav,setNavigation} from './shell.js';
+
+const state = {route:'overview',account:accounts[0].id,accountQuery:'',accountStatus:'全部状态',accountPage:1,item:items[0].id,itemQuery:'',itemType:'全部',basket:[],tasks:structuredClone(initialTasks),taskFilter:'全部',mail:{recipient:'c101',title:'冒险补给',body:''},updated:'尚未刷新'};
+const badge = (text, tone='') => `<span class="badge ${tone}">${escape(text)}</span>`;
+const button = (text, action, kind='', glyph='') => `<button class="button ${kind}" data-action="${action}">${glyph?icon(glyph):''}${text}</button>`;
+function heading(title, description, actions='') {return `<div class="page-heading"><h1>${title}</h1><div class="actions">${actions}</div></div>`;}
+function empty(title, description) {return `<div class="empty-state">${icon('search')}<strong>${title}</strong><p>${description}</p></div>`;}
+function notify(message) {$('#toast').textContent=message;$('#toast').hidden=false;clearTimeout(notify.timer);notify.timer=setTimeout(()=>{$('#toast').hidden=true;},4500);}
+function taskTable(tasks) {return `<div class="table-wrap"><table><thead><tr><th>任务名称</th><th>类型</th><th>状态</th><th>更新时间</th><th><span class="muted">详情</span></th></tr></thead><tbody>${tasks.map(task=>`<tr><td><strong>${escape(task.title)}</strong><small>${escape(task.id)}</small></td><td>${escape(task.kind)}</td><td>${badge(task.status,task.status==='待确认'?'warn':task.status==='已完成'?'good':'blue')}</td><td class="muted">${escape(task.time)}</td><td><button class="button link" data-task="${escape(task.id)}" aria-label="查看${escape(task.title)}">查看 ${icon('chevron')}</button></td></tr>`).join('')}</tbody></table></div>`;}
+function overview() {
+  const metrics=[['账号总数','1,284','累计注册','users'],['在线角色','36','当前在线','users'],['物品目录','149,574','装备与道具','box'],['待处理任务',String(state.tasks.filter(t=>t.status!=='已完成').length),'草稿与待确认','clock']];
+  const tiles=rows=>rows.map(([glyph,label,value,tone])=>`<div class="service-tile"><span class="service-icon">${icon(glyph)}</span><div><small>${label}</small>${badge(value,tone)}</div></div>`).join('');
+  return `<div class="page-heading"><div class="overview-title"><h1>工作台概览</h1><span class="overview-status"><span class="status-dot"></span><span class="status-caption">服务正常</span></span></div><div class="actions"><span class="overview-updated">${escape(state.updated==='尚未刷新'?'今天 15:15':state.updated)}</span>${button('刷新','refresh','','refresh')}</div></div>
+  <div class="summary-panels"><section class="card"><div class="card-head"><h2>服务概况</h2></div><div class="service-tiles">${tiles([['server','GM 服务','运行中','good'],['globe','玩家网关','运行中','good'],['box','更新渠道','stable','blue']])}</div></section><section class="card"><div class="card-head"><h2>任务概况</h2></div><div class="service-tiles">${tiles([['mail','邮件草稿',String(state.tasks.filter(t=>t.status==='草稿').length),'blue'],['gift','福利规则','1 条待确认','warn'],['list','目录任务','已完成','good']])}</div></section></div>
+  <div class="section-label">运营概览</div><div class="stats">${metrics.map(([label,value,note,glyph])=>`<section class="card stat"><div class="stat-top"><span>${label}</span><span class="stat-icon">${icon(glyph)}</span></div><div class="stat-value">${value}</div><div class="stat-note">${note}</div></section>`).join('')}</div>
+  <div class="dashboard-grid"><section class="card"><div class="card-head"><h2>最近任务</h2><a class="button link" href="#tasks">全部记录 ${icon('arrow')}</a></div>${taskTable(state.tasks.slice(0,3))}<div class="table-footer"><span>最近 ${Math.min(state.tasks.length,3)} 条</span></div></section><section class="card"><div class="card-head"><h2>快捷操作</h2></div><div class="quick-actions">${[['players','users','账号与角色','查找玩家和角色资料'],['mail','mail','创建邮件','选择收件人和附件'],['items','box','物品目录','查询物品名称和 ID'],['gateway','server','网关与更新','更新源与发布渠道']].map(([route,glyph,title,sub])=>`<a class="quick-action" href="#${route}">${icon(glyph)}<span><strong>${title}</strong><small>${sub}</small></span>${icon('chevron')}</a>`).join('')}</div></section></div>`;
+}
+function playerDetail() {
+  const account=accounts.find(a=>a.id===state.account);
+  if(!account)return `<section class="card">${empty('选择一个账号','查询后打开账号，查看其角色。')}</section>`;
+  return `<section class="card" aria-label="账号详情"><div class="card-head"><h2>账号详情</h2>${badge(account.status,account.status==='在线'?'good':'')}</div><div class="detail-identity"><span class="avatar">${escape(account.name[0])}</span><div><h2>${escape(account.name)}</h2><p>${escape(account.login)}</p></div></div><dl class="detail-grid"><div><dt>账号 ID</dt><dd class="mono">${escape(account.id)}</dd></div><div><dt>最近活动</dt><dd>${account.seen}</dd></div><div><dt>角色数量</dt><dd>${account.characters.length} 个</dd></div><div><dt>账号状态</dt><dd>正常</dd></div></dl><h3>角色列表</h3>${account.characters.length?account.characters.map(character=>`<div class="character-card"><span class="item-icon">${icon('sword')}</span><div><strong>${escape(character.name)}</strong><small>Lv.${character.level} · ${escape(character.job)} · ${character.online?'在线':'离线'}</small></div><button class="button link" data-character="${character.id}">查看</button></div>`).join(''):empty('还没有角色','创建角色后会显示在这里。')}</section>`;
+}
+function players() {
+  const query=state.accountQuery.toLowerCase();
+  const matches=accounts.filter(account=>(account.name+' '+account.login+' '+account.id).toLowerCase().includes(query)&&(state.accountStatus==='全部状态'||account.status===state.accountStatus));
+  const pages=Math.max(1,Math.ceil(matches.length/5));state.accountPage=Math.min(state.accountPage,pages);
+  const rows=matches.slice((state.accountPage-1)*5,state.accountPage*5);
+  return heading('账号与角色','先找到账号，再确认角色与操作对象。','')+`<div class="split-view"><section class="card"><form id="account-search" class="query-strip"><label><span>查询账号</span><span class="search-input">${icon('search')}<input name="query" value="${escape(state.accountQuery)}" placeholder="账号名称、登录名或 ID" autocomplete="off" maxlength="80"></span></label><select name="status" aria-label="账号状态">${['全部状态','在线','离线'].map(v=>`<option ${v===state.accountStatus?'selected':''}>${v}</option>`).join('')}</select><button class="button primary" type="submit">查询</button><button class="button" type="button" data-action="account-reset">重置查询</button></form>${rows.length?`<div class="table-wrap"><table><thead><tr><th>账号</th><th>状态</th><th>角色</th><th>最近活动</th><th>操作</th></tr></thead><tbody>${rows.map((account,index)=>`<tr class="${account.id===state.account?'selected':''}"><td><div class="person"><span class="avatar small tone-${index%4}">${escape(account.name[0])}</span><span><strong>${escape(account.name)}</strong><small>${escape(account.login)}</small></span></div></td><td>${badge(account.status,account.status==='在线'?'good':'')}</td><td>${account.characters.length}</td><td class="muted">${account.seen}</td><td><button class="button link" data-account="${account.id}" aria-label="打开${escape(account.name)}">打开 ${icon('chevron')}</button></td></tr>`).join('')}</tbody></table></div>`:empty('没有匹配的账号','试试其他名称或 ID，或重置查询条件。')}<div class="table-footer"><span>共 ${matches.length} 个账号</span><div class="pagination"><button class="icon-button" data-action="account-prev" aria-label="上一页" ${state.accountPage===1?'disabled':''}>${icon('left')}</button><span class="page-number">${state.accountPage}</span><span>/ ${pages}</span><button class="icon-button" data-action="account-next" aria-label="下一页" ${state.accountPage===pages?'disabled':''}>${icon('chevron')}</button></div></div></section>${playerDetail()}</div>`;
+}
+function itemGlyph(item){return `<span class="item-icon ${item.rarity==='史诗'?'epic':item.rarity==='传说'?'legendary':''}">${icon(item.icon)}</span>`;}
+function itemDetail() {
+  const item=items.find(i=>i.id===state.item);
+  if(item.detail)return `<section class="card" aria-label="物品详情">${renderItemDetail(item.detail)}<form id="add-item" class="field-stack"><label>附件数量<input type="number" name="count" min="1" max="9999" value="1" required></label><button class="button primary" type="submit">${icon('plus')} 加入邮件草稿</button></form></section>`;
+  return `<section class="card" aria-label="物品详情"><div class="card-head"><h2>物品详情</h2></div><div class="item-feature">${itemGlyph(item)}<div><h2>${escape(item.name)}</h2><span class="mono muted">${item.id}</span></div></div><dl class="detail-grid"><div><dt>分类</dt><dd>${item.type}</dd></div><div><dt>品质</dt><dd>${badge(item.rarity,item.rarity==='史诗'?'warn':'blue')}</dd></div><div><dt>使用等级</dt><dd>Lv.${item.level}</dd></div></dl><p class="hint">${item.description}</p><hr><form id="add-item" class="field-stack"><label>附件数量<input type="number" name="count" min="1" max="9999" value="1" required></label><button class="button primary" type="submit">${icon('plus')} 加入邮件草稿</button></form><p class="hint" style="margin-top:14px">草稿中已有 ${state.basket.length} 类物品。<a class="button link" href="#mail">查看草稿 ${icon('arrow')}</a></p></section>`;
+}
+function catalog() {
+  const found=items.filter(item=>(item.name+' '+item.id).toLowerCase().includes(state.itemQuery.toLowerCase())&&(state.itemType==='全部'||item.type===state.itemType));
+  return heading('物品目录','按名称或 ID 查找物品，选择后添加到邮件草稿。',`<a class="button" href="#mail">${icon('mail')} 邮件草稿 ${badge(state.basket.length)}</a>`)+`<div class="split-view"><section class="card"><form id="item-search" class="query-strip"><label><span>查询物品</span><span class="search-input">${icon('search')}<input name="query" value="${escape(state.itemQuery)}" placeholder="物品名称或 ID" maxlength="80"></span></label><button class="button primary" type="submit">查询</button></form><div class="filter-tabs" aria-label="物品分类">${['全部','武器','防具','首饰','消耗品','材料'].map(type=>`<button data-item-type="${type}" aria-pressed="${type===state.itemType}">${type}</button>`).join('')}</div>${found.length?`<div class="item-list">${found.map(item=>`<button class="item-row" data-item="${item.id}" aria-pressed="${state.item===item.id}">${itemGlyph(item)}<span><strong>${escape(item.name)}</strong><small>${item.id} · ${item.rarity} · Lv.${item.level}</small></span>${icon('chevron')}</button>`).join('')}</div>`:empty('没有找到物品','更换关键词，或选择「全部」分类。')}<div class="table-footer"><span>${found.length} 个物品</span>${button('重置筛选','item-reset','link')}</div></section>${itemDetail()}</div>`;
+}
+function mail() {
+  const characters=accounts.flatMap(account=>account.characters.map(c=>({...c,account:account.name})));
+  return heading('邮件与福利','编辑附件、核对收件人，先预览本次发放内容。',badge('草稿模式','blue'))+`<div class="split-view"><section class="card"><div class="card-head"><h2>创建邮件草稿</h2></div><form id="mail-form" class="field-stack"><label>收件角色<select name="recipient">${characters.map(c=>`<option value="${c.id}" ${c.id===state.mail.recipient?'selected':''}>${escape(c.name)} · Lv.${c.level} · ${escape(c.account)}</option>`).join('')}</select></label><label>邮件标题<input name="title" maxlength="60" value="${escape(state.mail.title)}" required></label><label>邮件正文<textarea name="body" maxlength="500" placeholder="填写给玩家的说明">${escape(state.mail.body)}</textarea></label><div><div class="card-head"><h3>物品附件</h3><a class="button link" href="#items">${icon('plus')} 从目录添加</a></div><div class="draft-basket">${state.basket.length?state.basket.map(row=>{const item=items.find(i=>i.id===row.id);return `<div class="draft-line">${itemGlyph(item)}<span><strong>${escape(item.name)}</strong><br><span class="mono muted">${item.id} × ${row.count}</span></span><button type="button" class="icon-button" data-remove="${item.id}" aria-label="移除${escape(item.name)}">${icon('close')}</button></div>`;}).join(''):empty('先添加一件补给','从物品目录选择附件，再预览邮件。')}</div></div><p class="form-error" id="mail-error" role="alert" hidden></p><div class="actions"><button type="submit" class="button primary">${icon('search')} 预览邮件</button>${button('保存本次草稿','save-draft')}</div></form></section><div class="stack"><section class="card"><div class="card-head"><h2>发放流程</h2></div>${[['1','编辑草稿','选定角色、填写标题与附件'],['2','预览范围','核对角色和物品数量'],['3','确认执行','保存邮件草稿']].map(([n,title,detail])=>`<div class="service-row"><span class="avatar small">${n}</span><div><strong>${title}</strong><p>${detail}</p></div></div>`).join('')}</section><section class="card update-card"><h2>新角色欢迎礼</h2><p>每条规则选择发放范围：每账号一次或每角色一次。</p><a href="#tasks" class="button">查看福利规则 ${icon('arrow')}</a></section></div></div>`;
+}
+function tasks() {
+  const found=state.tasks.filter(task=>state.taskFilter==='全部'||task.status===state.taskFilter);
+  return heading('任务记录','查看草稿、确认状态与操作结果。',`<a class="button primary" href="#mail">${icon('plus')} 新建邮件草稿</a>`)+`<section class="card"><div class="filter-tabs" aria-label="任务状态">${['全部','草稿','待确认','已完成'].map(status=>`<button data-task-filter="${status}" aria-pressed="${status===state.taskFilter}">${status}</button>`).join('')}</div>${found.length?taskTable(found):empty('当前没有这类任务','新建草稿后可在这里查看。')}<div class="table-footer"><span>${found.length} 条记录</span></div></section>`;
+}
+const sourceKey='soft-gm-console.source-draft';
+function readSource(){try{const value=JSON.parse(localStorage.getItem(sourceKey));return value&&typeof value.url==='string'?value:{url:'https://updates.example.com/stable/manifest.json',channel:'stable'};}catch{return{url:'https://updates.example.com/stable/manifest.json',channel:'stable'};}}
+function gateway() {
+  const source=readSource();
+  return heading('网关与更新','集中配置登录器的更新来源，发布前核对渠道与内容。',badge('本地配置草稿','blue'),'LAUNCHER & GATEWAY')+`<div class="split-view"><section class="card"><div class="card-head"><div><h2>更新源配置</h2><p></p></div></div><div class="source-option">${icon('globe')}<div><strong>自有更新源</strong><p>由 Linux 网关向登录器提供签名更新信息</p></div>${badge('当前方案','blue')}</div><form id="source-form" class="field-stack"><label>更新清单地址<input name="url" type="url" value="${escape(source.url)}" placeholder="https://updates.example.com/stable/manifest.json" required maxlength="2048"></label><div class="field-row"><label>发布渠道<select name="channel"><option value="stable" ${source.channel==='stable'?'selected':''}>稳定版 · stable</option><option value="preview" ${source.channel==='preview'?'selected':''}>预览版 · preview</option></select></label><label>适用平台<input value="Windows · x64" readonly></label></div><p class="form-error" id="source-error" role="alert" hidden></p><div class="hint-box">更新清单使用 HTTPS 地址。</div><div class="actions"><button type="submit" class="button primary">保存配置草稿</button><button type="button" class="button" data-action="source-reset">恢复默认</button></div></form></section><div class="stack"><section class="card"><div class="card-head"><h2>发布步骤</h2></div>${[['box','准备更新包','生成文件摘要与版本信息'],['shield','核对兼容性','校验签名、渠道和客户端版本'],['globe','发布与验证','发布清单后通过登录器验证']].map(([glyph,title,desc])=>`<div class="service-row"><span class="service-icon">${icon(glyph)}</span><div><strong>${title}</strong><p>${desc}</p></div></div>`).join('')}</section></div></div>`;
+}
+function settings() {return heading('工作台设置','')+`<section class="card"><div class="settings-row"><span class="service-icon">${icon('palette')}</span><div><h2>主题与外观</h2><p>配色、明暗模式、字体、圆角和密度。</p></div>${button('主题工作室','theme','','palette')}</div><div class="settings-row"><span class="service-icon">${icon('clock')}</span><div><h2>查询方式</h2><p>提交查询或点击刷新时更新数据。</p></div>${badge('手动刷新','blue')}</div></section>`;}
+const views={overview,players,items:catalog,mail,tasks,gateway,settings};
+function render(focusMain=false) {
+  const route=location.hash.slice(1)||'overview';state.route=views[route]?route:'overview';
+  $('#main').innerHTML=views[state.route]();$('#breadcrumb-current').textContent=nav.find(n=>n[0]===state.route)[1];
+  document.title=`${$('#breadcrumb-current').textContent} · PurpleMagic GM 视觉样版`;
+  document.querySelectorAll('#navigation a').forEach(link=>{if(link.hash===`#${state.route}`)link.setAttribute('aria-current','page');else link.removeAttribute('aria-current');});
+  if(focusMain){$('#main').focus({preventScroll:true});window.scrollTo(0,0);}
+}
+function saveMail(){const form=$('#mail-form');if(form)state.mail=Object.fromEntries(new FormData(form));}
+function openDialog(title, content, actions='') {
+  const dialog=$('#dialog');dialog.innerHTML=`<div class="dialog-head"><h2 id="dialog-title">${escape(title)}</h2><button class="icon-button" data-action="close-dialog" aria-label="关闭">${icon('close')}</button></div>${content}<div class="dialog-actions">${actions||button('关闭','close-dialog')}</div>`;
+  dialog.showModal();
+}
+window.addEventListener('hashchange',()=>{saveMail();setNavigation(false);render(true);});
+document.addEventListener('click',event=>{
+  const control=event.target.closest('button');if(!control)return;
+  const action=control.dataset.action;
+  if(control.dataset.account){state.account=control.dataset.account;render();$('[aria-label="账号详情"] h2').scrollIntoView({block:'nearest'});return;}
+  if(control.dataset.character){const c=accounts.flatMap(a=>a.characters).find(c=>c.id===control.dataset.character);openDialog('角色详情',`<div class="detail-identity"><span class="avatar">${escape(c.name[0])}</span><div><h2>${escape(c.name)}</h2><p>Lv.${c.level} · ${escape(c.job)}</p></div></div><dl class="detail-grid"><div><dt>角色 ID</dt><dd class="mono">${c.id}</dd></div><div><dt>在线状态</dt><dd>${c.online?'在线':'离线'}</dd></div></dl>`,button('关闭','close-dialog')+`<button class="button primary" data-compose="${c.id}">为此角色写邮件</button>`);return;}
+  if(control.dataset.compose){state.mail.recipient=control.dataset.compose;$('#dialog').close();location.hash='mail';return;}
+  if(control.dataset.item){state.item=Number(control.dataset.item);render();return;}
+  if(control.dataset.itemType){state.itemType=control.dataset.itemType;render();return;}
+  if(control.dataset.remove){saveMail();state.basket=state.basket.filter(row=>row.id!==Number(control.dataset.remove));render();return;}
+  if(control.dataset.taskFilter){state.taskFilter=control.dataset.taskFilter;render();return;}
+  if(control.dataset.task){const task=state.tasks.find(t=>t.id===control.dataset.task);openDialog(task.title,`<p>${badge(task.status,task.status==='待确认'?'warn':'blue')}</p><dl class="detail-grid"><div><dt>任务 ID</dt><dd class="mono">${escape(task.id)}</dd></div><div><dt>对象</dt><dd>${escape(task.target)}</dd></div></dl><p class="hint">${escape(task.detail)}</p>`);return;}
+  if(action==='theme'){window.__SOFT_THEME_STUDIO__.open(control);return;}
+  if(action==='refresh'){state.updated='刷新于 '+new Date().toLocaleTimeString('zh-CN',{hour12:false});render();notify('已刷新');return;}
+  if(action==='account-prev'||action==='account-next'){state.accountPage+=action==='account-prev'?-1:1;render();return;}
+  if(action==='account-reset'){state.accountQuery='';state.accountStatus='全部状态';state.accountPage=1;render();return;}
+  if(action==='item-reset'){state.itemQuery='';state.itemType='全部';render();return;}
+  if(action==='close-dialog'){$('#dialog').close();return;}
+  if(action==='source-reset'){try{localStorage.removeItem(sourceKey);}catch{}render();notify('已恢复默认地址');return;}
+  if(action==='save-draft'){event.preventDefault();saveMail();if(!$('#mail-form').reportValidity())return;saveDraft();return;}
+  if(action==='confirm-demo'){saveDraft();$('#dialog').close();location.hash='tasks';}
+});
+function saveDraft(){const recipient=accounts.flatMap(a=>a.characters).find(c=>c.id===state.mail.recipient);const draft={id:'DEMO-'+String(state.tasks.length+1).padStart(4,'0'),title:state.mail.title,kind:'邮件草稿',status:'草稿',target:recipient.name,time:'刚刚',detail:`本地草稿，收件人：${recipient.name}。附件：${state.basket.map(row=>`${items.find(i=>i.id===row.id).name} × ${row.count}`).join('、')||'无'}。`};state.tasks.unshift(draft);notify('草稿已保存');}
+document.addEventListener('submit',event=>{
+  event.preventDefault();const form=event.target;const data=Object.fromEntries(new FormData(form));
+  if(form.id==='account-search'){state.accountQuery=data.query.trim();state.accountStatus=data.status;state.accountPage=1;render();return;}
+  if(form.id==='item-search'){state.itemQuery=data.query.trim();render();return;}
+  if(form.id==='add-item'){const count=Number(data.count);if(!Number.isInteger(count)||count<1||count>9999)return;const row=state.basket.find(r=>r.id===state.item);if(row&&row.count+count>9999){notify('同类附件总数量不能超过 9999');return;}if(row)row.count+=count;else state.basket.push({id:state.item,count});render();notify('已加入邮件草稿');return;}
+  if(form.id==='mail-form'){saveMail();if(!state.basket.length){$('#mail-error').hidden=false;$('#mail-error').textContent='请先从物品目录添加至少一项附件。';return;}const recipient=accounts.flatMap(a=>a.characters).find(c=>c.id===data.recipient);openDialog('预览邮件',`<div class="summary-list"><strong>收件人：${escape(recipient.name)} · ${recipient.id}</strong><p style="margin-top:8px">${escape(data.title)}</p><p class="muted">${escape(data.body)}</p><hr>${state.basket.map(row=>`<p>${escape(items.find(i=>i.id===row.id).name)} × ${row.count}</p>`).join('')}</div>`,button('返回编辑','close-dialog')+button('确认保存草稿','confirm-demo','primary'));return;}
+  if(form.id==='source-form'){const error=$('#source-error');error.hidden=true;try{const url=new URL(data.url);if(url.protocol!=='https:'||url.username||url.password||url.search||url.hash)throw Error('请使用不含账号、密码、查询参数或片段的 HTTPS 清单地址。');localStorage.setItem(sourceKey,JSON.stringify({url:url.href,channel:data.channel}));notify('更新源草稿已保存');}catch(e){error.textContent=e.name==='QuotaExceededError'?'浏览器无法保存草稿，请检查存储设置。':e.message;error.hidden=false;form.elements.url.focus();}}
+});
+// Preserve typed drafts when using navigation links, including back/forward.
+document.addEventListener('input',event=>{if(event.target.closest('#mail-form'))saveMail();});
+document.addEventListener('change',event=>{if(event.target.closest('#mail-form'))saveMail();});
+setNavigation(false);render();
+if(new URLSearchParams(location.search).has('pvf')){
+ fetch('preview-items.json').then(response=>{if(!response.ok)throw new Error('PVF 预览数据读取失败');return response.json();}).then(details=>{
+  const rarities=['普通','高级','稀有','神器','史诗','勇者','传说'];
+  const mapped=details.map(detail=>{const i=detail.item,tag=(i.equipmentType||'').split(']')[0]+']';const type=i.kind==='stackable'?(i.stackableType==='[material]'?'材料':'消耗品'):tag==='[weapon]'?'武器':['[ring]','[wrist]','[amulet]'].includes(tag)?'首饰':'防具';return {id:Number(i.itemId),name:i.name,type,rarity:rarities[i.rarity]||String(i.rarity),level:i.minimumLevel,icon:type==='武器'?'sword':type==='防具'?'shield':'box',detail};});
+  items.splice(0,items.length,...mapped);state.item=items[0].id;state.basket=[];render();
+ }).catch(error=>notify(error.message));
+}

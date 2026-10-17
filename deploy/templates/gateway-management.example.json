@@ -1,0 +1,21 @@
+{
+  "certificate": "/etc/soft-gateway/tls.crt",
+  "key": "/etc/soft-gateway/tls.key",
+  "management": {
+    "listen": "127.0.0.1:8768",
+    "loginKeySha256": "REPLACE_WITH_SHA256_OF_RANDOM_LOGIN_KEY",
+    "webRoot": "/opt/soft-gateway/gm-web",
+    "registrationDsn": "gm:REPLACE@tcp(127.0.0.1:3306)/registration?parseTime=true&charset=utf8mb4",
+    "repositoryDsn": "gm:REPLACE@tcp(127.0.0.1:3306)/game?parseTime=true&charset=utf8mb4",
+    "accountTable": "dnf90_web_accounts",
+    "databases": ["game"],
+    "tablePrefix": "dnf",
+    "pvfPath": "/srv/soft-assets/Script.pvf",
+    "pvfSha256": "REPLACE_WITH_APPROVED_PVF_SHA256",
+    "pvfIndexPath": "/srv/soft-indexes/pvf-directory.bin",
+    "itemIndexPath": "/srv/soft-indexes/items.json",
+    "gameApi": "http://127.0.0.1:7000/api/game/admin",
+    "gameToken": "REPLACE_WITH_PRIVATE_GAME_API_TOKEN",
+    "scanSeconds": 60
+  }
+}

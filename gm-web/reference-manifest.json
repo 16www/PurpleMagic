@@ -1,0 +1,20 @@
+{
+  "themeStudio": {
+    "repository": "https://github.com/Cec1c/cpamp-theme-studio",
+    "commit": "4e85a44a0d3e04031278a8cf74a9be5c1809df83",
+    "sourceLoaderSha256": "97a99758eaa1e5ccd03c0e1a92cd0d77c42dbbc382d7487c123a1e2155795bf6"
+  },
+  "cpamp": {
+    "repository": "https://github.com/seakee/CPA-Manager-Plus",
+    "commit": "9d719fc8cca362f7b56d294a2ad056ae99cfeba6",
+    "usage": "Visual reference and adapted surface tokens; no application runtime imported."
+  },
+  "files": {
+    "vendor/CPAMP_LICENSE.txt": "f385b823da51b3fc38cb30c498bd8e6895abbbb538c5dd371c9b02df480160ae",
+    "vendor/theme-studio.js": "d39a7e804608572bb4f781f8670accc5cc8cb4187b01777382d89b3e1d67892e",
+    "vendor/THEME_STUDIO_LICENSE.txt": "4f0dac8cdd3b675bf42a31ddc7dc2da2c216e3ba541a8514d5cd5573032e8593",
+    "vendor/fonts/JetBrainsMono-Regular.woff2": "a9cb1cd82332b23a47e3a1239d25d13c86d16c4220695e34b243effa999f45f2",
+    "vendor/fonts/JetBrainsMono-SemiBold.woff2": "918edad542a1da608fd2ba8daebaff9ac802309103fe760eed465b8b4e47faf1",
+    "vendor/fonts/OFL.txt": "30f0c136e3c88e422d0791acd97238870f9054a9729bc34cf2ff0d4ed8cac4ad"
+  }
+}

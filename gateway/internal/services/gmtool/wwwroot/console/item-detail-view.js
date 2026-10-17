@@ -1,0 +1,20 @@
+import {escape} from './ui.js';
+
+const attributes={physical_attack:'物理攻击力',magical_attack:'魔法攻击力',independent_attack:'独立攻击力',physical_defense:'物理防御力',magical_defense:'魔法防御力',strength:'力量',intelligence:'智力',vitality:'体力',spirit:'精神',hp_max:'生命值上限',mp_max:'魔法值上限',attack_speed:'攻击速度参数',move_speed:'移动速度参数',cast_speed:'施放速度参数',hit_recovery:'硬直',jump_power:'跳跃力',hit_rate:'命中率参数',physical_critical:'物理暴击参数',magical_critical:'魔法暴击参数',all_element_enhancement:'全属性强化',fire_element_enhancement:'火属性强化',water_element_enhancement:'冰属性强化',light_element_enhancement:'光属性强化',dark_element_enhancement:'暗属性强化',fire_resistance:'火属性抗性',water_resistance:'冰属性抗性',light_resistance:'光属性抗性',dark_resistance:'暗属性抗性',anti_magic:'抗魔值'};
+const rarity=['普通','高级','稀有','神器','史诗','勇者','传说'];
+const attach={'[trade]':'封装','[account]':'账号绑定','[free]':'可交易','[sealing]':'封装','[untradable]':'无法交易'};
+const field=(label,value)=>`<div><dt>${escape(label)}</dt><dd>${escape(value)}</dd></div>`;
+const stats=rows=>`<dl class="item-stats">${rows.map(a=>field(attributes[a.name]||a.name,a.value)).join('')}</dl>`;
+function tree(nodes,depth=0){
+ return nodes.map(n=>`<div class="pvf-section"><strong>${escape(n.label||n.name)}</strong>${n.values?.length?`<div class="item-text mono">${escape(n.values.join('\n'))}</div>`:''}${n.children?.length&&depth<64?`<div class="pvf-children">${tree(n.children,depth+1)}</div>`:''}</div>`).join('');
+}
+export function renderItemDetail(data){
+ const i=data.item,sections=data.sections||[],effects=sections.filter(s=>['if','then','else','all skill item container','skill levelup','skill data up'].includes(s.name));
+ const constraints=sections.filter(s=>['weight','durability','cool time','cool time group','usable period','expiration date','need material','stack limit'].includes(s.name));
+ const info=[field('类型',i.kind==='equipment'?'装备':'道具'),field('品质',rarity[i.rarity]??i.rarity),field('使用等级',`Lv.${i.minimumLevel}`)];
+ if(i.usableJobs?.length)info.push(field('适用职业',i.usableJobs.join('、')));
+ if(i.attachType)info.push(field('绑定类型',attach[i.attachType]||i.attachType));
+ const texts=(data.texts||[]).filter(t=>!(t.title==='效果说明'&&(data.texts||[]).some(d=>d.title==='详细效果'&&d.text===t.text)));
+ const set=data.equipmentSet;
+ return `<div class="item-inspection"><div class="item-detail-title"><h2>${escape(i.name)}</h2><span class="mono hint">${escape(i.itemId)}</span></div><dl class="detail-grid">${info.join('')}</dl>${texts.map(t=>t.title==='效果说明'&&texts.some(d=>d.title==='详细效果')?`<details class="item-detail-fold"><summary>简要效果</summary><div class="item-text">${escape(t.text)}</div></details>`:`<section class="item-detail-section"><h3>${escape(t.title)}</h3><div class="item-text ${t.title==='物品故事'?'item-flavor':''}">${escape(t.text)}</div></section>`).join('')}${data.attributes?.length?`<section class="item-detail-section"><h3>满品级基础属性</h3>${stats(data.attributes)}</section>`:''}${constraints.length?`<details class="item-detail-fold"><summary>使用条件与物品参数</summary>${tree(constraints)}</details>`:''}${set?`<section class="item-detail-section"><h3>套装 · ${escape(set.name)}</h3>${(set.bonuses||[]).map(b=>`<div class="item-set-bonus"><h4>${escape(b.requiredPieces)} 件套</h4>${b.detailExplain||b.basicExplain?`<div class="item-text">${escape(b.detailExplain||b.basicExplain)}</div>`:''}${b.detailExplain&&b.basicExplain&&b.detailExplain!==b.basicExplain?`<details class="item-detail-fold"><summary>简要效果</summary><div class="item-text">${escape(b.basicExplain)}</div></details>`:''}${b.attributes?.length?stats(b.attributes):''}</div>`).join('')}${set.sections?.length?`<details class="item-detail-fold"><summary>套装字段</summary>${tree(set.sections)}</details>`:''}</section>`:''}${effects.length?`<details class="item-detail-fold"><summary>触发条件与技能规则 · ${effects.length} 段</summary>${tree(effects)}</details>`:''}<details class="item-detail-fold"><summary>PVF 字段 · ${sections.length} 段</summary><p class="mono hint item-source-path">${escape(i.pvfPath||'')}</p>${tree(sections)}</details></div>`;
+}

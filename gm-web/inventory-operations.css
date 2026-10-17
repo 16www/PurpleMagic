@@ -1,0 +1,12 @@
+.inventory-operations{border-top:1px solid var(--app-border);padding-top:16px;margin-top:20px}
+.inventory-operations>.actions{flex-wrap:wrap;margin-bottom:12px}
+.inventory-operations fieldset{border:0;padding:0;margin:0;min-width:0;display:grid;gap:14px}
+.inventory-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.inventory-confirm{padding:16px;border:1px solid var(--app-border);border-radius:12px;background:var(--surface-subtle);margin-top:16px}
+.inventory-confirm>.actions{flex-wrap:wrap;margin-top:16px}
+.inventory-changes{display:grid;gap:12px;margin-top:14px}
+.inventory-change{padding:12px;border:1px solid var(--app-border);border-radius:8px;overflow-wrap:anywhere}
+.inventory-change h4{margin:0 0 4px}.inventory-change h4 small{font-weight:400;margin-left:8px;color:var(--app-text-muted)}
+.inventory-diff{display:flex;flex-wrap:wrap;gap:12px 24px;margin:10px 0 0}.inventory-diff dt{color:var(--app-text-muted);font-size:12px}.inventory-diff dd{margin:3px 0 0}
+.inventory-delete{color:var(--danger);margin-top:8px}
+@media(max-width:640px){.inventory-fields{grid-template-columns:1fr}.inventory-confirm{padding:12px}}

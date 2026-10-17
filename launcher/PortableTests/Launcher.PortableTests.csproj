@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net8.0</TargetFramework></PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\Portable\PortableCache.cs" Link="PortableCache.cs" />
+    <Compile Include="..\Engine\SafeFiles.cs" Link="SafeFiles.cs" />
+  </ItemGroup>
+</Project>

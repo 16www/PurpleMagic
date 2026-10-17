@@ -1,0 +1,15 @@
+[aria-label="角色技能点"] fieldset{border:0;margin:0;padding:0;min-width:0}
+.points-balances{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:16px 0}
+.points-balance,.points-change{min-width:0;padding:16px;border:1px solid var(--app-border);border-radius:var(--app-radius-lg);background:var(--app-surface)}
+.points-balance h3{display:flex;align-items:baseline;flex-wrap:wrap;gap:12px;margin-top:0}
+.points-balance h3 strong{font-size:26px;font-variant-numeric:tabular-nums}
+.points-balance h3 small{font-size:12px;color:var(--app-text-muted);font-weight:400}
+.points-change h4{margin:0 0 12px}
+.points-balances .detail-grid{grid-template-columns:1fr 1fr;margin:0}
+.points-history details{border-bottom:1px solid var(--app-border);padding:14px 0}
+.points-history summary{cursor:pointer;line-height:1.7}
+.points-history summary small{display:block;color:var(--app-text-muted)}
+.points-history .mono,[aria-label="角色技能点"] .mono{overflow-wrap:anywhere}
+[aria-label="角色技能点"] .currency-fields{grid-template-columns:repeat(3,minmax(0,1fr))}
+[aria-label="角色技能点"] .currency-reason{grid-column:1/-1}
+@media(max-width:600px){.points-balances{grid-template-columns:1fr}.points-balances .detail-grid{grid-template-columns:1fr 1fr}[aria-label="角色技能点"] .currency-fields{grid-template-columns:1fr}}

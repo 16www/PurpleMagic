@@ -1,0 +1,10 @@
+[aria-label="角色等级管理"] fieldset{border:0;margin:0;padding:0;min-width:0}
+.level-current{padding:20px;border:1px solid var(--app-border);border-radius:var(--app-radius-lg);margin:16px 0;background:var(--app-surface)}
+.level-current>strong{font-size:26px;font-variant-numeric:tabular-nums}
+.level-current .detail-grid{margin-bottom:0}
+.level-fields{display:grid;grid-template-columns:150px minmax(0,1fr);gap:16px}
+.level-fields label{display:flex;flex-direction:column;gap:8px}
+.level-stats{margin:14px 0;padding:12px;border:1px solid var(--app-border);border-radius:var(--app-radius-md)}
+.level-stats summary{cursor:pointer}
+[aria-label="角色等级管理"] .mono{overflow-wrap:anywhere}
+@media(max-width:600px){.level-fields{grid-template-columns:1fr}.level-current .detail-grid,.level-changes,.level-stats .detail-grid{grid-template-columns:1fr 1fr}}

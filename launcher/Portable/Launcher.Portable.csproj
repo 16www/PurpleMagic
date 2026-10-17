@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>DNF90-Portable</AssemblyName>
+    <Version>0.2.6</Version>
+    <PublishAot>true</PublishAot>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <IlcOptimizationPreference>Size</IlcOptimizationPreference>
+    <PortableInput Condition="'$(PortableInput)'==''">$(MSBuildThisFileDirectory)..\..\runtime\flutter-build\portable-input</PortableInput>
+    <ApplicationIcon>$(PortableInput)\app_icon.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\Engine\SafeFiles.cs" Link="SafeFiles.cs" />
+    <EmbeddedResource Include="$(PortableInput)\payload.zip" LogicalName="payload.zip" />
+    <EmbeddedResource Include="$(PortableInput)\payload.json" LogicalName="payload.json" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,9 @@
+{
+  "admin_listen": "0.0.0.0:8443",
+  "admin_token_sha256": "<sha256-of-a-random-admin-token>",
+  "data_dir": "/srv/dnf90/runtime/launcher-hub",
+  "signing_key_file": "/srv/dnf90/runtime/private/launcher-signing-key.pem",
+  "profile_file": "/srv/dnf90/runtime/private/approved-player-profile.json",
+  "gm_upstream": "http://127.0.0.1:18080",
+  "gm_password": "<existing-private-gm-password>"
+}

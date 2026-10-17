@@ -1,0 +1,6 @@
+[aria-label="账号金库管理"] fieldset{border:0;margin:0;padding:0;min-width:0}
+.vault-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:12px 0 24px}
+.vault-summary>div{display:flex;flex-direction:column;gap:8px;padding:16px;border:1px solid var(--app-border);border-radius:var(--app-radius-md);background:var(--app-surface)}
+.vault-summary span{color:var(--app-text-muted)}
+.vault-summary strong{font-size:24px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+@media(max-width:520px){.vault-summary{grid-template-columns:1fr}}

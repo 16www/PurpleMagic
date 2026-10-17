@@ -1,0 +1,204 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "PurpleMagic · 当前全局架构",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "viewBox": [
+      1280,
+      760
+    ]
+  },
+  "components": [
+    {
+      "id": "gm",
+      "type": "frontend",
+      "label": "GM Web",
+      "sublabel": "独立静态客户端 · 自定义主题",
+      "pos": [
+        50,
+        80
+      ],
+      "size": [
+        240,
+        80
+      ]
+    },
+    {
+      "id": "launcher",
+      "type": "frontend",
+      "label": "Flutter 登录器",
+      "sublabel": "Host / Engine / Core",
+      "pos": [
+        50,
+        320
+      ],
+      "size": [
+        240,
+        80
+      ]
+    },
+    {
+      "id": "offline",
+      "type": "backend",
+      "label": "离线索引工具",
+      "sublabel": "读取批准 PVF · 按摘要生成",
+      "pos": [
+        50,
+        580
+      ],
+      "size": [
+        240,
+        80
+      ]
+    },
+    {
+      "id": "gateway",
+      "type": "backend",
+      "label": "单一网关进程",
+      "sublabel": "玩家入口 / 管理 API / 更新 Hub",
+      "pos": [
+        490,
+        320
+      ],
+      "size": [
+        280,
+        80
+      ]
+    },
+    {
+      "id": "index",
+      "type": "database",
+      "label": "PVF 磁盘索引",
+      "sublabel": "物品详情 / 任务 / 职业 / 小表",
+      "pos": [
+        510,
+        580
+      ],
+      "size": [
+        240,
+        80
+      ]
+    },
+    {
+      "id": "game",
+      "type": "external",
+      "label": "现有游戏服务",
+      "sublabel": "准入 · 在线会话 · 玩法结算",
+      "pos": [
+        970,
+        80
+      ],
+      "size": [
+        240,
+        80
+      ]
+    },
+    {
+      "id": "db",
+      "type": "database",
+      "label": "MariaDB",
+      "sublabel": "玩家存档 · 事务回执 · 福利",
+      "pos": [
+        970,
+        320
+      ],
+      "size": [
+        240,
+        80
+      ]
+    },
+    {
+      "id": "sources",
+      "type": "cloud",
+      "label": "已配置内容源",
+      "sublabel": "签名元数据 · 下载文件",
+      "pos": [
+        970,
+        580
+      ],
+      "size": [
+        240,
+        80
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "from": "gm",
+      "to": "gateway",
+      "label": "私有管理 HTTPS"
+    },
+    {
+      "from": "launcher",
+      "to": "gateway",
+      "label": "玩家 HTTPS",
+      "labelAt": [
+        390,
+        387
+      ]
+    },
+    {
+      "from": "offline",
+      "to": "index",
+      "label": "离线生成"
+    },
+    {
+      "from": "gateway",
+      "to": "index",
+      "label": "按需读取",
+      "labelAt": [
+        630,
+        490
+      ]
+    },
+    {
+      "from": "gateway",
+      "to": "game",
+      "label": "账号 / 私有运行 API"
+    },
+    {
+      "from": "gateway",
+      "to": "db",
+      "label": "查询 / 原子写",
+      "variant": "emphasis",
+      "labelAt": [
+        925,
+        365
+      ]
+    },
+    {
+      "from": "gateway",
+      "to": "sources",
+      "label": "验签 / 下载"
+    },
+    {
+      "from": "game",
+      "to": "db",
+      "label": "玩法存档",
+      "labelAt": [
+        1090,
+        240
+      ]
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "同仓管理，分别发行",
+      "items": [
+        "launcher / gateway / gm-web",
+        "游戏服务与数据库属于外部运行依赖"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "待补齐的设施",
+      "items": [
+        "游戏编辑锁 · 统一权限审计",
+        "公开快照 · 通关采集 · 客户端分片缓存"
+      ]
+    }
+  ]
+}
