@@ -49,6 +49,12 @@
 
 管理操作经领域事务写入，结合版本校验、幂等请求和永久回执处理重复提交与响应丢失。邮件、福利和跨页邮箱清理保存批次进度，支持继续执行与结果追踪。具体调用链见[基础设施说明](docs/FOUNDATIONS.md)。
 
+## 分离部署方案
+
+后续方案将 GM 管理服务、PVF 索引与登录器发布服务放到外部管理主机。游戏主机保留轻量网关，负责有界查询、领域事务和永久回执。
+
+[![PurpleMagic 分离部署方案：外部 GM 与 PVF 服务、游戏侧轻量网关及资源下载源](docs/architecture/split-deployment-plan.png)](docs/architecture/split-deployment-plan.png)
+
 ## 快速预览
 
 安装 Python 3 后，在仓库根目录运行：

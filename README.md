@@ -49,6 +49,12 @@ Accounts, inventory, mailboxes and quests are read by page, container and cursor
 
 Management writes go through domain transactions with revision checks, idempotent requests and durable receipts. Mail, benefits and mailbox cleanup persist batch progress for continuation and result tracking. See [API foundations](docs/FOUNDATIONS.md) for the call paths.
 
+## Split deployment plan
+
+The proposed deployment places GM management, PVF indexes and the launcher publishing service on an external management host. A lightweight gateway on the game host handles bounded queries, domain transactions and durable receipts.
+
+[![PurpleMagic planned split deployment: external GM and PVF services, game-side gateway and download sources](docs/architecture/split-deployment-plan.png)](docs/architecture/split-deployment-plan.png)
+
 ## Quick preview
 
 With Python 3 installed, run from the repository root:
