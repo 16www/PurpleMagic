@@ -183,6 +183,11 @@ func vaultOffline(ctx context.Context, repo repository.AccountVaultRepository, c
 	if len(ids) > repository.DefaultCharacterSlotLimit {
 		return ErrAccount
 	}
+	// An account can be connected before creating its first character.
+	// Empty character identity asks the account-scoped checker for that case.
+	if len(ids) == 0 {
+		return check(ctx, "")
+	}
 	seen := map[string]bool{}
 	for _, id := range ids {
 		n, e := strconv.ParseUint(id, 10, 16)

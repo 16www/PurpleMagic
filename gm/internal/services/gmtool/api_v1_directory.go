@@ -39,7 +39,7 @@ func scanV1Account(row interface{ Scan(...any) error }) (v1AccountRow, error) {
 	return out, err
 }
 func (s *Server) v1AccountSelect() string {
-	return "SELECT a.id,a.account_id,a.account,COALESCE(p.disabled,0),a.created_at,a.last_login_at FROM " + quoteIdentifier(s.cfg.Table) + " a LEFT JOIN " + quoteIdentifier(s.cfg.Table+"_player_accounts") + " p ON p.account_id=a.account_id AND BINARY p.account_id=BINARY a.account_id"
+	return "SELECT a.id,a.account_id,a.account,COALESCE(p.disabled,0),a.created_at,a.last_login_at FROM " + quoteIdentifier(s.cfg.Table) + " a LEFT JOIN " + quoteIdentifier(s.cfg.Table+"_player_accounts") + " p ON p.account_id=BINARY a.account_id"
 }
 func (s *Server) v1LoadAccount(ctx context.Context, id string) (v1AccountRow, error) {
 	if s.db == nil {

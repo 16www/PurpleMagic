@@ -73,7 +73,7 @@ func handlerWithHub(c config, hub *launcherhub.Hub) http.Handler {
 			return
 		}
 		switch {
-		case hub != nil && strings.HasPrefix(r.URL.Path, "/launcher/v2/"):
+		case hub != nil && (strings.HasPrefix(r.URL.Path, "/launcher/v2/") || strings.HasPrefix(r.URL.Path, "/blobs/")):
 			hub.PublicHandler().ServeHTTP(w, r)
 		case r.Method == "POST" && (r.URL.Path == "/api/account/login" || r.URL.Path == "/api/account/register"):
 			r.Body = http.MaxBytesReader(w, r.Body, 4096)
@@ -232,7 +232,7 @@ func runGateway(ctx context.Context, c config) error {
 	tlsConfig := &tls.Config{MinVersion: tls.VersionTLS12, Certificates: []tls.Certificate{certificate}}
 	var servers []*http.Server
 	if c.Listen != "" {
-		servers = append(servers, &http.Server{Addr: c.Listen, Handler: handlerWithHub(c, hub), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 15 * time.Second, WriteTimeout: 30 * time.Minute, IdleTimeout: 30 * time.Second, MaxHeaderBytes: 8192, TLSConfig: tlsConfig})
+		servers = append(servers, &http.Server{Addr: c.Listen, Handler: handlerWithHub(c, hub), ReadHeaderTimeout: 5 * time.Second, ReadTimeout: 15 * time.Second, WriteTimeout: 6 * time.Hour, IdleTimeout: 30 * time.Second, MaxHeaderBytes: 8192, TLSConfig: tlsConfig})
 	}
 	var admin http.Handler
 	var api http.Handler

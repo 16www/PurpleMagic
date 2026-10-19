@@ -1,0 +1,92 @@
+/* PurpleMagic · 兰紫 / Orchid. Layout and glass materials remain in origin.css. */
+:root {
+  --bg: #19151e;
+  --bg-sidebar: #15111a;
+  --surface-1: #211b27;
+  --surface-2: #292130;
+  --surface-input: #1e1824;
+  --hover: #312737;
+  --border-1: #382d40;
+  --border-2: #4b3d55;
+  --text-1: #f0e9f3;
+  --text-2: #d4c7da;
+  --text-3: #ac9db5;
+  --accent: #d8a0e5;
+  --accent-hover: #e8b6ef;
+  --accent-contrast: #301638;
+  --accent-soft: #d8a0e518;
+  --glass-rgb: 21, 14, 28;
+  --glass-bg: rgba(var(--glass-rgb), var(--glass-opacity, 0.66));
+  --glass-bg-strong: #150e1ce8;
+  --glass-border: #ecd1f51c;
+  --glass-sheen: #f6ddff0b;
+  --scrim: #120b1aac;
+  --veil: #160d1d;
+  --glow-1: #d8a0e51f;
+  --glow-2: #d08adf2e;
+  --glow-3: #e89ec529;
+  --shadow-1: 0 4px 14px rgb(14 5 20 / 0.18);
+  --shadow-2: 0 12px 32px rgb(14 5 20 / 0.34);
+  --shadow-3: 0 24px 100px rgb(14 5 20 / 0.55);
+}
+
+:root[data-theme="light"] {
+  --bg: #faf6fc;
+  --bg-sidebar: #fffbff;
+  --surface-1: #fffbff;
+  --surface-2: #f9f1fb;
+  --surface-input: #fffaff;
+  --hover: #f0e5f4;
+  --hover-subtle: #f0e5f466;
+  --border-1: #e6d8ec;
+  --border-2: #d1bddb;
+  --text-1: #302238;
+  --text-2: #594462;
+  --text-3: #75617f;
+  --accent: #9146a5;
+  --accent-hover: #7c368f;
+  --accent-contrast: #ffffff;
+  --accent-soft: #9146a512;
+  --glass-rgb: 255, 249, 255;
+  --glass-bg: rgba(var(--glass-rgb), var(--glass-opacity, 0.72));
+  --glass-bg-strong: #fff9fff0;
+  --glass-border: #713f881c;
+  --glass-sheen: #ffffff99;
+  --veil: #faf2fc;
+  --glow-1: #a75fba16;
+  --glow-2: #b56dcc1f;
+  --glow-3: #e49cc21c;
+  --shadow-1: 0 4px 14px rgb(57 24 71 / 0.08);
+  --shadow-2: 0 12px 32px rgb(57 24 71 / 0.12);
+  --shadow-3: 0 24px 100px rgb(57 24 71 / 0.22);
+}
+
+.sidebar nav a.active {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.primary {
+  background: var(--accent);
+  color: var(--accent-contrast);
+}
+
+.primary:hover:not(:disabled) {
+  background: var(--accent-hover);
+  opacity: 1;
+}
+
+:root[data-theme="light"] .purple-text,
+:root[data-theme="light"] .item-icon.purple,
+:root[data-theme="light"] .pill.purple {
+  color: #7253a3;
+}
+
+:root[data-theme="light"] .item-icon.pink,
+:root[data-theme="light"] .pill.pink {
+  color: #884a79;
+}
+
+::selection {
+  color: var(--accent-contrast);
+  background: var(--accent);
+}

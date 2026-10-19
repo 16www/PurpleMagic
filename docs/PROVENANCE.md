@@ -31,3 +31,16 @@ The 2026-10-17 independent-repository extraction copied 2,110 source files from
 the integration working snapshot, checking SHA256 before and after copying.
 That source repository had no initial commit; its working-file manifest is the
 extraction identity. See [repository boundaries](REPOSITORY_BOUNDARIES.md).
+
+The 2026-10-17 live toolchain alignment imports launcher 0.2.15 from
+`69b41aa2d002b220e275bfd1ccb0789ea39d8a3e` and gateway delivery changes from
+`48173f229cb9165ce5cf29c0120654981b5e0c7f`. The verified source archives, original
+file hashes and merge decisions are recorded in [the import manifest](live-toolchain-import.json).
+The management listener, graceful shutdown, GM routes and announcement revision
+checks are retained from PurpleMagic. Deployment profiles and assets remain
+external build inputs.
+
+The 2026-10-20 source synchronization includes the accepted Orchid GM Console,
+external GM/PVF services and launcher 0.2.16. See [launcher import hashes](launcher-0.2.16-import.json)
+and [GM Console attribution](../gm-console/THIRD_PARTY_NOTICES.md). Runtime configuration,
+operator credentials, player data and private deployment reports remain outside the repository.

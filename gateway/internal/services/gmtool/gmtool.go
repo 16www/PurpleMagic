@@ -30,6 +30,7 @@ import (
 	dnfpvf "dnf90.local/gateway/internal/modules/dnf/pvf"
 	dnfrepo "dnf90.local/gateway/internal/modules/dnf/repository"
 	"dnf90.local/gateway/internal/modules/dnf/testbenefits"
+	"dnf90.local/gateway/internal/servicehttp"
 )
 
 const (
@@ -63,6 +64,8 @@ type Config struct {
 	Password string
 	// LoginKeySHA256 optionally verifies a dedicated client login key.
 	LoginKeySHA256 string
+	// SessionStorePath persists remembered browser sessions, separate from PVF indexes.
+	SessionStorePath string
 	// Table 是启动器注册账号表（A21 里的 accounts）。
 	Table string
 	// DSN 指向 90CN 使用的 MySQL/MariaDB。
@@ -101,6 +104,7 @@ type Config struct {
 // Production uses an independent database/PVF and Runtime HTTP client. Local
 // callbacks are retained for isolated fixtures and domain-only embedding.
 type Deps struct {
+	Catalog            *RemoteCatalog
 	RegistrationDB     *sql.DB
 	Runtime            *adminapi.Client
 	Benefits           *testbenefits.Store
@@ -124,10 +128,11 @@ type Server struct {
 	http *http.Server
 	ln   net.Listener
 
-	mu       sync.Mutex
-	sessions map[string]time.Time
-	failures map[string][]time.Time
-	grants   map[string]grantRecord
+	mu         sync.Mutex
+	sessions   map[string]time.Time
+	remembered map[string]time.Time
+	failures   map[string][]time.Time
+	grants     map[string]grantRecord
 
 	items        *itemIndex
 	pvf          *pvfCache
@@ -202,6 +207,12 @@ func newServer(cfg Config, deps Deps, managed bool) (*Server, error) {
 		cfg.Logger("gm-online-guard-probe-missing", "action", "startup", "reason", "probe_not_injected")
 	}
 	server.items = newItemIndex(cfg.ItemIndexCachePath, server, cfg.Logger)
+	if err := server.loadRememberedSessions(); err != nil {
+		if ownsDB {
+			_ = db.Close()
+		}
+		return nil, err
+	}
 	return server, nil
 }
 
@@ -480,6 +491,9 @@ func (s *Server) authenticate(next http.Handler) http.Handler {
 }
 
 func (s *Server) authenticated(r *http.Request) bool {
+	if servicehttp.Authenticated(r) {
+		return true
+	}
 	cookie, err := r.Cookie(CookieName)
 	if err != nil || cookie.Value == "" {
 		return false
@@ -489,9 +503,9 @@ func (s *Server) authenticated(r *http.Request) bool {
 	defer s.mu.Unlock()
 	expires, ok := s.sessions[cookie.Value]
 	if !ok {
-		return false
+		expires, ok = s.remembered[sessionDigest(cookie.Value)]
 	}
-	if !expires.After(now) {
+	if !ok || !expires.After(now) {
 		delete(s.sessions, cookie.Value)
 		return false
 	}
@@ -515,13 +529,22 @@ func (s *Server) startSession() (string, error) {
 	return token, nil
 }
 
-func (s *Server) endSession(token string) {
+func (s *Server) endSession(token string) error {
 	if token == "" {
-		return
+		return nil
 	}
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	key := sessionDigest(token)
+	if expires, ok := s.remembered[key]; ok {
+		delete(s.remembered, key)
+		if err := s.saveRememberedSessions(); err != nil {
+			s.remembered[key] = expires
+			return err
+		}
+	}
 	delete(s.sessions, token)
+	return nil
 }
 
 // allowLogin 限制单个来源 IP 的密码爆破。

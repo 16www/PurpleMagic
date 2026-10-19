@@ -15,7 +15,7 @@ import (
 )
 
 func TestV1InventoryRawInstanceShape(t *testing.T) {
-	s := &Server{items: &itemIndex{ready: true, entries: []itemEntry{{ID: 1, Kind: "equipment"}}, byID: map[uint32]int{1: 0}}}
+	s := &Server{items: &itemIndex{ready: true, entries: []itemEntry{{ID: 1, Kind: "equipment", Tag: "weapon"}}, byID: map[uint32]int{1: 0}}}
 	for _, size := range []int{0, 12, 118, 119, 120} {
 		t.Run(fmt.Sprint(size), func(t *testing.T) {
 			raw := make([]byte, size)

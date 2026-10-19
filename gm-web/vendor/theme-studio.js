@@ -67,7 +67,7 @@
 
     var defaults = {
       mode: 'auto',
-      preset: 'cpamp',
+      preset: 'coral-mist',
       radius: 'default',
       font: 'system',
       density: 'default',

@@ -18,6 +18,9 @@ type professionManagementCache struct {
 }
 
 func (s *Server) professionManagementResources(ctx context.Context, job byte) (*professionDiskIndex, professionJobResources, *quest.Catalog, error) {
+	if s.deps.Catalog != nil {
+		return s.deps.Catalog.profession(ctx, job)
+	}
 	fail := func(e error) (*professionDiskIndex, professionJobResources, *quest.Catalog, error) {
 		return nil, professionJobResources{}, nil, e
 	}

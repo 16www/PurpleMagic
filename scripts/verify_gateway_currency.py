@@ -23,7 +23,7 @@ def main():
         page.get_by_label('导入登录 Key').set_input_files(str(STATE/'login-key.json'))
         expect(page.get_by_label('管理密码')).not_to_have_value('')
         page.get_by_role('button',name='登录',exact=True).click()
-        expect(page.locator('tbody tr')).to_have_count(3)
+        expect(page.locator('[data-account]')).to_have_count(4)
         page.get_by_role('button',name='打开晨雾',exact=True).click()
         page.get_by_role('button',name='点券与流水',exact=True).click()
         wallet=page.get_by_role('region',name='账号点券')

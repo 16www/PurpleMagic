@@ -8,6 +8,7 @@ public sealed record PlayerProfile(string ApiUrl, string CertificateSha256, stri
     string SettingsUrl, string GameHost, int BootstrapPort, string ExeSha256, string PvfSha256, string DefaultClientDirectory)
 {
     public ChannelHistoryCompatibility? ChannelHistory { get; init; }
+    public string MinimumLauncherVersion { get; init; } = "";
     public int ChannelServerId { get; init; }
     // Explicit temporary compatibility during a staged server migration.
     public int? PreviousChannelServerId { get; init; }

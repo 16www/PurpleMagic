@@ -168,6 +168,13 @@ func (ix *itemIndex) lookup(itemID uint32) (itemEntry, bool) {
 	if ix == nil {
 		return itemEntry{}, false
 	}
+	if ix.srv != nil && ix.srv.deps.Catalog != nil {
+		v, ok, e := ix.srv.deps.Catalog.item(itemID)
+		ix.mu.Lock()
+		ix.buildEr = e
+		ix.mu.Unlock()
+		return v, ok
+	}
 	ix.mu.RLock()
 	defer ix.mu.RUnlock()
 	pos, ok := ix.byID[itemID]
@@ -188,6 +195,12 @@ func (ix *itemIndex) name(itemID uint32) string {
 }
 
 func (ix *itemIndex) loadCache() error {
+	if ix.srv != nil && ix.srv.deps.Catalog != nil {
+		ix.mu.Lock()
+		ix.ready = true
+		ix.mu.Unlock()
+		return nil
+	}
 	f, err := os.Open(ix.cachePath)
 	if err != nil {
 		return err

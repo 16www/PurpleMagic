@@ -75,7 +75,7 @@ func (s *Server) v1MailboxOperation(w http.ResponseWriter, r *http.Request) {
 	} else {
 		command.PlanToken = ""
 	}
-	result, e := adminops.RunMailboxOperation(r.Context(), u, command, commit, s.v1QuestOffline)
+	result, e := adminops.RunMailboxOperation(r.Context(), u, command, commit, s.v1CharacterEditCheck(command.AccountID))
 	if e == nil && !commit {
 		items := make([]adminops.MailSelection, len(result.Changes))
 		for i, v := range result.Changes {
@@ -97,9 +97,9 @@ func (s *Server) v1MailboxOperationResult(w http.ResponseWriter, r *http.Request
 	case errors.Is(e, adminops.ErrIdempotency):
 		v1Fail(w, r, 409, "idempotency_conflict", "此请求编号已用于其他操作", false)
 	case errors.Is(e, adminops.ErrCharacterOnline):
-		v1Fail(w, r, 409, "character_online", "角色在线，请离线后操作", false)
+		v1Fail(w, r, 409, "character_online", "目标角色仍在线或正在退出，请返回角色选择界面后操作", false)
 	case errors.Is(e, adminops.ErrRuntimeUnavailable):
-		v1Fail(w, r, 503, "runtime_unavailable", "暂时无法取得角色在线状态", true)
+		v1Fail(w, r, 503, "runtime_unavailable", "暂时无法取得账号编辑状态", true)
 	case errors.Is(e, adminops.ErrMailboxInput):
 		v1Fail(w, r, 422, "invalid_mailbox_operation", "请选择1至100封邮件并填写删除原因", false)
 	case errors.Is(e, adminops.ErrUnclaimedMail):

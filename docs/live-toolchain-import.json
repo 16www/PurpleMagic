@@ -1,0 +1,324 @@
+{
+  "baseline": "75be5e6207c013f6fcda10ca85a58340c4fd365e",
+  "sources": {
+    "launcher": {
+      "sourceCommit": "69b41aa2d002b220e275bfd1ccb0789ea39d8a3e",
+      "archiveSha256": "427b8f86ab520836f70a6b0f5ef78c5f79ac350969dafa1adced23b260f9b377"
+    },
+    "gateway": {
+      "sourceCommit": "48173f229cb9165ce5cf29c0120654981b5e0c7f",
+      "archiveSha256": "2f9db59227c41b0cfb8c16584298956c4f53102810419f6dc04abb6b244bca6f"
+    }
+  },
+  "normalization": "Gateway import prefix rewritten to dnf90.local/gateway; existing line endings preserved; Go formatted. Exact file decisions below.",
+  "files": [
+    {
+      "path": "deploy/windows/build_flutter_launcher.py",
+      "action": "import-live",
+      "before": "2dbd8d534b49eeb26ec0eeb23adf1c8ac22a292982fb906b4b6e4839a9b113c6",
+      "after": "ca05924dae976ee419444fcd3c4f27103039435b675a14317b74791f78ffd6aa",
+      "sourceSha256": "4a78478c24b74ccd63da5d2ee0c9d43ca76011415a725f93e640480ab90d5e26"
+    },
+    {
+      "path": "deploy/windows/build_portable_launcher.py",
+      "action": "import-live",
+      "before": "d0c106a0be95093a6924a72d4b5dfad6271aee2750e6cec9acae63297bf989b2",
+      "after": "2ec1f9a1fc5851650f05b457bda4270e9ab48ff6007c289d496ed525651f2925",
+      "sourceSha256": "e24771c0d01d5d8f403f937c3e071880aba7f127b6268e980ef95dbf6e93a677"
+    },
+    {
+      "path": "gateway/cmd/playergateway/main.go",
+      "action": "merge-download-routes-and-timeout",
+      "before": "995753072c1f5d21e5f3f5ff9d2d9b7933f098bd4411fd46d752d4914f690dd2",
+      "after": "a0d401835e04c9ed723cbbb354f59ea44722fa6977b39aeab0ad0d968710c665",
+      "sourceSha256": "68e93bbe3fc1596e10ca77380e68b289333e43650132b5655cc80ecde41713ec"
+    },
+    {
+      "path": "gateway/internal/services/baidudelivery/baidu.go",
+      "action": "import-live",
+      "before": null,
+      "after": "a8e574bf003cdf342d6a3bc7b5d110e5aeb1a6d669e4d771b2fbe56365382f12",
+      "sourceSha256": "0da8ea7ab92402e1c1a71efae07454d242e8374ca182b9c3b56451cf6fba3c11"
+    },
+    {
+      "path": "gateway/internal/services/baidudelivery/baidu_test.go",
+      "action": "import-live",
+      "before": null,
+      "after": "832c4cf58b6aacbc10d30836d2a8e530c93499eb4e42cf24ec1cc76568ee244a",
+      "sourceSha256": "3267892d9daed7f25c054eacc80cda22d183837c6997b1f744219b89eca1760d"
+    },
+    {
+      "path": "gateway/internal/services/launcherhub/admin.go",
+      "action": "preserve-purplemagic",
+      "before": "0200885439a6a96337b1dd97e4b3bfdd66305ac6f7357fbc577cdc532c86831e",
+      "after": "0200885439a6a96337b1dd97e4b3bfdd66305ac6f7357fbc577cdc532c86831e",
+      "sourceSha256": "9a78b55bf9178a14993bf1f0eac6ca3b3e4ec5471d73d2081c93350210651e14"
+    },
+    {
+      "path": "gateway/internal/services/launcherhub/browser_test.go",
+      "action": "preserve-purplemagic",
+      "before": "f52d1a77eb1c62c717c31c9c09cd2cbfd83e784a8902eab2ab76c8c4f430c64b",
+      "after": "f52d1a77eb1c62c717c31c9c09cd2cbfd83e784a8902eab2ab76c8c4f430c64b",
+      "sourceSha256": "1c71348ead08fae66430505db31023e92d23f405af70114263b1212702a1ba4d"
+    },
+    {
+      "path": "gateway/internal/services/launcherhub/bundle.go",
+      "action": "import-live",
+      "before": "6ca5d6e4604ce24727d502059d6b493d1158f15c62e8c0b43fcfca50fc213eab",
+      "after": "e8f6dd48c2dc17ad810cbdf6cd59e5ff245a72bf30775e45da07db2b9afbce03",
+      "sourceSha256": "e8f6dd48c2dc17ad810cbdf6cd59e5ff245a72bf30775e45da07db2b9afbce03"
+    },
+    {
+      "path": "gateway/internal/services/launcherhub/content_blob.go",
+      "action": "import-live",
+      "before": null,
+      "after": "709ff2b64bd7552fc27f5f49477606740999dd0e4ad0f9132122ced2439f4612",
+      "sourceSha256": "ee1f01697a7db046feee8e3ba8b660fa3cea721b70e1f9ad8f49766181092838"
+    },
+    {
+      "path": "gateway/internal/services/launcherhub/content_blob_test.go",
+      "action": "import-live",
+      "before": null,
+      "after": "6fe0582f542935be4b28855376d8a1d95272cf909fb609ff78b2fbb42abbee91",
+      "sourceSha256": "292c775206658d249ea6b7cde27cf99442a1a7dd73125da434f2abb9828949df"
+    },
+    {
+      "path": "gateway/internal/services/launcherhub/content_compatibility_test.go",
+      "action": "import-live",
+      "before": null,
+      "after": "84d25675acc214d27a7de280a369137a2b2fff7d84f408725724ae65eef9502a",
+      "sourceSha256": "f903f72c05f6c546267b09caedcd056bd54e7177f4169ad4a0fb2b785359f38b"
+    },
+    {
+      "path": "gateway/internal/services/launcherhub/contracts.go",
+      "action": "import-live",
+      "before": "17d87f35274377fcf51ea827867b4593f76968b86732f793d5f8dc1562c3dea4",
+      "after": "aff01bf8cb0f9743be8d39166b36de3baa5b86507156bc9f26119f65b020d05f",
+      "sourceSha256": "e97cc891bdff365ecc9c77f7507fd676f3d788be4b982bece6c13ccda0bd888c"
+    },
+    {
+      "path": "gateway/internal/services/launcherhub/delivery_test.go",
+      "action": "preserve-purplemagic",
+      "before": "7929db798956af384d9910325312dac303d80792063f72a89608bd331e888fd0",
+      "after": "7929db798956af384d9910325312dac303d80792063f72a89608bd331e888fd0",
+      "sourceSha256": "b3fe7aca7307ebabf7b9274cd80c54600ee4491084938c797f57b9e7eb94b645"
+    },
+    {
+      "path": "gateway/internal/services/launcherhub/hub.go",
+      "action": "import-live",
+      "before": "1d4c0edf31b2441f7e96b551911f757358ee968c0894dfa170983d11db9344ef",
+      "after": "5c03bcdc0b33987eb66fd7e124ea73171dd16ebf2490ebfb50805ea7f47b7a0b",
+      "sourceSha256": "79e49962596947fdce47c866399d0e10dc38663b069b08f6f6a039e8a7d9ecb2"
+    },
+    {
+      "path": "gateway/internal/services/launcherhub/hub_test.go",
+      "action": "preserve-purplemagic",
+      "before": "de35ede71e13c446bc546a5cc4b0374ffff1c3ed99cce93e5d2217cb22a264c1",
+      "after": "de35ede71e13c446bc546a5cc4b0374ffff1c3ed99cce93e5d2217cb22a264c1",
+      "sourceSha256": "12fef606944588b2a750816ae0d6c6b6ee6b68ea0f986d725b89e355c6e643dd"
+    },
+    {
+      "path": "gateway/internal/services/launcherhub/www/app.js",
+      "action": "preserve-purplemagic",
+      "before": "cf94f8458f793637b52d7739eceade4a67b7279249275e8e2ade841010d7d7e5",
+      "after": "cf94f8458f793637b52d7739eceade4a67b7279249275e8e2ade841010d7d7e5",
+      "sourceSha256": "f470997250938e4d00f8c818695096fbe953cf82f9610c22c67372441da72e1c"
+    },
+    {
+      "path": "launcher/Core/NativeChannelHistory.cs",
+      "action": "import-live",
+      "before": "50b5bd09f1aff3c2425b752bc8975799806dff7d936b61de823ee8717d0eccac",
+      "after": "8f90c00df53f4f0cee7f97d997db700e86f17a52dcae62e52c2434bb0358935d",
+      "sourceSha256": "3fe222d96fa350ea24ccb3ed9aac6360b327f663c50f35c653579a328ed7066b"
+    },
+    {
+      "path": "launcher/Core/PlayerConfig.cs",
+      "action": "import-live",
+      "before": "5bc0f3f674b0a9a0728f3e1ee882b161ab866a5c64600645716fc4e5059b6215",
+      "after": "518ea9b9a75d706b24c9c9ff2d890289b002eb3df400fd08cf5edec29b60bf52",
+      "sourceSha256": "369efd8ca8d656270831273ff6dbdda23a1c2d49353c53fb973e64ef8a74ac7d"
+    },
+    {
+      "path": "launcher/Engine/BundleInstaller.cs",
+      "action": "import-live",
+      "before": "9e5e049effe5939f4e270f987d2b42e2d91c7eb6020bd28f96262a8360182eb8",
+      "after": "9153dcab58a2528bd48f48b29dc424718809636910448b265d906e4d0ad4d4e5",
+      "sourceSha256": "6992317666a56a04a66bb8970cbba98b07b6873f0436d98e05c8777e060b7817"
+    },
+    {
+      "path": "launcher/Engine/BundleProcesses.cs",
+      "action": "import-live",
+      "before": "939245a117d9171402ed15833c848b58f76a8d6ffbd7a2b107eeaa3a8d907165",
+      "after": "6484ef2a7a6ae6473a8e32ffbb239053a444be45f42f07269c8fe63d95f710a5",
+      "sourceSha256": "641ba0ea7c52ca8dec568aa87b508f1f33e65047e4b5365da7e36d5a6c7cc442"
+    },
+    {
+      "path": "launcher/Engine/ContentUpdater.cs",
+      "action": "import-live",
+      "before": "8cff844307f7da2426fb9518683af10a256c0e2528215a9cf1529a7c2f4ec44f",
+      "after": "734d0cfcf249cc5179d77ac6699522ac91abede95d8aee2954f87657105136d9",
+      "sourceSha256": "a996fc96e17e6424ea6c22f51a0be892646eb9059ae8d69bb0af3ad17500adef"
+    },
+    {
+      "path": "launcher/Engine/Contracts.cs",
+      "action": "import-live",
+      "before": "53486fe4d7c7d35901bd3f201017a9b3e281efec04d7d4701ce00973b407d2de",
+      "after": "16db840726a50012050a84384ca760811d5e80098bea9a67e2bd2f1eda87b4c9",
+      "sourceSha256": "e0ee123124c2e9e5fea6969f81c003b8daef599bb10f20d82d2b7c0431b408ff"
+    },
+    {
+      "path": "launcher/Engine/LauncherBundleDownloader.cs",
+      "action": "import-live",
+      "before": null,
+      "after": "c6a8a15357048804b948e40b96b62828c6d0139cbfd8d8d78b590fbcf9900d37",
+      "sourceSha256": "e191314cfb6674ded5f5fc4b2ca15fc6f868eaa039ea72edff01f7564996cb62"
+    },
+    {
+      "path": "launcher/Engine/LauncherEngine.cs",
+      "action": "import-live",
+      "before": "a1ca4e2324b33ff53fe838e8668845d0e05c568c6135db6284504d020aa74d67",
+      "after": "9eb1817ebb98fd837210a3d07be0e28f12c88536d96e36a8fe14193ff63983c4",
+      "sourceSha256": "aed2f6ee81eca269ea00faf2c304404ac0aaf9150b762f7bfd2be494e2502e9d"
+    },
+    {
+      "path": "launcher/EngineTests/AutomaticUpdateChecks.cs",
+      "action": "import-live",
+      "before": "2c801f76c0f4dcabb03e1e79cc4bcea0017aeb19287f63d0afc854bda56b161c",
+      "after": "1a36251e9bc88739240adf62b03bd3607c95c707eb9f3db52cb37c38501666ef",
+      "sourceSha256": "aaa6218dc6fcc2393fb405fccfef4b290bfb0fdbb90e12b7c0e4e13a9ec7f682"
+    },
+    {
+      "path": "launcher/EngineTests/BundleExitChecks.cs",
+      "action": "import-live",
+      "before": null,
+      "after": "93c600663500d713db8372f21e4cec7848896c208f824bec115dc07066110eaf",
+      "sourceSha256": "4abefe1b3e53c7ef523707eb47aa8dc5f5bbf25ca9362c2b2b4ae504dbfa6acf"
+    },
+    {
+      "path": "launcher/EngineTests/BundleFailureChecks.cs",
+      "action": "import-live",
+      "before": null,
+      "after": "6eac62b4ebb674065b9798ac34f282f79157865cf85b9fb79add7fa402ab6bd5",
+      "sourceSha256": "299f3f5123d17af01f8a1c1359d4a56b651240393fc3371c7bffa04933e62a62"
+    },
+    {
+      "path": "launcher/EngineTests/BundleLifecycleChecks.cs",
+      "action": "import-live",
+      "before": "930edc2d759d976476a6e996ea0d25900f5479a2efe90e437594bfbd871c614a",
+      "after": "a6388c2cd401ce6c58e48135a1c2e5506d857b7b5493289e53982926349b9286",
+      "sourceSha256": "a31f5b94b6d367f86703b805eacfd55a02b191759138edfd9dee9f533aba2843"
+    },
+    {
+      "path": "launcher/EngineTests/ContentCompatibilityChecks.cs",
+      "action": "import-live",
+      "before": null,
+      "after": "c06b0115f28ac810be1567cbe6ded1d54a55475c8a86e736a3611f500ce5bd82",
+      "sourceSha256": "60e2c95bded1bde649202fa4b7f811fa3a2723e56f2edfd096f9a0c438b2fa8e"
+    },
+    {
+      "path": "launcher/EngineTests/ContentDirectDownloadChecks.cs",
+      "action": "import-live",
+      "before": null,
+      "after": "7f0bf0e13d8385e0497bd2a6533b71a2a584bdb34b5cd4759bd7e645a15d575e",
+      "sourceSha256": "d3b4565edc60d549d9c2d9bbe65bf5ea3e4ec9e5717eca220e73462c6a358c9d"
+    },
+    {
+      "path": "launcher/EngineTests/LauncherBundleDownloadChecks.cs",
+      "action": "import-live",
+      "before": null,
+      "after": "28ed29d1386188efd060c9b80e7864a86176d0694c0d44adccfc0c0195c349ca",
+      "sourceSha256": "6f68158dfe00f5ff0429aa02f22fcbcbb260b6413b6c0fcf5182616963b860f7"
+    },
+    {
+      "path": "launcher/EngineTests/Program.cs",
+      "action": "import-live",
+      "before": "81456b420d844767b6af35fdf1fac7587011e18a4ca069b4d4697ed518becddc",
+      "after": "b34c99d4767b2dac7a4e4029e3fe24c51fb2ba7a522810e2f6b83c827d7487ea",
+      "sourceSha256": "197c4f6dac0146e79a5863e041a64922807e7cd7231afd0a48773e108fe453a2"
+    },
+    {
+      "path": "launcher/Flutter/lib/launcher_controller.dart",
+      "action": "import-live",
+      "before": "f38adcf9f51be5821b39b1971c75b3987c7a4e943642e2d48feb9a79d6e419bc",
+      "after": "a0b4b5cd45e10af6a0bcac3b4a212cbead37145aa7fd6cf5890bb0bac0c98be8",
+      "sourceSha256": "1c76c523fa6b7e4c418bc8cd3857125c5c35b1d63d37d99736c1a6bff493c4ba"
+    },
+    {
+      "path": "launcher/Flutter/lib/main.dart",
+      "action": "import-live",
+      "before": "a785b3a7900e6108c010ed64c9d23727f20d8645058a0dc0320e565378d93b19",
+      "after": "9d077960b2bb98064797f7496a9bafff3479094db799176a85e734862e47de55",
+      "sourceSha256": "9d077960b2bb98064797f7496a9bafff3479094db799176a85e734862e47de55"
+    },
+    {
+      "path": "launcher/Flutter/pubspec.yaml",
+      "action": "import-live",
+      "before": "6c7d8474f8b7c0aa9ebe8c205f8aace0b8128dad028beb4bb517d5d9c5a6dd0f",
+      "after": "163f89ccbdfb264bcb4d6e8c9cb02a2224197e5e8e949e1628846e0da034da1c",
+      "sourceSha256": "44749c935032ec59bc3ac244cc2322daf90183cfdb88434e0ef960c4fbaf6a6d"
+    },
+    {
+      "path": "launcher/Flutter/test/preview_test.dart",
+      "action": "import-live",
+      "before": "0201e4c805307f0ac1f4e44425ba184fadce1ae4f7cf83e66b4923a6ddbc6277",
+      "after": "ea545447bde1765122c949deb8c38972a8dc824f4250afc10e33f437bdd5f9c3",
+      "sourceSha256": "ea545447bde1765122c949deb8c38972a8dc824f4250afc10e33f437bdd5f9c3"
+    },
+    {
+      "path": "launcher/Host/Launcher.Host.csproj",
+      "action": "import-live",
+      "before": "c08118e28e467ac045e8dd6e59325094c2d6adda3f13b28bf1d76043c446af4e",
+      "after": "0547ca12f43082de07db891e82bbb4e01bfd2cd0b54157fe9f1e073347369154",
+      "sourceSha256": "5c36c208b196a057bbac6c2f4a8f8976b6ef9373a2555b52929bad3901997774"
+    },
+    {
+      "path": "launcher/Portable/Launcher.Portable.csproj",
+      "action": "import-live",
+      "before": "ad0db25b684f30e38faee6197cdb1898b9be4a2a636dce38180dc67df967c271",
+      "after": "bc2cd4406abd33af6c3b761f2ec3e3380aee7e5d1dba26c169c9d31b507e002c",
+      "sourceSha256": "7d4c17cfbbabfb13aa83660fa89076eeb02c13a99df815ab0eb21968fa050348"
+    },
+    {
+      "path": "launcher/Tests/ChannelHistoryChecks.cs",
+      "action": "import-live",
+      "before": "8d5f045bf02cc7aedfdecdc0696267036993fb10c612e71cb9f9a4349bba98f7",
+      "after": "776840e2ccb515023df4c22f78e180a16ac36cb9970e486e4e8c3df9ca5cdd08",
+      "sourceSha256": "57b4cff566c702e072e76e0d0f6c44ae6f12aa41a4cc7a37e537e6fc3084e714"
+    },
+    {
+      "path": "launcher/UpdateExitFixture/CMakeLists.txt",
+      "action": "import-live",
+      "before": null,
+      "after": "40e53b2e892771c28150d043138fc6c5826783f9cf661977d5aab4d29af0ebdc",
+      "sourceSha256": "201e2cede25bf0c0f09114610e7f258252ee4f0ec6c08ee7913ff6f0a53fc7c4"
+    },
+    {
+      "path": "launcher/UpdateExitFixture/delay.c",
+      "action": "import-live",
+      "before": null,
+      "after": "c479bcc9e0d1d54b31f04f651926b453adbc21882b8b3d9c2211eb7da24d883b",
+      "sourceSha256": "0b9aa41ce280c4b51c6e2f551b42d7672ddd64b93ed83fdb3c7ab68e7b18be4e"
+    },
+    {
+      "path": "launcher/UpdateExitFixture/main.c",
+      "action": "import-live",
+      "before": null,
+      "after": "f47168cccc13ba121ab6f42be8b493355df29ae31f3fcf8a613a9b6ecf5e4026",
+      "sourceSha256": "301e8dcf187f599e9f45af18dd642b55350593d20c2085be57947c9a24e92a59"
+    },
+    {
+      "path": "launcher/UpdateExitFixture/README.md",
+      "action": "import-live",
+      "before": null,
+      "after": "b51c2e09758eea6981c292023fe0cdb6047648d35b696fc64c03fbb461711fcd",
+      "sourceSha256": "d638f7f89c908c41f1fcd778f1f15ce06c7cb8ac58f958909c90b88a2ccc94c0"
+    },
+    {
+      "path": "launcher/UpdateFixture/Program.cs",
+      "action": "import-live",
+      "before": "d8a9fb70f9533589ab697a575c518cb7d782975cef8e6a8c7eb476aeedaeb682",
+      "after": "0717f9c12f554acb42a638cb6f5a9de5c4e33d3c16a16d4338f61878827d02ad",
+      "sourceSha256": "cd6516be66c1ecf80e8748d26ac49874a31c56a7a3feadafe8fcadd2e7b63fb8"
+    }
+  ]
+}

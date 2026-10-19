@@ -9,6 +9,13 @@ import (
 )
 
 func (s *Server) v1ProjectCampaignPlan(d testbenefits.MailDraft) (testbenefits.Job, string, error) {
+	if s.deps.Catalog != nil {
+		var v catalogReward
+		d.Recipients = nil
+		d.AccountIDs = nil
+		e := s.deps.Catalog.background(catalogRequest{Operation: "campaign", Draft: d}, &v)
+		return v.Job, v.Name, e
+	}
 	j, name, err := s.v1ResolveReward(v1RewardInput{Title: d.Title, Body: d.Body, Gold: d.Gold, ItemID: d.ItemID, Count: d.Count}, testbenefits.ScopeCharacter)
 	if err != nil {
 		return j, name, err

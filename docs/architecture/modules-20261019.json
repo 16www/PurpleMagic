@@ -1,0 +1,182 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "PurpleMagic · 控制服务模块分工",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "viewBox": [
+      1390,
+      870
+    ]
+  },
+  "components": [
+    {
+      "id": "clients",
+      "type": "frontend",
+      "label": "Web / App / 移动端",
+      "sublabel": "共享管理接口",
+      "pos": [
+        60,
+        370
+      ],
+      "size": [
+        250,
+        100
+      ]
+    },
+    {
+      "id": "scheduler",
+      "type": "backend",
+      "label": "调度核心",
+      "sublabel": "作业 / 配置 / 凭据引用",
+      "pos": [
+        590,
+        370
+      ],
+      "size": [
+        260,
+        100
+      ]
+    },
+    {
+      "id": "transactions",
+      "type": "security",
+      "label": "游戏接口网关",
+      "sublabel": "准入 / 领域事务 / 永久回执",
+      "pos": [
+        1110,
+        370
+      ],
+      "size": [
+        250,
+        100
+      ]
+    },
+    {
+      "id": "catalog",
+      "type": "database",
+      "label": "PVF 索引与查询缓存",
+      "sublabel": "完整 hash / 有界缓存",
+      "pos": [
+        590,
+        90
+      ],
+      "size": [
+        260,
+        100
+      ]
+    },
+    {
+      "id": "publisher",
+      "type": "backend",
+      "label": "发布器",
+      "sublabel": "兼容集 / 签名 / 发布序号",
+      "pos": [
+        590,
+        680
+      ],
+      "size": [
+        260,
+        100
+      ]
+    },
+    {
+      "id": "builder",
+      "type": "backend",
+      "label": "登录器生成器",
+      "sublabel": "Windows 构建 Worker",
+      "pos": [
+        60,
+        680
+      ],
+      "size": [
+        250,
+        100
+      ]
+    },
+    {
+      "id": "origin",
+      "type": "cloud",
+      "label": "发布存储与下载源",
+      "sublabel": "清单 / 内容 / 登录器包",
+      "pos": [
+        1110,
+        680
+      ],
+      "size": [
+        250,
+        100
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "manage-api",
+      "from": "clients",
+      "to": "scheduler",
+      "label": "管理 API",
+      "variant": "security"
+    },
+    {
+      "id": "dispatch-domain",
+      "from": "scheduler",
+      "to": "transactions",
+      "label": "有界命令 / 查询",
+      "variant": "security"
+    },
+    {
+      "id": "query-definitions",
+      "from": "scheduler",
+      "to": "catalog",
+      "label": "检索与索引作业"
+    },
+    {
+      "id": "publish-job",
+      "from": "scheduler",
+      "to": "publisher",
+      "label": "发布作业",
+      "labelAt": [
+        720,
+        575
+      ]
+    },
+    {
+      "id": "build-job",
+      "from": "publisher",
+      "to": "builder",
+      "label": "构建配置 / 产物回执",
+      "variant": "dashed"
+    },
+    {
+      "id": "publish-assets",
+      "from": "publisher",
+      "to": "origin",
+      "label": "上传 / 签名清单",
+      "variant": "emphasis"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "violet",
+      "title": "逻辑模块先分清",
+      "items": [
+        "现有 GMService 合并认证、索引、查询和调度；通用核心待建设。"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "发布与构建独立",
+      "items": [
+        "复用 Hub 发布契约；Windows Worker 产出登录器，中转机编排。"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "持久状态各有归属",
+      "items": [
+        "作业状态在控制端；玩家存档和去重回执留在游戏侧。"
+      ]
+    }
+  ]
+}

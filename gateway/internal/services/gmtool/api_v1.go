@@ -93,6 +93,7 @@ func (s *Server) v1Routes() http.Handler {
 	mux.HandleFunc("GET /api/v1/accounts/{accountId}/currency-adjustments", s.v1CurrencyLog)
 	writes.HandleFunc("POST /api/v1/accounts/{accountId}/currency-adjustments", s.v1AdjustCurrency)
 	mux.HandleFunc("GET /api/v1/capabilities", s.v1Capabilities)
+	mux.HandleFunc("GET /api/v1/presence", s.v1Presence)
 	mux.HandleFunc("GET /api/v1/accounts", s.v1Accounts)
 	mux.HandleFunc("GET /api/v1/accounts/{accountId}", s.v1Account)
 	mux.HandleFunc("GET /api/v1/accounts/{accountId}/characters", s.v1AccountCharacters)
@@ -271,7 +272,7 @@ func (s *Server) v1Capabilities(w http.ResponseWriter, r *http.Request) {
 	}
 	_, transactional := group.MailboxAssets.(repository.AccountMailboxCharacterUnitOfWork)
 	writable := s.deps.Benefits != nil && available && transactional
-	features := map[string]bool{"accounts.read": s.db != nil && err == nil, "characters.read": err == nil, "items.read": items, "mail.write": writable, "benefits.write": writable && items, "tasks.read": s.deps.Benefits != nil, "bans.write": false, "dungeonRuns.read": false}
+	features := map[string]bool{"accounts.read": s.db != nil && err == nil, "characters.read": err == nil, "items.read": items, "mail.write": writable, "benefits.write": writable, "tasks.read": s.deps.Benefits != nil, "bans.write": false, "dungeonRuns.read": false}
 	_, currency := group.Account.(repository.AccountManagementUnitOfWork)
 	features["currency.read"] = available && group.Account != nil
 	features["currency.write"] = available && currency

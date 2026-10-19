@@ -24,3 +24,8 @@ launcher/**/obj/
 /launcher/Flutter/artifacts/
 /launcher/Flutter/windows/runner/resources/app_icon.ico
 /docs/architecture/*.visual-check.*
+node_modules/
+/gm-console/dist/
+/gm-console/.vite/
+/gm-console/.npm-cache/
+/gm-console/.npmrc

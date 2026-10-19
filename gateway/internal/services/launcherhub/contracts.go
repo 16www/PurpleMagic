@@ -8,6 +8,7 @@ import (
 	"crypto/rsa"
 	"crypto/sha256"
 	"crypto/x509"
+	"dnf90.local/gateway/internal/services/baidudelivery"
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
@@ -24,13 +25,14 @@ const Product = "DNF90-Flutter"
 const MaxManifest = 8 << 20
 
 type Config struct {
-	AdminListen      string `json:"admin_listen"`
-	AdminTokenSHA256 string `json:"admin_token_sha256"`
-	DataDir          string `json:"data_dir"`
-	SigningKeyFile   string `json:"signing_key_file"`
-	ProfileFile      string `json:"profile_file"`
-	GMUpstream       string `json:"gm_upstream,omitempty"`
-	GMPassword       string `json:"gm_password,omitempty"`
+	Baidu            *baidudelivery.Config `json:"baidu_delivery,omitempty"`
+	AdminListen      string                `json:"admin_listen"`
+	AdminTokenSHA256 string                `json:"admin_token_sha256"`
+	DataDir          string                `json:"data_dir"`
+	SigningKeyFile   string                `json:"signing_key_file"`
+	ProfileFile      string                `json:"profile_file"`
+	GMUpstream       string                `json:"gm_upstream,omitempty"`
+	GMPassword       string                `json:"gm_password,omitempty"`
 }
 type Profile struct {
 	ApiURL                  string   `json:"ApiUrl"`
@@ -45,9 +47,16 @@ type Profile struct {
 	ChannelHistory          *History `json:"ChannelHistory,omitempty"`
 	ChannelServerID         int      `json:"ChannelServerId,omitempty"`
 	PreviousChannelServerID *int     `json:"PreviousChannelServerId,omitempty"`
+	MinimumLauncherVersion  string   `json:"MinimumLauncherVersion,omitempty"`
 }
 
 func (p Profile) validateDirectory() error {
+	if p.MinimumLauncherVersion != "" && !versionPattern.MatchString(p.MinimumLauncherVersion) {
+		return errors.New("invalid minimum launcher version")
+	}
+	if p.ChannelHistory != nil && p.ChannelHistory.Adapter != "" && !regexp.MustCompile(`^[a-z0-9-]{1,64}$`).MatchString(p.ChannelHistory.Adapter) {
+		return errors.New("invalid channel history adapter")
+	}
 	if p.ChannelServerID < 0 || p.ChannelServerID >= 250 {
 		return errors.New("invalid channel directory identity")
 	}
@@ -60,6 +69,7 @@ func (p Profile) validateDirectory() error {
 type History struct {
 	WindowsCodePage      int
 	AccountSectionBase64 string
+	Adapter              string `json:"Adapter,omitempty"`
 }
 type Source struct {
 	ID                string `json:"id"`

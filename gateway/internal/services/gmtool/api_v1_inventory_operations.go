@@ -63,6 +63,7 @@ func (s *Server) v1InventoryOptions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	entry, e := s.itemcfgEntry(row.Stack.ItemID)
+	data["canReplace"] = targetErr == nil && e == nil && !entry.Invalid && spec.ID != "shared" && !adminops.InventoryArtifactTarget(v) && entry.Tag != "" && (entry.Kind == "equipment" || entry.Kind == "stackable")
 	if adminops.InventoryArtifactTarget(v) {
 		linked, err := v1AttachArtifactState(r.Context(), reader, c, v, row.Stack, item)
 		if err != nil {
@@ -139,6 +140,9 @@ func (s *Server) v1InventoryMutator(at time.Time, nonce string) adminops.Invento
 		}
 		if !v1ArtifactDefinitionMatches(v, entry) {
 			return repository.ItemStack{}, errors.New("当前 PVF 的宠物装备类型与容器不匹配")
+		}
+		if options.ItemID != nil {
+			return s.v1ReplaceInventoryItem(v, stack, entry, *options.ItemID, at)
 		}
 		if options.Count != nil {
 			if v.Container == "equipped" {
@@ -289,7 +293,11 @@ func (s *Server) v1InventoryOperation(w http.ResponseWriter, r *http.Request) {
 		nonce = hex.EncodeToString(random[:])
 		command.PlanToken = s.v1CursorToken("inventory-plan", fingerprint, fmt.Sprintf("%d:%s", at.Unix(), nonce))
 	}
-	result, e := adminops.RunInventoryOperation(r.Context(), u, command, commit, s.v1InventoryMutator(at, nonce), s.v1InventoryProject, s.v1QuestOffline)
+	check := s.v1CharacterEditCheck(command.AccountID)
+	if scope, err := adminops.InventoryScope(command.Items); err == nil && scope == "account" {
+		check = s.v1AccountEditCheck(command.AccountID)
+	}
+	result, e := adminops.RunInventoryOperation(r.Context(), u, command, commit, s.v1InventoryMutator(at, nonce), s.v1InventoryProject, check)
 	if e == nil && !commit {
 		v1Reply(w, r, 200, v1Envelope{Data: map[string]any{"receipt": result, "planToken": command.PlanToken}})
 		return
@@ -309,9 +317,9 @@ func (s *Server) v1InventoryOperationResult(w http.ResponseWriter, r *http.Reque
 	case errors.Is(e, adminops.ErrIdempotency):
 		status, code, message = 409, "idempotency_conflict", "此请求编号已用于其他操作"
 	case errors.Is(e, adminops.ErrCharacterOnline):
-		status, code, message = 409, "character_online", "相关角色在线，请离线后操作"
+		status, code, message = 409, "character_online", "所选资产仍被游戏占用：角色资产需该角色离线，账号共享资产需账号退出"
 	case errors.Is(e, adminops.ErrRuntimeUnavailable):
-		status, code, message, retry = 503, "runtime_unavailable", "暂时无法取得角色在线状态", true
+		status, code, message, retry = 503, "runtime_unavailable", "暂时无法取得账号编辑状态", true
 	case errors.Is(e, adminops.ErrAccount) || errors.Is(e, sql.ErrNoRows):
 		status, code, message = 404, "character_not_found", "角色不存在或归属已变更"
 	case errors.Is(e, adminops.ErrInventoryInput):

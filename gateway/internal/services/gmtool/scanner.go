@@ -26,7 +26,7 @@ func (s *Server) ScanNewCharacters(ctx context.Context, cursor int64, limit int)
 	}
 	active := false
 	for _, campaign := range campaigns {
-		active = active || (campaign.Enabled && campaign.AutoNewCharacters)
+		active = active || (campaign.Enabled && (campaign.AutoNewCharacters || campaign.AutoExistingCharacters))
 	}
 	if !active {
 		return 0, nil

@@ -24,7 +24,7 @@ def main():
     payload={'schemaVersion':1,'scope':'Literal current ManagementHandler and v1 registrations; excludes legacy gmtool routes and runtime handler conditions.','routes':routes}
     (ROOT/'docs/management-routes.json').write_text(json.dumps(payload,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     body=['# 当前接口目录','','由`python scripts/catalog_management_routes.py`从ManagementHandler、v1Routes、v1OperationRoutes提取。仅登记当前注册的HTTP方法和路径；字段schema、资格和部署状态另见对应功能文档。','',
-          '当前私有管理注册共'+str(len(routes))+'条。副职业路由存在，验收仍未完成。旧gmtool.go中的旧接口未纳入当前管理入口。','',
+          '当前私有管理注册共'+str(len(routes))+'条。字段与验证范围见对应功能文档。旧gmtool.go中的旧接口未纳入当前管理入口。','',
           '## 私有GM接口','','| 方法 | 路径 | 处理器 | 来源 |','| --- | --- | --- | --- |']
     for r in routes:
         handler=r['handler'].replace('|','&#124;')
@@ -44,7 +44,7 @@ def main():
     '| Hub私有 | POST `/admin/api/bundle/{version}` | 安装包上传 |','',
     'Hub与GM有独立会话处理；`/console/`公告页面整合尚未完成。公开玩家路径与私有管理路径分属不同监听。','',
     '## 网关到游戏服务','',
-    '`POST /api/game/admin`为网关内部配置的运行适配器，版本1 JSON，Bearer鉴权。现有管理使用online、online_snapshot和catalog；详细字段见[协议](../gateway/internal/modules/dnf/adminapi/protocol.go)。跨进程编辑锁、通关采集、会话释放等新动作尚需定义并实现。','',
+    '`POST /api/game/admin`为网关内部配置的运行适配器，版本1 JSON，Bearer鉴权。现有管理使用character_edit_status、account_edit_status、online_snapshot和catalog；详细字段见[协议](../gateway/internal/modules/dnf/adminapi/protocol.go)。角色／账号准入协议见GM_EDIT_CONCURRENCY.md；角色协议联合上线、多游戏进程汇总、通关采集和会话释放继续接入。','',
     '## API完善工作','',
     '本目录是当前实际路由清单，不是完整OpenAPI规范。下一轮统一请求/响应schema、错误码、权限、能力协商、批次限制及幂等重放语义，并以实际接口生成客户端契约。']
     (ROOT/'docs/API_CATALOG.md').write_text('\n'.join(body)+'\n',encoding='utf-8')

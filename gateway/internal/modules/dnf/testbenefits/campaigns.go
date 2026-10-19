@@ -15,15 +15,17 @@ import (
 // Reward content is immutable. Repeated previews and automatic deliveries share
 // its ID; enabling a rule never resets receipts or creates a replacement rule.
 type Campaign struct {
-	RequestFingerprint string    `json:"requestFingerprint,omitempty"`
-	ID                 string    `json:"id"`
-	Revision           uint64    `json:"revision"`
-	CreatedAt          time.Time `json:"createdAt"`
-	FirstEnabledAt     time.Time `json:"firstEnabledAt"`
-	Enabled            bool      `json:"enabled"`
-	AutoNewCharacters  bool      `json:"autoNewCharacters"`
-	ItemName           string    `json:"itemName"`
-	Reward             Job       `json:"reward"`
+	RequestFingerprint     string    `json:"requestFingerprint,omitempty"`
+	ID                     string    `json:"id"`
+	Revision               uint64    `json:"revision"`
+	CreatedAt              time.Time `json:"createdAt"`
+	FirstEnabledAt         time.Time `json:"firstEnabledAt"`
+	Enabled                bool      `json:"enabled"`
+	AutoNewCharacters      bool      `json:"autoNewCharacters"`
+	AutoExistingCharacters bool      `json:"autoExistingCharacters,omitempty"`
+	ExistingThrough        time.Time `json:"existingThrough,omitempty"`
+	ItemName               string    `json:"itemName"`
+	Reward                 Job       `json:"reward"`
 }
 
 func (s *Store) Campaign(ctx context.Context, id string) (Campaign, error) {
@@ -66,9 +68,6 @@ func (s *Store) CreateCampaign(ctx context.Context, reward Job, name string, aut
 	if err := reward.Validate(); err != nil {
 		return Campaign{}, err
 	}
-	if len(reward.Attachments) != 1 {
-		return Campaign{}, errors.New("物品福利需要一种已核对的物品")
-	}
 	var id [16]byte
 	if _, err := rand.Read(id[:]); err != nil {
 		return Campaign{}, err
@@ -88,6 +87,16 @@ func (s *Store) CreateCampaign(ctx context.Context, reward Job, name string, aut
 }
 
 func (s *Store) EnableCampaign(ctx context.Context, id string, revision uint64, enabled bool) (Campaign, error) {
+	return s.enableCampaign(ctx, id, revision, enabled, false)
+}
+
+// Explicit activation by the new management API enrolls existing characters.
+// Loading an older enabled rule alone never broadens its original audience.
+func (s *Store) EnableAutomaticCampaign(ctx context.Context, id string, revision uint64, enabled bool) (Campaign, error) {
+	return s.enableCampaign(ctx, id, revision, enabled, true)
+}
+
+func (s *Store) enableCampaign(ctx context.Context, id string, revision uint64, enabled, automatic bool) (Campaign, error) {
 	if !validCampaignID(id) {
 		return Campaign{}, errors.New("无效的福利规则编号")
 	}
@@ -108,9 +117,16 @@ func (s *Store) EnableCampaign(ctx context.Context, id string, revision uint64, 
 		return Campaign{}, ErrRevision
 	}
 	c.Enabled = enabled
+	now := time.Now().UTC()
+	if enabled && automatic {
+		if !c.AutoExistingCharacters {
+			c.ExistingThrough = now
+		}
+		c.AutoExistingCharacters = true
+	}
 	c.Revision++
 	if enabled && c.FirstEnabledAt.IsZero() {
-		c.FirstEnabledAt = time.Now().UTC()
+		c.FirstEnabledAt = now
 	}
 	raw, err = json.Marshal(c)
 	if err != nil {
@@ -142,8 +158,17 @@ func (s *Store) lockCampaign(ctx context.Context, tx *sql.Tx, id string) (Campai
 }
 
 func EligibleNewCharacter(c Campaign, character repository.CharacterRecord) bool {
-	return c.Enabled && c.AutoNewCharacters && !c.FirstEnabledAt.IsZero() &&
-		!character.CreatedAt.IsZero() && !character.CreatedAt.Before(c.FirstEnabledAt) && character.Stats["delete_flag"] == 0
+	if !c.Enabled || c.FirstEnabledAt.IsZero() || character.CreatedAt.IsZero() || character.Stats["delete_flag"] != 0 {
+		return false
+	}
+	through := c.ExistingThrough
+	if through.IsZero() {
+		through = c.FirstEnabledAt
+	}
+	if c.AutoExistingCharacters && !character.CreatedAt.After(through) {
+		return true
+	}
+	return c.AutoNewCharacters && !character.CreatedAt.Before(c.FirstEnabledAt)
 }
 
 // Called at character login before mailbox projection. If a process dies or a

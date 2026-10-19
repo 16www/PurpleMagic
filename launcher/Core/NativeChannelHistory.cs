@@ -7,18 +7,31 @@ namespace ServerS5A3;
 
 // A build-supplied, version-specific INI section for the fixed native compatibility
 // identity in GameContract. Never import a player's complete configuration.
-public sealed record ChannelHistoryCompatibility(int WindowsCodePage, string AccountSectionBase64);
+public sealed record ChannelHistoryCompatibility(int WindowsCodePage, string AccountSectionBase64)
+{
+    public string Adapter { get; init; } = "";
+}
 
 public static class NativeChannelHistory
 {
-    // Both inspected executables retain byte-identical argument parsing, account
-    // section derivation and remembered-channel selection. Keep an exact allowlist.
-    private static readonly HashSet<string> SupportedExecutables = new(StringComparer.OrdinalIgnoreCase)
+    public const string AdapterId = "dnf90-history-v1";
+    // The signed profile identifies the exact EXE/PVF. The adapter selects the
+    // implementation, allowing content-only releases without recompiling this list.
+    public static bool SupportsProfile(PlayerProfile profile) => profile.ChannelHistory is not { } history ||
+        history.WindowsCodePage == 936 && (history.Adapter == AdapterId ||
+        string.IsNullOrEmpty(history.Adapter) && SupportedPairs.Contains(profile.ExeSha256 + ":" + profile.PvfSha256));
+    // Inspected argument parsing, account derivation, history selection, bootstrap
+    // and channel-type ranges are identical. Approve complete EXE/PVF pairs so
+    // an accepted executable cannot accidentally authorize another content set.
+    private static readonly HashSet<string> SupportedPairs = new(StringComparer.OrdinalIgnoreCase)
     {
-        "BC613E368E8FD49C50C35163F2ED8A28564FC23342701A5A6C22B839F3BF6B7A",
-        "2AF985B6E344E5FDBB78F6598D40924F152AF924A156F5D45B671BED350A9675"
+        "BC613E368E8FD49C50C35163F2ED8A28564FC23342701A5A6C22B839F3BF6B7A:B86DD8FA5BCDE40A445D9E494A9E1A89D0FC15DDD15D61041E4B97F78973D00F",
+        "2AF985B6E344E5FDBB78F6598D40924F152AF924A156F5D45B671BED350A9675:B86DD8FA5BCDE40A445D9E494A9E1A89D0FC15DDD15D61041E4B97F78973D00F",
+        "6FD3183DE3CFF52FA2FEB5A5327CA43855CABBC6B0B63D920A87AB8DDF316DA5:AD7D05C70421278F7385729BCBA3E81E37D99D0F3DF85A87A9F0DC19C92504CB",
+        "EEB8DE2282001DC012EAF5B6F3DF5A920539AB93CC3D07A626D9B478A301C9DD:AD7D05C70421278F7385729BCBA3E81E37D99D0F3DF85A87A9F0DC19C92504CB"
+        ,"EEB8DE2282001DC012EAF5B6F3DF5A920539AB93CC3D07A626D9B478A301C9DD:8F05BA10914D8D1C37113245402395E8CE80920E455A8AF03F4A2CAFD3B64DF8"
+        ,"FC4FA42CE9FD47307992FB6808840E68F84D89285570C383A100918AA641C3DE:8F05BA10914D8D1C37113245402395E8CE80920E455A8AF03F4A2CAFD3B64DF8"
     };
-    private const string SupportedPvf = "B86DD8FA5BCDE40A445D9E494A9E1A89D0FC15DDD15D61041E4B97F78973D00F";
     private const string Key = "CONFIG_CHARACTER_LATELY_GAMESERVER_INFO";
     private const int Limit = 256 * 1024;
 
@@ -50,8 +63,7 @@ public static class NativeChannelHistory
     internal static void ValidateCompatibility(PlayerProfile profile, uint windowsCodePage)
     {
         if (profile.ChannelHistory is not { } compatibility ||
-            !SupportedExecutables.Contains(profile.ExeSha256) ||
-            !profile.PvfSha256.Equals(SupportedPvf, StringComparison.OrdinalIgnoreCase) ||
+            !SupportsProfile(profile) ||
             compatibility.WindowsCodePage != 936 || windowsCodePage != compatibility.WindowsCodePage)
             throw new InvalidOperationException("频道初始化 C05：客户端版本或 Windows 语言环境尚未支持，请反馈此检测码。");
     }
@@ -71,7 +83,7 @@ public static class NativeChannelHistory
             File.WriteAllBytes(temporary, updated);
             // Verify with the same Windows profile-struct API used by the native
             // client, including its checksum. This never starts a game process.
-            if (!TryReadNative(temporary, compatibility, out var server, out var channel) || server != advertisedServer || channel != 10)
+            if (!TryReadNative(temporary, compatibility, out var server, out var channel) || server != advertisedServer || channel != LandingChannel(available))
                 throw new InvalidDataException("频道初始化校验失败，未修改原配置。");
             if (gameRunning()) throw new InvalidOperationException("游戏正在运行，原配置未修改；请退出后重试。");
             if (File.Exists(path) != existed || (existed && !File.ReadAllBytes(path).AsSpan().SequenceEqual(original)))
@@ -90,7 +102,7 @@ public static class NativeChannelHistory
     internal static byte[] Transform(byte[] original, ChannelHistoryCompatibility compatibility, int[] available, int advertisedServer = 0)
     {
         if (advertisedServer is < 0 or >= 250) throw new InvalidDataException("频道初始化区服编号无效。");
-        if (!available.Contains(10)) throw new InvalidDataException("频道初始化 C06：服务器未提供已验证的登录频道。");
+        var landingChannel = LandingChannel(available);
         var section = Section(compatibility);
         if (original.Length > Limit || original.Contains((byte)0) || original.AsSpan().StartsWith(new byte[] { 0xef, 0xbb, 0xbf }))
             throw new InvalidDataException("频道初始化 C05：配置编码尚未支持，原配置未修改。");
@@ -117,11 +129,11 @@ public static class NativeChannelHistory
             offset = end + 1;
         }
         if (valueStart >= 0 && ValidHistory(text[valueStart..valueEnd], available, advertisedServer)) return original;
-        // Two LE int32s (verified directory server, real channel 10), followed by the
+        // Two LE int32s (verified directory server and advertised landing channel), followed by the
         // byte-sum checksum required by GetPrivateProfileStruct.
         var identity = new byte[9];
         BinaryPrimitives.WriteInt32LittleEndian(identity, advertisedServer);
-        BinaryPrimitives.WriteInt32LittleEndian(identity.AsSpan(4), 10);
+        BinaryPrimitives.WriteInt32LittleEndian(identity.AsSpan(4), landingChannel);
         identity[8] = unchecked((byte)identity.Take(8).Sum(value => value));
         var landing = Convert.ToHexString(identity);
         if (valueStart >= 0) text = text[..valueStart] + landing + text[valueEnd..];
@@ -134,6 +146,11 @@ public static class NativeChannelHistory
         }
         return Encoding.Latin1.GetBytes(text);
     }
+
+    // Both entry channels are verified for this adapter. Team-enabled directories
+    // advertise only 11 after the script download; legacy directories prefer 10.
+    private static int LandingChannel(int[] available) => available.Contains(10) ? 10 :
+        available.Contains(11) ? 11 : throw new InvalidDataException("频道初始化 C06：服务器未提供已验证的登录频道。");
 
     private static bool ValidHistory(string text, int[] available, int advertisedServer)
     {

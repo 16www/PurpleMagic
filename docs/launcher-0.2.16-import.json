@@ -1,0 +1,47 @@
+{
+  "version": "0.2.16",
+  "sourceCommit": "9900643c743333090ef11114a30b89985fa4632c",
+  "sourceParent": "69b41aa2d002b220e275bfd1ccb0789ea39d8a3e",
+  "files": [
+    {
+      "path": "deploy/windows/build_flutter_launcher.py",
+      "sourceSha256": "753e61aac79d4181a0ff86e0cbdf8cdccf70a16b2222b22b2617c40df5b6bb68",
+      "beforeSha256": "ca05924dae976ee419444fcd3c4f27103039435b675a14317b74791f78ffd6aa"
+    },
+    {
+      "path": "deploy/windows/build_portable_launcher.py",
+      "sourceSha256": "e186f91c686154ca4943743a4c99c5a71329eca7f780611b255c5fc455deddd7",
+      "beforeSha256": "2ec1f9a1fc5851650f05b457bda4270e9ab48ff6007c289d496ed525651f2925"
+    },
+    {
+      "path": "launcher/Core/NativeChannelHistory.cs",
+      "sourceSha256": "aaf5464509fd394a9ac6fb906cfa495da4f617397f87fb4af83b59bfc120e7e3",
+      "beforeSha256": "8f90c00df53f4f0cee7f97d997db700e86f17a52dcae62e52c2434bb0358935d"
+    },
+    {
+      "path": "launcher/Engine/LauncherEngine.cs",
+      "sourceSha256": "aee09b64fad1998e3e7bdbc9c22f920a0b47ef9cee9e31d911d58265d9bc0b51",
+      "beforeSha256": "9eb1817ebb98fd837210a3d07be0e28f12c88536d96e36a8fe14193ff63983c4"
+    },
+    {
+      "path": "launcher/Flutter/pubspec.yaml",
+      "sourceSha256": "b9086489f2609387df45ba4fddd58081ce4164fee241b18aaf757c48f8477070",
+      "beforeSha256": "163f89ccbdfb264bcb4d6e8c9cb02a2224197e5e8e949e1628846e0da034da1c"
+    },
+    {
+      "path": "launcher/Host/Launcher.Host.csproj",
+      "sourceSha256": "dbc4f537c4168ae81016ed33327c25a3b65c5216b6da2cc0d956c059b230dbd4",
+      "beforeSha256": "0547ca12f43082de07db891e82bbb4e01bfd2cd0b54157fe9f1e073347369154"
+    },
+    {
+      "path": "launcher/Portable/Launcher.Portable.csproj",
+      "sourceSha256": "c1d10fe190df00b4bb5b10a26afa2f31f23c73c7d6aa9a274b5d43667f42ba82",
+      "beforeSha256": "bc2cd4406abd33af6c3b761f2ec3e3380aee7e5d1dba26c169c9d31b507e002c"
+    },
+    {
+      "path": "launcher/Tests/ChannelHistoryChecks.cs",
+      "sourceSha256": "f983fbdbd94388ad6574751816d99fb658f19afb29b478266fc31edc15a3a6b1",
+      "beforeSha256": "776840e2ccb515023df4c22f78e180a16ac36cb9970e486e4e8c3df9ca5cdd08"
+    }
+  ]
+}

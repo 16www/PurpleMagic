@@ -241,7 +241,7 @@ func TestV1QuestOperationsMySQL(t *testing.T) {
 			s.items = newItemIndex(path, s, nil)
 			s.deps.PVF = func() (dnfpvf.Source, error) { return source, nil }
 			runtime := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				json.NewEncoder(w).Encode(adminapi.Response{Version: 1, OK: true, Online: false})
+				writeAccountEditFixture(t, w, r, false)
 			}))
 			defer runtime.Close()
 			s.deps.Runtime, e = adminapi.NewClient(runtime.URL+adminapi.Path, strings.Repeat("x", 32))

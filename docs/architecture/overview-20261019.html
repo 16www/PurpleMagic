@@ -1,0 +1,633 @@
+<!doctype html>
+<html lang="zh-CN" data-theme="dark"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PurpleMagic · 网络与接口方案</title>
+<style>
+:root{color-scheme:dark;--bg:#19151e;--glass:rgba(21,14,28,.78);--surface:#211b27;--line:#ecd1f522;--text:#f0e9f3;--muted:#c2b1ca;--accent:#d8a0e5;--soft:#d8a0e518;--code:#110e16;--shadow:0 18px 60px #0c06152b}
+:root[data-theme=light]{color-scheme:light;--bg:#faf6fc;--glass:rgba(255,249,255,.8);--surface:#fffbff;--line:#713f8828;--text:#302238;--muted:#6c5578;--accent:#9146a5;--soft:#9146a512;--code:#f1e7f5;--shadow:0 18px 60px #663b7814}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:100px}body{margin:0;background:radial-gradient(ellipse at 82% 0,#b65bd529,transparent 45%),radial-gradient(ellipse at 0 50%,#e89ec516,transparent 40%),var(--bg);color:var(--text);font:15px/1.8 "Segoe UI","Microsoft YaHei",sans-serif;background-attachment:fixed}a{color:var(--accent);text-underline-offset:4px}button,a{ -webkit-tap-highlight-color:transparent}button{font:inherit;cursor:pointer}.shell{max-width:1540px;margin:auto;padding:26px 32px 70px;display:grid;grid-template-columns:248px minmax(0,1fr);gap:26px}.side{position:sticky;top:26px;align-self:start;border:1px solid var(--line);border-radius:26px;background:var(--glass);backdrop-filter:blur(26px);padding:25px 20px;box-shadow:var(--shadow)}.brand{font-size:20px;font-weight:750;letter-spacing:-.5px}.brand span{color:var(--accent)}.side .sub{color:var(--muted);font-size:12px;margin:0 0 25px}.toc ul{list-style:none;padding:0;margin:0}.toc a{display:block;text-decoration:none;color:var(--muted);font-size:13px;padding:10px 11px;border-radius:12px;line-height:1.5}.toc a:hover{background:var(--soft);color:var(--accent)}.side-foot{border-top:1px solid var(--line);margin-top:22px;padding-top:16px;font-size:12px;color:var(--muted)}main{min-width:0}.top{display:flex;align-items:center;justify-content:space-between;gap:18px;border:1px solid var(--line);border-radius:50px;padding:11px 20px;background:var(--glass);backdrop-filter:blur(18px);color:var(--muted);font-size:12px}.theme{border:1px solid var(--line);border-radius:25px;background:var(--soft);color:var(--text);padding:6px 13px}.hero{padding:42px 10px 28px}.eyebrow{color:var(--accent);font-size:12px;letter-spacing:.12em;font-weight:650}h1{font-size:clamp(28px,3.5vw,46px);letter-spacing:-1.5px;line-height:1.35;margin:14px 0 18px}.lead{color:var(--muted);max-width:780px;font-size:17px;margin:0}.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:27px}.button{display:inline-block;background:var(--accent);color:var(--bg);border-radius:13px;padding:9px 17px;font-weight:650;text-decoration:none;font-size:13px}.button.alt{background:var(--soft);color:var(--accent);border:1px solid var(--line)}.decisions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:4px 0 26px}.decision{border:1px solid var(--line);border-radius:20px;background:var(--glass);backdrop-filter:blur(24px);padding:22px}.decision small{font-size:11px;letter-spacing:.1em;color:var(--accent)}.decision h2{font-size:18px;margin:8px 0}.decision p{font-size:13px;color:var(--muted);margin:0}.diagrams{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:28px}.diagram{display:block;border:1px solid var(--line);border-radius:20px;overflow:hidden;text-decoration:none;background:var(--glass)}.diagram img{width:100%;height:auto;display:block}.caption{padding:14px 18px;font-size:14px;color:var(--text);display:flex;justify-content:space-between;gap:12px}.caption span{color:var(--accent);font-size:12px}article{border:1px solid var(--line);border-radius:26px;background:var(--glass);padding:30px 35px;backdrop-filter:blur(26px);box-shadow:var(--shadow)}article>p:first-child{font-size:12px;color:var(--muted);margin-top:0}article h2{font-size:24px;margin:44px 0 18px;letter-spacing:-.5px;border-top:1px solid var(--line);padding-top:30px}article h3{font-size:18px;margin:28px 0 14px}article p,article li{color:var(--muted)}article strong{color:var(--text)}article li{padding:3px 0}article code{font:12px/1.7 Consolas,monospace;overflow-wrap:anywhere;color:var(--accent);background:var(--soft);padding:2px 5px;border-radius:5px}pre{padding:20px;border:1px solid var(--line);border-radius:14px;background:var(--code);overflow:auto}pre code{padding:0;background:transparent;white-space:pre;color:var(--muted)}.table-wrap{overflow:auto;border:1px solid var(--line);border-radius:15px;margin:20px 0}table{border-collapse:collapse;width:100%;font-size:13px;min-width:610px}th,td{padding:13px 15px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}th{background:var(--soft);font-size:12px;color:var(--accent)}td{color:var(--muted)}tr:last-child td{border-bottom:0}footer{padding:22px 8px 0;color:var(--muted);font-size:12px;display:flex;justify-content:space-between;gap:20px}a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
+@media(max-width:1000px){.shell{grid-template-columns:1fr;padding:18px}.side{position:static;padding:16px 20px}.side .sub,.side-foot,.toc{display:none}.decisions{gap:10px}.decision{padding:18px}article{padding:24px}.hero{padding-top:30px}}
+@media(max-width:650px){.decisions,.diagrams{grid-template-columns:1fr}.top{padding:10px 15px}.hero{padding-inline:3px}article{padding:18px}article h2{font-size:22px}.lead{font-size:15px}footer{display:block}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+@media print{.side,.top,.actions,.diagrams{display:none}.shell{display:block;padding:0}body{background:white;color:black}article{background:white;border:0;padding:0;box-shadow:none}.table-wrap{overflow:visible}pre{white-space:pre-wrap}h2,h3{break-after:avoid}}
+</style></head><body><div class="shell">
+<aside class="side"><div class="brand">Purple<span>Magic</span></div><p class="sub">网络 · 接口 · 服务分工</p><div class="toc">
+<ul>
+<li><a href="#1">1. 推荐布局</a></li>
+<li><a href="#2">2. 三种“直连”分别设置</a></li>
+<li><a href="#3">3. 部署示例（公开地址为示例值）</a></li>
+<li><a href="#4">4. 接口与网络契约</a></li>
+<li><a href="#5">5. 更新源到底填什么</a></li>
+<li><a href="#6">6. 登录器生成配置</a></li>
+<li><a href="#7">7. 调度、缓存和发布的一致性</a></li>
+<li><a href="#8">8. 建设顺序与验收</a></li>
+<li><a href="#9">9. 源码依据与交付验证</a></li>
+</ul>
+</div>
+<div class="side-foot">2026 / 10 / 20<br>当前契约 + 下一版方案<br><a href="NETWORK_AND_CONTRACTS_20261019.md" download>下载 Markdown 原稿</a></div></aside>
+<main><div class="top"><span>架构工作台　/　设计方案</span><button class="theme" id="theme" type="button">切换明暗</button></div>
+<header class="hero"><div class="eyebrow">PURPLEMAGIC · ARCHITECTURE</div><h1>控制服务集中，<br>玩家连接直达。</h1><p class="lead">中转机组织管理、索引和发布；国内主机处理玩家与游戏；下载由源站或 CDN 承载。每个地址都有明确的用途。</p><div class="actions"><a class="button" href="network-20261019.html">打开网络拓扑 ↗</a><a class="button alt" href="modules-20261019.html">查看模块分工 ↗</a><a class="button alt" href="#4">接口清单 ↓</a></div></header>
+<section class="decisions" aria-label="核心决定"><div class="decision"><small>01 · PLAYER</small><h2>三条线路分别配置</h2><p>游戏 TCP、账号 API、更新下载各走各的入口，默认就近直连。</p></div><div class="decision"><small>02 · CONTROL</small><h2>SSH 隧道 + Token</h2><p>加密连接和服务身份配合使用，管理调用与 PVF 查询明确方向。</p></div><div class="decision"><small>03 · BUILD</small><h2>中转编排，Windows 构建</h2><p>核心保存配置，构建节点生成登录器；生成和发布分为两个动作。</p></div></section>
+<section class="diagrams" aria-label="交互架构图"><a class="diagram" href="network-20261019.html"><div class="caption">目标网络拓扑<span>放大 / 导出 ↗</span></div></a><a class="diagram" href="modules-20261019.html"><div class="caption">控制服务模块分工<span>放大 / 导出 ↗</span></div></a></section>
+<article><p>2026-10-20 公开版。本文区分当前接口与下一版规划；部署示例已使用通用地址。图：<a href="network-20261019.html">网络拓扑</a> · <a href="modules-20261019.html">模块分工</a> · <a href="overview-20261019.html">阅读入口</a>。</p>
+<h2 id="1">1. 推荐布局</h2>
+<p><strong>控制主机承担控制服务，国内主机承担玩家入口与游戏，下载服务独立承载资源，Windows 构建节点生成登录器。</strong></p>
+<p>游戏 TCP、账号 HTTPS、更新下载是三个独立连接。默认游戏直连国内入口，账号 API 直连国内玩家网关，资源直连配置的下载源。管理流量通过控制主机的 HTTPS 入口进入，再经 SSH 隧道访问游戏管理网关。</p>
+<p>先拆清模块与契约，按负载独立进程：控制核心和发布编排可以同进程，PVF 索引构建采用独立 Worker，Windows 构建必须独立运行。当前规模先使用持久作业表和有界缓存；不新增 Redis、消息中间件或 Kubernetes 依赖。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>模块</th>
+<th>运行位置</th>
+<th>负责什么</th>
+<th>当前基础 / 下一步</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>游戏接口网关</td>
+<td>国内游戏主机</td>
+<td>账号/角色查询、编辑准入、领域事务、幂等和永久回执；适配游戏私有 API</td>
+<td>已有 <code>playergateway</code> 管理模块；保持轻量</td>
+</tr>
+<tr>
+<td>调度核心</td>
+<td>控制主机</td>
+<td>管理认证、服务器配置、作业状态、重试/暂停/恢复、调用网关</td>
+<td>GMService 已有邮件队列和福利扫描；通用调度与服务注册待建</td>
+</tr>
+<tr>
+<td>PVF 索引与查询缓存</td>
+<td>控制主机，可拆进程</td>
+<td>批准 PVF 的索引构建、定义查询、静态搜索；玩家查询短缓存独立分区</td>
+<td>六类索引与按需查询已有；统一索引作业和玩家缓存待建</td>
+</tr>
+<tr>
+<td>发布器</td>
+<td>控制端编排，国内/存储端发布适配器</td>
+<td>兼容资源集、验哈、签名清单、原子发布、递增序号、回退</td>
+<td>Hub 已有检查/签名发布；通用发布作业与存储适配待建</td>
+</tr>
+<tr>
+<td>Web 前端 / App / 移动端</td>
+<td>管理员设备</td>
+<td>共用管理 API；保留认可的兰紫毛玻璃布局</td>
+<td>Web 已有；移动网页优先，原生 App 后续接入</td>
+</tr>
+<tr>
+<td>登录器生成器</td>
+<td>控制端 UI + Windows Worker</td>
+<td>选择服务器配置、品牌资源和登录器模板，生成便携包/更新包及构建回执</td>
+<td>有 Windows 构建脚本；网页生成器、构建队列待建</td>
+</tr>
+<tr>
+<td>登录器</td>
+<td>玩家 Windows 设备</td>
+<td>账号登录、配置验签、下载/安装更新、目录发现、启动游戏</td>
+<td>当前源码 0.2.16；保留其频道目录兼容逻辑</td>
+</tr>
+<tr>
+<td>下载源</td>
+<td>国内 HTTP 文件服务 / CDN / 对象存储前端</td>
+<td>已签名清单、不可变内容文件、登录器包</td>
+<td>已有 HTTPS 内容源与百度分发适配；通用上传适配待建</td>
+</tr>
+<tr>
+<td>游戏服务本体</td>
+<td>国内游戏主机</td>
+<td>游戏登录/频道/玩法、在线态、内存与存档一致性</td>
+<td>游戏项目独立维护</td>
+</tr>
+<tr>
+<td>数据与运行保障</td>
+<td>各服务所属主机</td>
+<td>游戏 DB、控制状态、密钥、日志/健康、备份</td>
+<td>玩家 DB 留在游戏侧；控制作业、发布状态各自持久化</td>
+</tr>
+</tbody>
+</table></div>
+<p>论坛以后作为独立项目和独立业务 API。若展示游戏信息，使用专门的只读公开快照，管理接口不复用于论坛访客请求。</p>
+<h2 id="2">2. 三种“直连”分别设置</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>连接</th>
+<th>默认方案</th>
+<th>配置含义</th>
+<th>经过中转的代价</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>游戏实时连接</td>
+<td>玩家 → 国内游戏 IP 和频道端口</td>
+<td><code>GameHost</code>、<code>BootstrapPort</code>、独立频道表</td>
+<td>跨地域 TCP 中转会增加延迟和带宽成本</td>
+</tr>
+<tr>
+<td>账号与状态</td>
+<td>登录器 → 国内玩家 HTTPS API</td>
+<td>当前 <code>ApiUrl</code></td>
+<td>只影响登录/注册/状态请求；不等同游戏流量</td>
+</tr>
+<tr>
+<td>更新文件</td>
+<td>登录器 → HTTPS 下载源/CDN</td>
+<td><code>content.endpoint</code> 和 <code>launcher.url</code></td>
+<td>大文件经控制主机会占用中转带宽；采用下载重定向或源直连</td>
+</tr>
+<tr>
+<td>管理操作</td>
+<td>管理端 → 控制主机 → 隧道 → 游戏网关</td>
+<td>管理 Origin、私有 peer URL、凭据引用</td>
+<td>可接受管理请求往返；重任务在外部执行</td>
+</tr>
+</tbody>
+</table></div>
+<p>“直连”包含国内主机上的 NAT、端口映射或本机转发，但游戏流量不穿过控制主机。若以后确有游戏加速线路需求，另设 <code>relay</code> 模式，配置专用四层线路及完整频道地址映射；不能仅替换登录入口 IP。</p>
+<p>建议生成页面展示三个独立选项：“游戏线路：直连”“账号入口：国内玩家 API”“下载线路：所选内容源”。首版默认直连；普通使用只需选择已保存的服务器配置，再生成。</p>
+<h2 id="3">3. 部署示例（公开地址为示例值）</h2>
+<p>以下端口说明当前服务分工；域名、IP、主机别名和路径采用示例值。部署者按自己的环境填写配置。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>位置</th>
+<th>监听 / 地址示例</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>控制主机公网</td>
+<td><code>https://admin.example.com</code></td>
+<td>管理 HTTPS 入口；<code>/admin/*</code> 转游戏侧 Hub，其余转外部 GM</td>
+</tr>
+<tr>
+<td>控制主机 loopback</td>
+<td><code>127.0.0.1:29446</code></td>
+<td>GMService Web、会话、v1 API</td>
+</tr>
+<tr>
+<td>控制主机 loopback</td>
+<td><code>127.0.0.1:29447</code></td>
+<td>PVF 定义服务</td>
+</tr>
+<tr>
+<td>控制主机 loopback</td>
+<td><code>https://127.0.0.1:29445</code></td>
+<td>SSH 反向转发到游戏侧管理监听，保留 TLS 校验</td>
+</tr>
+<tr>
+<td>游戏主机公网</td>
+<td><code>https://player.example.com:443</code></td>
+<td>玩家 API、签名 bootstrap、登录器包；可配置本地内容源</td>
+</tr>
+<tr>
+<td>游戏主机 loopback</td>
+<td><code>127.0.0.1:10999</code></td>
+<td>独立管理监听，处理 GM 事务与 Hub 管理</td>
+</tr>
+<tr>
+<td>游戏主机 loopback</td>
+<td><code>127.0.0.1:29447</code></td>
+<td>SSH 本地转发到控制主机的 PVF 定义服务</td>
+</tr>
+<tr>
+<td>游戏主机 loopback</td>
+<td><code>http://127.0.0.1:17002</code></td>
+<td>游戏账号上游与私有 <code>/api/game/admin</code></td>
+</tr>
+<tr>
+<td>游戏入口</td>
+<td><code>203.0.113.20:10000</code></td>
+<td>发布 profile 的 <code>GameHost:BootstrapPort</code>；内部转发按部署配置</td>
+</tr>
+<tr>
+<td>游戏频道</td>
+<td>独立外部频道表</td>
+<td>公网端口由频道配置和端口映射生成</td>
+</tr>
+</tbody>
+</table></div>
+<p>游戏主机主动建立 SSH 长连接，两个方向分别承载管理请求与定义查询：</p>
+<pre><code class="language-text">SSH 发起：game-host → control-host
+管理请求：control-host 127.0.0.1:29445 → -R → game-host 127.0.0.1:10999
+定义查询：game-host 127.0.0.1:29447 → -L → control-host 127.0.0.1:29447
+</code></pre>
+<p>“上游检查源”与“玩家下载入口”是独立配置。发布器可检查一个来源，再把批准文件发布到本服存储。当前仓库已对齐登录器 0.2.16，精确来源见 <a href="../launcher-0.2.16-import.json">导入清单</a>。</p>
+<h2 id="4">4. 接口与网络契约</h2>
+<p>以下“现有”按实际源码路由；“拟新增”是下一版设计，尚未注册。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>调用方 → 服务方</th>
+<th>方法与路径</th>
+<th>作用</th>
+<th>身份与传输</th>
+<th>状态</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>登录器 → 国内玩家网关</td>
+<td><code>POST /api/account/login</code>、<code>POST /api/account/register</code></td>
+<td>登录/注册</td>
+<td>HTTPS；玩家账号凭据</td>
+<td>现有</td>
+</tr>
+<tr>
+<td>登录器 → 国内玩家网关</td>
+<td><code>GET /api/status</code></td>
+<td>运行状态</td>
+<td>HTTPS，公开只读</td>
+<td>现有</td>
+</tr>
+<tr>
+<td>登录器 → 发布读取入口</td>
+<td><code>GET/HEAD /launcher/v2/bootstrap.json</code></td>
+<td>公告、profile、内容与登录器发布信息</td>
+<td>HTTPS；本服 RSA-PSS 签名、公钥验签、发布序号</td>
+<td>现有，入口绑定 <code>ApiUrl</code></td>
+</tr>
+<tr>
+<td>登录器 → 内容源</td>
+<td><code>GET/HEAD /blobs/{sha256}</code></td>
+<td>下载不可变文件</td>
+<td>HTTPS、Range/206、长度和 SHA256；gzip 另验解压后文件</td>
+<td>现有</td>
+</tr>
+<tr>
+<td>登录器 → 登录器包源</td>
+<td><code>GET/HEAD /launcher/v2/bundles/{sha256}.zip</code></td>
+<td>更新登录器</td>
+<td>HTTPS、Range/206、签名清单中的长度/摘要</td>
+<td>现有 Hub 路径</td>
+</tr>
+<tr>
+<td>Web → 外部 GM</td>
+<td><code>POST /api/auth/login</code>，<code>GET /api/v1/capabilities</code></td>
+<td>Token 登录、30天会话、能力/CSRF</td>
+<td>同源 HTTPS、HttpOnly Cookie；写请求 CSRF</td>
+<td>现有</td>
+</tr>
+<tr>
+<td>Web → 外部 GM</td>
+<td><code>/api/v1/accounts</code>、<code>/characters</code>、<code>/items</code>、<code>/quests</code> 等</td>
+<td>领域查询和操作</td>
+<td>管理会话；修改含 revision、幂等及领域校验</td>
+<td>现有</td>
+</tr>
+<tr>
+<td>核心 → 游戏管理网关</td>
+<td><code>/api/v1/*</code> 中玩家领域路径</td>
+<td>有界查询、预览/事务、回执</td>
+<td>SSH/TLS + Bearer + 协议头 + PVF hash</td>
+<td>现有，静态 PVF 搜索在外部完成</td>
+</tr>
+<tr>
+<td>调度 → 游戏管理网关</td>
+<td><code>POST /api/internal/gateway/v1/scan</code></td>
+<td>福利扫描，每次最多 5 个账号</td>
+<td>私有服务身份，游标推进</td>
+<td>现有</td>
+</tr>
+<tr>
+<td>Web → 外部 GM 队列</td>
+<td><code>POST /api/v1/tasks/{id}/schedule</code>、<code>/pause</code></td>
+<td>确认后后台执行/暂停邮件</td>
+<td>管理会话；队列持久化</td>
+<td>现有</td>
+</tr>
+<tr>
+<td>游戏网关 → PVF 定义服务</td>
+<td><code>POST /internal/catalog/v1/resolve</code></td>
+<td>按指定操作读取有界定义</td>
+<td>独立 catalog Token + 协议/PVF hash</td>
+<td>现有，注意调用方向</td>
+</tr>
+<tr>
+<td>游戏网关 → 游戏服务</td>
+<td><code>POST /api/game/admin</code></td>
+<td>在线快照、角色准入、活动及运行态动作</td>
+<td>本机私网 + 游戏专用 Bearer；版本化 action JSON</td>
+<td>现有</td>
+</tr>
+<tr>
+<td>发布后台 → Hub</td>
+<td><code>GET /admin/api/state</code>；<code>PUT /admin/api/source</code></td>
+<td>读取发布状态、保存上游源</td>
+<td>私有管理会话/CSRF</td>
+<td>现有</td>
+</tr>
+<tr>
+<td>发布后台 → Hub</td>
+<td><code>POST /admin/api/check</code>、<code>/publish</code></td>
+<td>检查候选、确认兼容后签名发布</td>
+<td>私有管理会话；固定 candidateId</td>
+<td>现有</td>
+</tr>
+<tr>
+<td>发布后台 → Hub</td>
+<td><code>PUT /admin/api/connection</code>、<code>/news</code></td>
+<td>修改游戏入口、公告</td>
+<td>CSRF + <code>If-Match</code>；发布序号递增</td>
+<td>现有，保存即发布</td>
+</tr>
+<tr>
+<td>发布后台 → Hub</td>
+<td><code>POST /admin/api/bundle/{version}</code></td>
+<td>上传登录器更新包</td>
+<td>私有管理会话/CSRF</td>
+<td>现有，上传与发布有现有语义</td>
+</tr>
+<tr>
+<td>管理端 → 核心</td>
+<td><code>/control/v1/servers</code>、<code>/jobs</code>、<code>/launcher-builds</code>、<code>/releases</code></td>
+<td>服务器配置、通用作业、生成/发布</td>
+<td>统一管理会话；写操作幂等、revision</td>
+<td>拟新增</td>
+</tr>
+<tr>
+<td>Worker → 核心</td>
+<td><code>POST /internal/control/v1/jobs/claim</code>、<code>/{id}/heartbeat</code>、<code>/{id}/complete</code></td>
+<td>主动领取作业、续租、提交产物回执</td>
+<td>HTTPS + 独立受限 Worker 凭据</td>
+<td>拟新增</td>
+</tr>
+</tbody>
+</table></div>
+<p>Web 与未来 App 共用领域契约。移动网页继续使用现有同源会话；原生 App 若接入，新增可撤销设备会话，不向客户端下发网关服务 Token。游戏私有 API 由网关适配；外部调度无需获得数据库 DSN。</p>
+<h3 id="ssh-token">SSH 与 Token 的分工</h3>
+<p>推荐 <strong>SSH 隧道 + 服务 Token</strong>。SSH 负责连通性、加密和主机身份；Token 负责应用服务身份，两者叠加使用。当前控制主机→国内还保留 TLS 校验。</p>
+<p>现有私有服务请求头：</p>
+<pre><code class="language-http">Authorization: Bearer &lt;该方向专用服务凭据&gt;
+X-PurpleMagic-Protocol: purplemagic-service-v1
+X-PVF-SHA256: &lt;批准 PVF 的完整 SHA256&gt;
+</code></pre>
+<p>SSH 专用账号限定转发地址/端口、固定主机密钥、systemd 自动恢复；隧道两端绑定 loopback。两方向 Token 独立。若以后改为直接跨主机调用，采用 HTTPS + Token；mTLS 可作为后续传输方案。当前服务客户端支持 CA/SNI，尚未配置客户端证书契约。</p>
+<p>公网开放：管理 HTTPS、国内玩家 HTTPS、游戏登录/频道端口、下载 HTTPS。管理监听、PVF 定义、游戏私有 HTTP、MariaDB 留在 loopback/私网；SSH 只承担运维和受限转发。</p>
+<h2 id="5">5. 更新源到底填什么</h2>
+<p>把更新链路分成四种对象，后台分别命名，避免都叫“更新地址”。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>对象</th>
+<th>要填什么</th>
+<th>示例</th>
+<th>何时使用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>上游检查源</td>
+<td><code>id/name/endpoint/publicKey/enabled</code>，可选 <code>certificateSha256</code></td>
+<td><code>https://updates.example.com</code></td>
+<td>发布器检查上游稳定/预览通道</td>
+</tr>
+<tr>
+<td>本服签名清单</td>
+<td>本服发布读取入口和本服公钥</td>
+<td>当前 <code>ApiUrl + /launcher/v2/bootstrap.json</code></td>
+<td>登录器获取已批准配置和资源集</td>
+</tr>
+<tr>
+<td>玩家内容下载入口</td>
+<td>HTTPS 源站 Origin，具有 <code>/blobs/{hash}</code></td>
+<td><code>https://cdn.example.com</code></td>
+<td>玩家下载 EXE、PVF、dstr、NPK</td>
+</tr>
+<tr>
+<td>登录器程序包</td>
+<td>签名清单中的完整包 URL、长度、hash、版本</td>
+<td><code>https://player.example.com/launcher/v2/bundles/&lt;hash&gt;.zip</code></td>
+<td>更新登录器本身</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="source">当前上游 Source 契约</h3>
+<p><code>endpoint</code> 必须是 HTTPS <strong>Origin</strong>：域名或 IP，可带端口；路径只能为空或 <code>/</code>，不含账号密码、query、fragment。检查时服务拼接：</p>
+<pre><code class="language-text">{endpoint}/channels/stable/manifest.signed.json
+{endpoint}/channels/preview/manifest.signed.json
+</code></pre>
+<p>配置示意（公钥值需替换为有效 PEM）：</p>
+<pre><code class="language-json">{
+  &quot;id&quot;: &quot;primary-content&quot;,
+  &quot;name&quot;: &quot;主内容源&quot;,
+  &quot;endpoint&quot;: &quot;https://updates.example.com&quot;,
+  &quot;publicKey&quot;: &quot;&lt;上游 RSA PUBLIC KEY PEM&gt;&quot;,
+  &quot;certificateSha256&quot;: &quot;&quot;,
+  &quot;enabled&quot;: true
+}
+</code></pre>
+<p>请求检查：<code>POST /admin/api/check</code>，body 为 <code>{"id":"primary-content","channel":"stable"}</code>；成功返回 candidateId、摘要及兼容性。发布使用此 candidateId 与兼容确认。上游 Envelope 为 <code>Payload/Signature</code>，当前协议是 RSA-SHA256 PKCS#1 v1.5；本服 bootstrap 使用 RSA-PSS。两份公钥和签名协议分别管理。</p>
+<h3 id="_1">资源文件服务</h3>
+<p>最简源站是能返回静态文件的 HTTPS 服务，按契约放置清单和内容寻址文件即可。下载支持 HEAD/GET、Content-Length、Range/206 与 Content-Range。不可变 blob 可长期缓存，动态发布指针使用 no-store/短缓存；更新时先上传文件并验哈，再切换清单。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>存储/来源形式</th>
+<th>使用方式</th>
+<th>适配状态</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>自建 HTTPS 文件站 / Nginx / Caddy</td>
+<td>暴露上述清单和 blob 路径</td>
+<td>可满足现有下载契约</td>
+</tr>
+<tr>
+<td>CDN + 对象存储（S3/OSS/COS/R2 等）</td>
+<td>自定义 HTTPS 域名提供相同路径；上传凭据留在发布端</td>
+<td>下载可用通用 HTTP；SDK 上传适配待建</td>
+</tr>
+<tr>
+<td>当前国内 Hub 内容源</td>
+<td>由已发布清单允许的 hash 提供 <code>/blobs/</code></td>
+<td>已有</td>
+</tr>
+<tr>
+<td>百度分发</td>
+<td>服务端适配器解析，客户端能力协商后下载，最终验同一 hash</td>
+<td>已有专门适配；不等于可填任意分享页</td>
+</tr>
+<tr>
+<td>GitHub / GitGud Release</td>
+<td>发布器导入资产、校验、镜像到契约化源站</td>
+<td>仓库/Release 页面 URL 不是现有 Source endpoint；导入适配待建</td>
+</tr>
+</tbody>
+</table></div>
+<p>当前一个发布 Content 使用一个 endpoint。自动多镜像择优、测速和分文件源选择属于新增契约；首版保留主源与管理员手动切换。切换只影响资源，不改变账号入口和信任根。</p>
+<h2 id="6">6. 登录器生成配置</h2>
+<p>配置保存在调度核心，区分“内部运维配置”和“嵌入玩家包的公开配置”。管理员选择服务器配置后生成；核心记录配置 revision、源码 commit、工具链、产物 hash 与构建日志。</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>页面字段</th>
+<th>当前映射 / 目标字段</th>
+<th>必填条件与校验</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>服务器标识、显示名</td>
+<td>拟新增 <code>serverId/displayName</code></td>
+<td>必填，稳定 ID</td>
+</tr>
+<tr>
+<td>游戏线路</td>
+<td>拟新增 <code>gameConnectionMode=direct</code></td>
+<td>首版默认直连；不复用管理中转地址</td>
+</tr>
+<tr>
+<td>游戏入口 IP</td>
+<td><code>GameHost</code></td>
+<td>当前登录器只接受 IP；域名支持需统一服务端和客户端解析契约</td>
+</tr>
+<tr>
+<td>登录入口端口</td>
+<td><code>BootstrapPort</code></td>
+<td>当前客户端要求 1024–65535；与后台目前 1–65535 的校验统一</td>
+</tr>
+<tr>
+<td>账号 API</td>
+<td><code>ApiUrl</code></td>
+<td>HTTPS；当前同时决定 bootstrap 读取位置，信任根锁定账号入口</td>
+</tr>
+<tr>
+<td>配置清单地址</td>
+<td>当前由 ApiUrl 派生；拟新增 <code>BootstrapUrl</code></td>
+<td>若要独立托管清单，需同步升级登录器验签与下载客户端</td>
+</tr>
+<tr>
+<td>HTTPS 证书指纹</td>
+<td><code>CertificateSha256</code></td>
+<td>当前玩家 API 使用证书 pin；受信 CA 模式应在新契约中显式设计</td>
+</tr>
+<tr>
+<td>本服发布公钥</td>
+<td><code>UpdatePublicKey</code></td>
+<td>必填，从发布器公钥导入；私钥留在签名端</td>
+</tr>
+<tr>
+<td>批准兼容资源集</td>
+<td><code>ExeSha256/PvfSha256</code> + 完整内容清单</td>
+<td>发布器选择已验哈的 EXE/PVF/dstr/NPK/profile 集合</td>
+</tr>
+<tr>
+<td>频道目录身份与兼容</td>
+<td><code>ChannelServerId/PreviousChannelServerId/ChannelHistory</code></td>
+<td>继承 0.2.16 和当前独立外部频道表</td>
+</tr>
+<tr>
+<td>下载源 / 登录器版本</td>
+<td>签名 bootstrap 的 <code>content/launcher</code></td>
+<td>选择已有发布；不用手填临时下载地址</td>
+</tr>
+<tr>
+<td>最低登录器版本</td>
+<td><code>MinimumLauncherVersion</code></td>
+<td>绑定兼容要求；当前线上为 0.2.16</td>
+</tr>
+<tr>
+<td>客户端默认路径</td>
+<td><code>DefaultClientDirectory</code></td>
+<td>可选；保留自动目录发现</td>
+</tr>
+<tr>
+<td>名称、图标、背景</td>
+<td>拟新增品牌资源配置</td>
+<td>采用批准素材，记录文件 hash</td>
+</tr>
+</tbody>
+</table></div>
+<p>当前 <code>SettingsUrl</code> 是旧版更新/Probe 保留字段；Flutter 0.2.16 的主入口实际读取 <code>ApiUrl + /launcher/v2/bootstrap.json</code>。仅修改 SettingsUrl 不会迁移当前 Flutter 清单入口。</p>
+<p>公开 profile 示意（占位 hash、公钥需由发布器替换）：</p>
+<pre><code class="language-json">{
+  &quot;ApiUrl&quot;: &quot;https://player.example.com&quot;,
+  &quot;CertificateSha256&quot;: &quot;&lt;玩家 API 证书 SHA256&gt;&quot;,
+  &quot;UpdatePublicKey&quot;: &quot;&lt;本服发布公钥 PEM&gt;&quot;,
+  &quot;SettingsUrl&quot;: &quot;https://player.example.com/launcher/settings.json&quot;,
+  &quot;GameHost&quot;: &quot;203.0.113.20&quot;,
+  &quot;BootstrapPort&quot;: 10000,
+  &quot;ExeSha256&quot;: &quot;&lt;批准 EXE SHA256&gt;&quot;,
+  &quot;PvfSha256&quot;: &quot;&lt;批准 PVF SHA256&gt;&quot;,
+  &quot;DefaultClientDirectory&quot;: &quot;&quot;,
+  &quot;ChannelServerId&quot;: 1,
+  &quot;MinimumLauncherVersion&quot;: &quot;0.2.16&quot;
+}
+</code></pre>
+<p>内部分别保存 <code>gatewayUrl/sshCredentialRef/serviceTokenRef/catalogUrl/publisherKeyRef/storageCredentialRef</code>；玩家包仅含公开 profile、公钥和资源指纹。</p>
+<p>生成流程：保存配置 → 核心校验可达性与兼容集 → Windows Worker 领取固定 revision 作业 → 构建便携包及 app-update → 回传产物和摘要 → 查看/下载。<strong>生成完成是构建结果；“发布到玩家通道”是独立动作。</strong> 现有 Hub 的连接保存/包上传带发布语义，下一版先增加 draft/stage，再接生成器页面。</p>
+<p>Windows Worker 主动通过 HTTPS 领取任务，接收固定模板、公开 profile 与批准素材，返回指定产物；控制 API 不接受任意 shell 命令。签名私钥由发布器使用，构建节点不需要持有。</p>
+<h2 id="7">7. 调度、缓存和发布的一致性</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>状态</th>
+<th>权威归属</th>
+<th>更新方式</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>玩家背包/资产/任务、规则发放回执</td>
+<td>游戏侧 MariaDB 和领域事务</td>
+<td>网关调用，在线准入、revision、幂等；成功后失效相关查询缓存</td>
+</tr>
+<tr>
+<td>游戏在线态、编辑准入</td>
+<td>游戏运行 API</td>
+<td>写入前实时核对；角色操作只要求目标角色离线，账号共享资产走账号级保护</td>
+</tr>
+<tr>
+<td>邮件/福利调度进度</td>
+<td>控制端持久队列 + 游戏侧永久回执</td>
+<td>至少一次派发、原幂等键重试、读回回执；不能用超时判定“未执行”</td>
+</tr>
+<tr>
+<td>PVF 定义与索引</td>
+<td>批准 PVF hash + 解析器/索引格式版本</td>
+<td>hash 改变，新建完整代次、验证、发布兼容集、切换双端；旧代次单独保留</td>
+</tr>
+<tr>
+<td>静态查询缓存</td>
+<td>PVF 代次</td>
+<td>key 含全 hash/索引版本；有界 LRU，不能混用代次</td>
+</tr>
+<tr>
+<td>玩家查询缓存（拟建）</td>
+<td>游戏网关返回的 observedAt/revision</td>
+<td>只作页面读取优化；按账号/角色/页签有界 TTL，写后失效，提交时回权威态校验</td>
+</tr>
+<tr>
+<td>发布清单与安装包</td>
+<td>发布器</td>
+<td>文件先入库验哈，清单后发布；回退旧内容使用更高发布序号</td>
+</tr>
+</tbody>
+</table></div>
+<p>中转或 PVF 服务断线时，管理请求显示不可用，调度暂停并恢复；既有玩家 API、游戏和已发布文件入口继续独立运行。游戏网关只保留小型定义缓存，当前摘要上限 512 条，不加载外部完整 PVF。</p>
+<p>PVF 内容一致由完整 hash 判断；路径、mtime、大小不作为身份。解析器或索引格式升级即使 PVF hash 不变，也需要生成相应的新索引版本。</p>
+<p>发布兼容集包括 EXE/PVF/dstr/NPK/profile、游戏程序和频道配置的关联。保留部署环境的独立外部频道表；游戏版本部署仍沿用游戏项目的累计 active 和统一 verify。发布器负责记录兼容与部署回执，游戏启动/容器生命周期由游戏部署适配器承担。</p>
+<h2 id="8">8. 建设顺序与验收</h2>
+<ol>
+<li><strong>契约收口</strong>：沿用已合入的 0.2.16；统一 GameHost/端口校验；把账号入口、清单入口、下载入口和私有网关字段分开；建立配置草稿与发布态。</li>
+<li><strong>生成器首版</strong>：管理页复用兰紫布局；服务器配置模板 + Windows Worker + 构建回执；先提供包下载，再接发布动作。</li>
+<li><strong>通用调度</strong>：将现有邮件/福利队列抽象为持久作业；加入优先级、租约、重试、暂停、取消与状态查询，保留原规则 ID 和发放回执。</li>
+<li><strong>索引与发布作业</strong>：批准 PVF → 六索引验证 → 兼容检查 → 存储上传 → 签名发布 → 玩家通道读回；再加入存储 SDK 和多镜像。</li>
+<li><strong>客户端扩展</strong>：移动网页先用同一套 API；原生 App、独立论坛、公开快照按需接入。</li>
+</ol>
+<p>验收重点：公网与私有路由隔离；跨隧道双方向鉴权/PVF代次；构建配置与包内 profile 一致；登录器真实验签、完整下载验哈、二次零下载、原生目录/频道首次与重复迁移；断线重试以永久回执去重；发布回退保持序号递增。网络验收分别测账号往返、游戏延迟和下载吞吐，不用单一“服务器可达”替代。</p>
+<h2 id="9">9. 源码依据与交付验证</h2>
+<ul>
+<li>玩家/管理监听（<code>gateway/cmd/playergateway/main.go</code>）、外部 GM 进程（<code>gateway/cmd/gmservice/main.go</code>）</li>
+<li>管理配置（<code>gateway/internal/management/config.go</code>）、服务鉴权（<code>gateway/internal/servicehttp/service.go</code>）</li>
+<li>私有网关/外部代理（<code>gateway/internal/services/gmtool/external.go</code>）、目录查询（<code>gateway/internal/services/gmtool/remote_catalog.go</code>）</li>
+<li>Hub 数据契约（<code>gateway/internal/services/launcherhub/contracts.go</code>）、实际发布路由（<code>gateway/internal/services/launcherhub/admin.go</code>）、内容下载（<code>gateway/internal/services/launcherhub/content_blob.go</code>）</li>
+<li>候选登录器 profile/启动参数（<code>launcher/Core/PlayerConfig.cs</code>）、bootstrap 验签（<code>launcher/Engine/Contracts.cs</code>）、Windows 构建脚本（<code>deploy/windows/build_flutter_launcher.py</code>）</li>
+<li><a href="../launcher-0.2.16-import.json">0.2.16 源码导入清单</a>记录准确版本与逐文件摘要。</li>
+<li>图的精确规格和 HTML SHA256、9/9 Showcase 检查结果见 <a href="network-20261019.delivery.json">网络图回执</a>、<a href="modules-20261019.delivery.json">模块图回执</a>；视觉核验见 <code>REVIEW_20261019.md</code>。</li>
+</ul>
+<p>本页描述架构和接口设计；源码同步与服务部署分别执行。</p></article><footer><span>兰紫配色沿用已认可的 GM Console 设计基准。</span><a href="REVIEW_20261019.md">图表验证与交付回执</a></footer></main></div>
+<script>document.getElementById('theme').addEventListener('click',()=>{const root=document.documentElement;root.dataset.theme=root.dataset.theme==='dark'?'light':'dark';});</script></body></html>

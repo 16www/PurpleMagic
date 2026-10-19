@@ -51,7 +51,7 @@ func TestV1MaximumBatchHTTPMySQL(t *testing.T) {
 			}
 			check(g.Character.Save(ctx, repository.CharacterRecord{CharacterID: "10", AccountID: "wallet:1", Name: "批次验证", Job: "0", Level: 90}))
 			runtime := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				json.NewEncoder(w).Encode(adminapi.Response{Version: 1, OK: true})
+				writeAccountEditFixture(t, w, r, false)
 			}))
 			defer runtime.Close()
 			var err error

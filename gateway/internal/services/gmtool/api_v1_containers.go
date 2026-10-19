@@ -115,7 +115,7 @@ func (s *Server) v1ContainerOperation(w http.ResponseWriter, r *http.Request) {
 	} else {
 		command.PlanToken = ""
 	}
-	result, err := adminops.RunContainerOperation(r.Context(), u, command, commit, s.v1QuestOffline)
+	result, err := adminops.RunContainerOperation(r.Context(), u, command, commit, s.v1CharacterEditCheck(command.AccountID))
 	if err == nil && !commit {
 		token := s.v1CursorToken("container-plan", fingerprint, strconv.FormatInt(time.Now().Unix(), 10))
 		v1Reply(w, r, 200, v1Envelope{Data: map[string]any{"receipt": result, "planToken": token}})
@@ -133,9 +133,9 @@ func (s *Server) v1ContainerResult(w http.ResponseWriter, r *http.Request, resul
 	case errors.Is(err, adminops.ErrIdempotency):
 		v1Fail(w, r, 409, "idempotency_conflict", "此请求编号已用于其他操作", false)
 	case errors.Is(err, adminops.ErrCharacterOnline):
-		v1Fail(w, r, 409, "character_online", "角色在线，请离线后操作", false)
+		v1Fail(w, r, 409, "character_online", "目标角色仍在线或正在退出，请返回角色选择界面后操作", false)
 	case errors.Is(err, adminops.ErrRuntimeUnavailable):
-		v1Fail(w, r, 503, "runtime_unavailable", "暂时无法取得角色在线状态", true)
+		v1Fail(w, r, 503, "runtime_unavailable", "暂时无法取得账号编辑状态", true)
 	case errors.Is(err, adminops.ErrContainerInput):
 		v1Fail(w, r, 422, "invalid_capacity", "请选择有效的扩容档位并填写原因", false)
 	case errors.Is(err, adminops.ErrContainerMissing):

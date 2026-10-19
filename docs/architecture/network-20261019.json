@@ -1,0 +1,234 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "PurpleMagic · 目标网络拓扑",
+    "locale": "zh-CN",
+    "quality_profile": "showcase",
+    "viewBox": [
+      1390,
+      870
+    ]
+  },
+  "components": [
+    {
+      "id": "operators",
+      "type": "frontend",
+      "label": "管理客户端",
+      "sublabel": "Web · App · 移动端",
+      "pos": [
+        70,
+        120
+      ],
+      "size": [
+        240,
+        90
+      ]
+    },
+    {
+      "id": "control",
+      "type": "backend",
+      "label": "调度核心 · 中转机",
+      "sublabel": "管理认证 / PVF / 发布编排",
+      "pos": [
+        550,
+        120
+      ],
+      "size": [
+        280,
+        90
+      ]
+    },
+    {
+      "id": "gateway",
+      "type": "security",
+      "label": "游戏接口网关",
+      "sublabel": "私有管理监听 / 领域事务",
+      "pos": [
+        1070,
+        120
+      ],
+      "size": [
+        250,
+        90
+      ]
+    },
+    {
+      "id": "launcher",
+      "type": "frontend",
+      "label": "玩家登录器",
+      "sublabel": "账号登录 / 验签 / 更新",
+      "pos": [
+        70,
+        400
+      ],
+      "size": [
+        240,
+        90
+      ]
+    },
+    {
+      "id": "playerapi",
+      "type": "cloud",
+      "label": "国内玩家 HTTPS 入口",
+      "sublabel": "账号 API / 已发布清单",
+      "pos": [
+        550,
+        400
+      ],
+      "size": [
+        280,
+        90
+      ]
+    },
+    {
+      "id": "game",
+      "type": "backend",
+      "label": "游戏服务本体",
+      "sublabel": "登录 / 频道 / 在线状态",
+      "pos": [
+        1070,
+        400
+      ],
+      "size": [
+        250,
+        90
+      ]
+    },
+    {
+      "id": "downloads",
+      "type": "cloud",
+      "label": "下载源 · CDN",
+      "sublabel": "内容文件 / 登录器安装包",
+      "pos": [
+        70,
+        700
+      ],
+      "size": [
+        240,
+        90
+      ]
+    },
+    {
+      "id": "gameclient",
+      "type": "external",
+      "label": "DNF 游戏客户端",
+      "sublabel": "按外部频道表连接",
+      "pos": [
+        550,
+        700
+      ],
+      "size": [
+        280,
+        90
+      ]
+    },
+    {
+      "id": "database",
+      "type": "database",
+      "label": "MariaDB · 本地私网",
+      "sublabel": "玩家存档 / 事务回执",
+      "pos": [
+        1070,
+        700
+      ],
+      "size": [
+        250,
+        90
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "admin-https",
+      "from": "operators",
+      "to": "control",
+      "label": "HTTPS · 会话",
+      "variant": "security"
+    },
+    {
+      "id": "private-link",
+      "from": "control",
+      "to": "gateway",
+      "label": "SSH 隧道 + Token",
+      "variant": "security"
+    },
+    {
+      "id": "runtime-call",
+      "from": "gateway",
+      "to": "game",
+      "label": "私有运行 API",
+      "variant": "security",
+      "labelAt": [
+        1195,
+        300
+      ]
+    },
+    {
+      "id": "account-direct",
+      "from": "launcher",
+      "to": "playerapi",
+      "label": "HTTPS · 直连",
+      "variant": "emphasis"
+    },
+    {
+      "id": "account-local",
+      "from": "playerapi",
+      "to": "game",
+      "label": "本机白名单代理"
+    },
+    {
+      "id": "asset-direct",
+      "from": "launcher",
+      "to": "downloads",
+      "label": "HTTPS 下载直连",
+      "variant": "emphasis",
+      "labelAt": [
+        190,
+        590
+      ]
+    },
+    {
+      "id": "game-direct",
+      "from": "gameclient",
+      "to": "game",
+      "label": "游戏 TCP · 直连",
+      "variant": "emphasis",
+      "fromSide": "right",
+      "toSide": "bottom"
+    },
+    {
+      "id": "game-state",
+      "from": "game",
+      "to": "database",
+      "label": "本地存档读写",
+      "labelAt": [
+        1202,
+        590
+      ]
+    }
+  ],
+  "cards": [
+    {
+      "dot": "violet",
+      "title": "中转机承担管理",
+      "items": [
+        "调度、查询、索引与发布编排；网关通过私有隧道调用。"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "玩家三条独立线路",
+      "items": [
+        "账号 API、游戏 TCP、资源下载分别配置，默认就近直连。"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "图为目标职责分工",
+      "items": [
+        "网关也直接执行本地数据库事务；现网端口与模块拆分见配套说明。"
+      ]
+    }
+  ]
+}

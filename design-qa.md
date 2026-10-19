@@ -1,3 +1,9 @@
+# FROZEN_DO_NOT_REFERENCE — archived first frontend
+
+Current validation: [GM Console](gm-console/design-qa.md). The record below describes the archived `gm-web/` and is not a design baseline.
+
+---
+
 # 侧栏布局对照验收
 
 - source visual truth: `../cpamp-reference-20261015/img/dashboard-zh.png`，固定提交 `9d719fc8cca362f7b56d294a2ad056ae99cfeba6`。

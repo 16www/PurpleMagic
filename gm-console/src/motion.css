@@ -1,0 +1,43 @@
+/* Motion is an additive layer; the accepted Orchid palette and layout stay in their source files. */
+:root {
+  --motion-ease: cubic-bezier(.22, 1, .36, 1);
+  --motion-fast: 150ms;
+  --motion-normal: 240ms;
+}
+.page-content { animation: orchid-enter var(--motion-normal) var(--motion-ease); }
+.motion-section { min-width: 0; }
+.tabs { position: relative; isolation: isolate; }
+.tabs > button { position: relative; z-index: 1; }
+.tabs > button.active { background: transparent; }
+.tabs-indicator {
+  position: absolute;
+  z-index: 0;
+  left: 0;
+  top: 4px;
+  bottom: 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text-1) 12%, transparent);
+  pointer-events: none;
+  transition: transform 280ms var(--motion-ease), width 280ms var(--motion-ease);
+}
+:where(button, .sidebar nav a, .news-list > button, .chapter-list > button) {
+  transition: background-color var(--motion-fast), color var(--motion-fast), border-color var(--motion-fast), box-shadow var(--motion-fast), opacity var(--motion-fast);
+}
+.primary, .secondary, .icon-button, .token-entry {
+  transition: transform var(--motion-fast) var(--motion-ease), background-color var(--motion-fast), color var(--motion-fast), box-shadow var(--motion-fast), opacity var(--motion-fast);
+}
+:is(.primary, .secondary, .icon-button):active:not(:disabled) { transform: translateY(1px); }
+.nav-indicator { animation: orchid-enter 220ms var(--motion-ease); }
+.modal[open] { animation: orchid-dialog 250ms var(--motion-ease); }
+.modal[open]::backdrop { animation: orchid-fade 220ms ease-out; }
+.toast { animation: orchid-enter 240ms var(--motion-ease); }
+.nav-backdrop { animation: orchid-fade 180ms ease-out; }
+.inspector { animation: orchid-enter 220ms var(--motion-ease); }
+.is-spinning { animation: orchid-spin 1s linear infinite; }
+@keyframes orchid-enter { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes orchid-dialog { from { opacity: 0; transform: translateY(10px) scale(.985); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes orchid-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes orchid-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after, .modal::backdrop { animation: none !important; transition: none !important; }
+}

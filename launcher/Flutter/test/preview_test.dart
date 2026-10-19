@@ -11,6 +11,8 @@ import 'package:dnf90_preview/main.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   final capture = GlobalKey();
+  setUp(() => launchArguments = const []);
+  tearDown(() => launchArguments = const []);
   setUpAll(() async {
     // Use the actual installed Windows font for offline render evidence.
     final font = File(
@@ -68,6 +70,26 @@ void main() {
     });
     expect(tester.takeException(), isNull);
   }
+
+  testWidgets('footer shows the running core version, not content version', (
+    tester,
+  ) async {
+    final fake = FakeCore();
+    fake.state['launcherVersion'] = '0.7.31';
+    fake.state['version'] = 'client-v999';
+    await start(tester, controller: LauncherController(client: fake));
+    expect(find.text('90CN  ·  0.7.31'), findsOneWidget);
+    expect(find.text('90CN  ·  0.2.5'), findsNothing);
+    fake.state['launcherVersion'] = '0.7.32';
+    fake.emit();
+    await tester.pump();
+    expect(find.text('90CN  ·  0.7.32'), findsOneWidget);
+    fake.state.remove('launcherVersion');
+    fake.emit();
+    await tester.pump();
+    expect(find.text('90CN'), findsOneWidget);
+    expect(find.text('90CN  ·  client-v999'), findsNothing);
+  });
 
   testWidgets(
     'login, validation, reveal, local submission, and clearing secrets',
@@ -183,6 +205,71 @@ void main() {
         isNotNull,
       );
       await tester.pumpWidget(const SizedBox());
+    },
+  );
+
+  testWidgets('home prioritizes launcher over content and closes for restart', (
+    tester,
+  ) async {
+    final fake = FakeCore()..launcherRestart = true;
+    fake.state['hasLauncherUpdate'] = true;
+    fake.state['hasUpdate'] = true;
+    fake.state['message'] = '上次更新失败，已保留旧版';
+    final actions = <String>[];
+    const channel = MethodChannel('dnf90.preview/window');
+    tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(channel, (
+      call,
+    ) async {
+      actions.add(call.method);
+      return null;
+    });
+    addTearDown(
+      () => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(
+        channel,
+        null,
+      ),
+    );
+    await start(tester, controller: LauncherController(client: fake));
+    expect(find.text('更新登录器'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('check-update')));
+    await tester.pumpAndSettle();
+    expect(fake.calls, ['initialize', 'updateLauncher']);
+    expect(fake.launcherArguments, {'uiPid': pid});
+    expect(actions, ['close']);
+  });
+
+  testWidgets('manual launcher failure is visible and can be retried', (
+    tester,
+  ) async {
+    final fake = FakeCore()..launcherError = '运行目录访问被拒绝（Windows 错误 5）';
+    fake.state['hasLauncherUpdate'] = true;
+    final model = LauncherController(client: fake);
+    await start(tester, controller: model);
+    await tester.tap(find.byKey(const Key('check-update')));
+    await tester.pumpAndSettle();
+    expect(model.phase, UpdatePhase.error);
+    expect(find.text(fake.launcherError!), findsOneWidget);
+    fake.launcherError = null;
+    await tester.tap(find.byKey(const Key('check-update')));
+    await tester.pumpAndSettle();
+    expect(fake.calls.where((c) => c == 'updateLauncher').length, 2);
+    expect(fake.calls, isNot(contains('update')));
+    expect(model.phase, UpdatePhase.ready);
+  });
+
+  testWidgets(
+    'rollback launch skips automatic retry but permits manual retry',
+    (tester) async {
+      launchArguments = const ['--update-retry-required'];
+      final fake = FakeCore();
+      fake.state['hasLauncherUpdate'] = true;
+      (fake.state['preferences'] as Map)['autoCheck'] = true;
+      await start(tester, controller: LauncherController(client: fake));
+      await tester.pump(const Duration(seconds: 10));
+      expect(fake.calls, ['initialize']);
+      await tester.tap(find.byKey(const Key('check-update')));
+      await tester.pumpAndSettle();
+      expect(fake.calls, ['initialize', 'updateLauncher']);
     },
   );
 
@@ -423,6 +510,9 @@ class FakeCore extends CoreClient {
   Map<String, dynamic>? autoArguments;
   bool autoRestart = false;
   String? autoError;
+  Map<String, dynamic>? launcherArguments;
+  bool launcherRestart = false;
+  String? launcherError;
   Map<String, dynamic>? resetArguments;
   String? resetError;
   Completer<Map<String, dynamic>>? updating;
@@ -473,6 +563,11 @@ class FakeCore extends CoreClient {
   ]) async {
     calls.add(method);
     switch (method) {
+      case 'updateLauncher':
+        launcherArguments = args;
+        if (launcherError != null) throw StateError(launcherError!);
+        emit();
+        return {'ok': true, 'state': state, 'restart': launcherRestart};
       case 'autoUpdate':
         autoArguments = args;
         if (autoError != null) throw StateError(autoError!);

@@ -9,6 +9,12 @@ import {createCharacterResources} from './character-resources.js';
 const state = {route:'overview', auth:'checking', capabilities:null, authError:'', busy:false,
   draft:{q:'',scope:'accounts',status:'',kind:''}, list:null, selected:null, detail:null, itemDetail:null};
 const requests = new Map();
+const batchAccounts = new Map(), batchCharacters = new Map();
+const pick = (kind,id,name) => `<input type="checkbox" data-pick="${kind}" data-id="${escape(id)}" aria-label="选择${escape(name)}" ${(kind==='account'?batchAccounts:batchCharacters).has(id)?'checked':''}>`;
+const pickPage = kind => {
+ const accounts=kind==='account', rows=accounts?state.list?.rows:(state.list?.resource==='characters'?state.list.rows:state.selected?.characters), selected=accounts?batchAccounts:batchCharacters;
+ return `<input type="checkbox" data-pick-page="${kind}" aria-label="选择本页${accounts?'账号':'角色'}" ${rows?.length&&rows.every(r=>selected.has(accounts?r.accountId:r.characterId))?'checked':''}>`;
+};
 const badge = (text,tone='') => `<span class="badge ${tone}">${escape(text)}</span>`;
 const action = (label,name,disabled=false) => `<button class="button" data-action="${name}" ${disabled?'disabled':''}>${label}</button>`;
 const stamp = value => value && !Number.isNaN(Date.parse(value)) ? new Date(value).toLocaleString('zh-CN',{hour12:false}) : '暂无记录';
@@ -19,6 +25,7 @@ const errorHTML = error => `<div class="hint-box" role="alert"><strong>${escape(
 function cancel(slot) {requests.get(slot)?.abort(); requests.delete(slot);}
 function cancelData() {currency.reset();resources.reset();for (const slot of ['list','selection','character','item-detail']) cancel(slot); $('#dialog').close(); state.selected=null;state.detail=null;state.itemDetail=null;}
 function forgetSession(message='') {
+  batchAccounts.clear();batchCharacters.clear();
   currency.reset();
   operations.reset();
   announcements.reset();
@@ -80,6 +87,7 @@ function loadList() {
   },error=>{if(state.list!==list)return;list.loading=false;list.error=error;render();});
 }
 function selectAccount(id) {
+  resources.reset();
   currency.reset();
   cancel('character');$('#dialog').close();state.detail=null;
   const selected={id,tab:'characters',loading:true,error:null,characters:[]};state.selected=selected;render();
@@ -88,10 +96,12 @@ function selectAccount(id) {
   },error=>{if(state.selected!==selected)return;selected.loading=false;selected.error=error;render();});
 }
 function showCharacter(id) {
+  if(state.selected)state.selected.tab='characters';
+  currency.reset();state.pickerCollapsed=matchMedia('(max-width:760px)').matches;
   resources.reset();
-  const detail={id,loading:true,error:null,data:null};state.detail=detail;renderDialog();$('#dialog').showModal();
+  const detail={id,loading:true,error:null,data:null};state.detail=detail;render();
   request('character',`v1/characters/${encodeURIComponent(id)}`,body=>{
-    if(state.detail!==detail)return;detail.data=body.data;detail.observedAt=body.observedAt;detail.loading=false;renderDialog();
+    if(state.detail!==detail)return;detail.data=body.data;detail.observedAt=body.observedAt;detail.loading=false;resources.selectTab('inventory');
   },error=>{if(state.detail!==detail)return;detail.error=error;detail.loading=false;renderDialog();});
 }
 function showItem(id) {
@@ -106,15 +116,15 @@ function itemSelection(){
  return renderItemDetail(d.data)+`<div class="actions"><button type="button" class="button primary" data-mail-item="${escape(d.id)}">用于邮件</button></div>`;
 }
 function characterTable(rows) {
-  return `<div class="table-wrap"><table><thead><tr><th>角色</th><th>等级</th><th>职业编号</th><th>所属账号</th><th>操作</th></tr></thead><tbody>${rows.map(c=>`<tr><td><strong>${escape(c.name)}</strong><small class="mono">${escape(c.characterId)}</small></td><td>${escape(c.level)}</td><td>${escape(c.job)}</td><td class="mono">${escape(c.accountId)}</td><td><button class="button link" data-character="${escape(c.characterId)}" aria-label="查看${escape(c.name)}">查看</button></td></tr>`).join('')}</tbody></table></div>`;
+  return `<div class="table-wrap"><table><thead><tr><th>${pickPage("character")}</th><th>角色</th><th>等级</th><th>职业编号</th><th>所属账号</th><th>操作</th></tr></thead><tbody>${rows.map(c=>`<tr><td>${pick("character",c.characterId,c.name)}</td><td><strong>${escape(c.name)}</strong><small class="mono">${escape(c.characterId)}</small></td><td>${escape(c.level)}</td><td>${escape(c.job)}</td><td class="mono">${escape(c.accountId)}</td><td><button class="button link" data-character="${escape(c.characterId)}" aria-label="查看${escape(c.name)}">查看</button></td></tr>`).join('')}</tbody></table></div>`;
 }
 function renderDialog() {
   const detail=state.detail;if(!detail)return;
   let content=empty('正在读取角色','请稍候…');
   if(detail.error)content=errorHTML(detail.error);
   else if(detail.data){const c=detail.data.character;content=`<div class="detail-identity"><span class="avatar">${escape(c.name.slice(0,1))}</span><div><h2>${escape(c.name)}</h2><p>Lv.${escape(c.level)} · 职业编号 ${escape(c.job)}</p></div></div><dl class="detail-grid"><div><dt>角色 ID</dt><dd class="mono">${escape(c.characterId)}</dd></div><div><dt>所属账号</dt><dd class="mono">${escape(c.accountId)}</dd></div><div><dt>在线状态</dt><dd>未知</dd></div><div><dt>创建时间</dt><dd>${escape(stamp(c.createdAt))}</dd></div></dl><p class="hint">读取于 ${escape(stamp(detail.observedAt))}。</p>`;}
-  $('#dialog').classList.add('character-dialog');
-  $('#dialog').innerHTML=`<div class="dialog-head"><h2 id="dialog-title">角色资料${detail.data?' · '+escape(detail.data.character.name):''}</h2>${action('关闭','close-dialog')}</div>${detail.data?resources.tabs():''}${detail.data&&!resources.isProfile()?resources.view():content}${detail.data&&resources.isProfile()?`<div class="actions">${action('发送邮件','mail-character')}</div>`:''}`;
+  const workspace=$('#player-workspace');if(!workspace)return;
+  workspace.innerHTML=`<div class="card-head"><div><h2>${detail.data?escape(detail.data.character.name):'角色工作区'}</h2>${detail.data?`<p class="mono">账号 ${escape(detail.data.character.accountId)} · 角色 ${escape(detail.id)}</p>`:''}</div>${action(state.pickerCollapsed?'展开选人区':'收起选人区','toggle-picker')}</div>${detail.data?resources.tabs():''}${detail.data&&!resources.isProfile()?resources.view():content}`;
 }
 function selection() {
   const s=state.selected;
@@ -135,12 +145,13 @@ function directory() {
     if(list.loading)content=empty('正在查询','只读取当前页，请稍候…');
     else if(list.error)content=errorHTML(list.error)+`<div class="actions">${action('重试','refresh')}</div>`;
     else if(!list.rows.length)content=empty('没有匹配结果','请调整条件后重新查询。');
-    else if(list.resource==='accounts')content=`<div class="table-wrap"><table><thead><tr><th>账号</th><th>状态</th><th>角色数</th><th>最近登录</th><th>操作</th></tr></thead><tbody>${list.rows.map(a=>`<tr ${state.selected?.id===a.accountId?'class="selected"':''}><td><strong>${escape(a.name)}</strong><small class="mono">${escape(a.accountId)}</small></td><td>${badge(a.disabled?'已停用':'正常',a.disabled?'warn':'good')}</td><td>${escape(a.characterCount)}</td><td>${escape(stamp(a.lastLoginAt))}</td><td><button class="button link" data-account="${escape(a.accountId)}" aria-label="打开${escape(a.name)}">打开</button></td></tr>`).join('')}</tbody></table></div>`;
+    else if(list.resource==='accounts')content=`<div class="table-wrap"><table><thead><tr><th>${pickPage("account")}</th><th>账号</th><th>状态</th><th>角色数</th><th>最近登录</th><th>操作</th></tr></thead><tbody>${list.rows.map(a=>`<tr ${state.selected?.id===a.accountId?'class="selected"':''}><td>${pick("account",a.accountId,a.name)}</td><td><strong>${escape(a.name)}</strong><small class="mono">${escape(a.accountId)}</small></td><td>${badge(a.disabled?'已停用':'正常',a.disabled?'warn':'good')}</td><td>${escape(a.characterCount)}</td><td>${escape(stamp(a.lastLoginAt))}</td><td><button class="button link" data-account="${escape(a.accountId)}" aria-label="打开${escape(a.name)}">打开</button></td></tr>`).join('')}</tbody></table></div>`;
     else if(list.resource==='characters')content=characterTable(list.rows);
     else content=`<div class="table-wrap"><table><thead><tr><th>物品</th><th>类型</th><th>等级</th><th>操作</th></tr></thead><tbody>${list.rows.map(i=>`<tr ${state.itemDetail?.id===i.itemId?'class="selected"':''}><td><strong>${escape(i.name)}</strong><small class="mono">${escape(i.itemId)}</small>${i.invalid?badge('需核查','warn'):''}</td><td>${i.kind==='equipment'?'装备':'道具'}</td><td>${escape(i.minLevel)}</td><td><button type="button" class="button link" data-item-detail="${escape(i.itemId)}" aria-label="查看${escape(i.name)}详情">详情</button><button type="button" class="button link" data-mail-item="${escape(i.itemId)}" ${i.invalid?'disabled':''}>用于邮件</button></td></tr>`).join('')}</tbody></table></div>`;
   }
   const footer=list?`<div class="table-footer"><span>第 ${list.index+1} 页 · 本页 ${list.rows.length} 条${list.total!==null?` · 共 ${escape(list.total)} 项`:''}</span><div class="actions">${action('上一页','prev',list.loading||list.index===0)}${action('下一页','next',list.loading||!list.next)}</div></div>${list.observedAt?`<p class="hint">读取于 ${escape(stamp(list.observedAt))}</p>`:''}`:'';
-  return heading(items?'物品目录':'账号与角色',items?'按名称或 ID 查询物品目录。':'选择查询范围，提交条件后读取当前页。',action('刷新','refresh',list?.loading))+`${items?'<div class="split-view live-catalog">':''}<section class="card">${searchForm()}<div aria-live="polite" aria-busy="${!!list?.loading}">${content}${footer}</div></section>${items?`<section class="card" aria-label="物品详情" aria-live="polite">${itemSelection()}</section></div>`:''}${!items&&list?.resource==='accounts'?`<section class="card live-selection" aria-label="账号详情">${selection()}</section>`:''}`;
+  if(!items)return heading('玩家管理','',action('刷新','refresh',list?.loading))+`<section class="card player-picker-panel ${state.pickerCollapsed?'picker-collapsed':''}"><div class="picker-content">${searchForm()}<div class="actions batch-selection"><span>已选 ${batchAccounts.size} 个账号、${batchCharacters.size} 个角色</span>${action('批量发送道具','batch-mail',!batchAccounts.size&&!batchCharacters.size)}${action('清空选择','batch-clear')}</div><div class="player-picker"><div>${content}${footer}</div>${list?.resource==='accounts'?`<div aria-label="账号详情">${selection()}</div>`:''}</div></div>${state.pickerCollapsed?action('展开选人区','toggle-picker'):''}</section><section class="card player-workspace" id="player-workspace" aria-label="玩家工作区">${empty('选择角色','从上方列表选择要操作的角色。')}</section>`;
+  return heading(items?'物品目录':'账号与角色',items?'按名称或 ID 查询物品目录。':'选择查询范围，提交条件后读取当前页。',action('刷新','refresh',list?.loading))+`${items?'<div class="split-view live-catalog">':''}<section class="card">${searchForm()}${!items?`<div class="actions batch-selection"><span>已选 ${batchAccounts.size} 个账号、${batchCharacters.size} 个角色</span>${action("批量发送道具","batch-mail",!batchAccounts.size&&!batchCharacters.size)}${action("清空选择","batch-clear")}</div>`:""}<div aria-live="polite" aria-busy="${!!list?.loading}">${content}${footer}</div></section>${items?`<section class="card" aria-label="物品详情" aria-live="polite">${itemSelection()}</section></div>`:''}${!items&&list?.resource==='accounts'?`<section class="card live-selection" aria-label="账号详情">${selection()}</section>`:''}`;
 }
 function overview() {
   const labels={'currency.read':'账号点券与流水','currency.write':'点券增减','accounts.read':'账号查询','characters.read':'角色查询','inventory.read':'背包、穿戴与仓库','mailbox.read':'角色邮箱','quests.read':'游戏任务与任务库','items.read':'物品目录','mail.write':'邮件发放','benefits.write':'福利规则','tasks.read':'运营作业与回执'};
@@ -156,6 +167,7 @@ function login() {
 }
 function render() {
   $('#main').innerHTML=state.auth!=='ready'?login():state.route==='overview'?overview():['players','items'].includes(state.route)?directory():state.route==='settings'?settings():['mail','tasks'].includes(state.route)?operations.view():announcements.view();
+  if(state.auth==='ready'&&state.route==='players'&&state.detail)renderDialog();
   $('#breadcrumb-current').textContent=nav.find(([r])=>r===state.route)[1];
   $('#session-control').hidden=state.auth!=='ready';
   document.title=`${$('#breadcrumb-current').textContent} · PurpleMagic GM`;
@@ -169,9 +181,20 @@ function navigate() {
 }
 $('.topbar-actions').insertAdjacentHTML('beforeend','<button class="button subtle" id="session-control" data-action="logout" hidden>退出</button>');
 window.addEventListener('hashchange',()=>{navigate();$('#main').focus({preventScroll:true});});
-$('#dialog').addEventListener('close',()=>{if(!$('#dialog').open){resources.reset();cancel('character');state.detail=null;$('#dialog').classList.remove('character-dialog');$('#dialog').replaceChildren();}});
+$('#dialog').addEventListener('close',()=>{if(!$('#dialog').open&&$('#dialog').classList.contains('character-dialog')){resources.reset();cancel('character');state.detail=null;$('#dialog').classList.remove('character-dialog');$('#dialog').replaceChildren();}});
 document.addEventListener('input',event=>{if(event.target.closest('#directory-search'))state.draft[event.target.name]=event.target.value;});
 document.addEventListener('change',async event=>{
+  const el=event.target;
+  if(el.dataset.pick||el.dataset.pickPage){
+    const kind=el.dataset.pick||el.dataset.pickPage, isAccount=kind==='account', collection=isAccount?batchAccounts:batchCharacters;
+    const rows=isAccount?state.list?.rows:(state.list?.resource==='characters'?state.list.rows:state.selected?.characters);
+    for(const row of rows||[]){
+      const id=isAccount?row.accountId:row.characterId;
+      if(el.dataset.pick&&el.dataset.id!==id)continue;
+      if(el.checked&&collection.size<100)collection.set(id,row);else if(!el.checked)collection.delete(id);
+    }
+    render();return;
+  }
   if(event.target.id==='login-key-file'){
     const file=event.target.files?.[0];if(!file)return;
     try{if(file.size>4096)throw Error('登录 Key 文件过大。');const text=(await file.text()).trim();const key=text.startsWith('{')?JSON.parse(text).key:text;if(typeof key!=='string'||key.length<32||key.length>1024)throw Error('登录 Key 格式无效。');const input=document.querySelector('#login-form input[name=password]');if(input)input.value=key;}catch(error){state.authError=error.message;render();}
@@ -195,7 +218,10 @@ document.addEventListener('click',event=>{
   if(control.dataset.itemDetail){showItem(control.dataset.itemDetail);return;}
   if(control.dataset.mailItem){const item=state.list?.rows.find(i=>i.itemId===control.dataset.mailItem);if(item)operations.selectItem(item);return;}
   switch(control.dataset.action){
-    case 'account-currency':if(state.selected){state.selected.tab='currency';currency.open(state.selected.id);render();}break;
+    case 'toggle-picker':state.pickerCollapsed=!state.pickerCollapsed;render();break;
+    case 'batch-mail':operations.selectRecipients([...batchAccounts.values()],[...batchCharacters.values()]);break;
+    case 'batch-clear':batchAccounts.clear();batchCharacters.clear();render();break;
+    case 'account-currency':if(state.selected){resources.reset();cancel('character');state.detail=null;state.selected.tab='currency';currency.open(state.selected.id);render();}break;
     case 'account-characters':if(state.selected){currency.reset();state.selected.tab='characters';render();}break;
     case 'theme':window.__SOFT_THEME_STUDIO__.open(control);break;
     case 'close-dialog':$('#dialog').close();break;
@@ -215,5 +241,5 @@ document.addEventListener('click',event=>{
 const currency=createCurrency({request,cancel,render,state});
 const operations=createOperations({request,cancel,render,state});
 const announcements=createAnnouncements({request,cancel,render,state});
-const resources=createCharacterResources({request,cancel,state,renderDialog});
+const resources=createCharacterResources({request,cancel,state,renderDialog,currency});
 navigate();connect();

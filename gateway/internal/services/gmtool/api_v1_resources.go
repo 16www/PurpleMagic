@@ -65,6 +65,13 @@ func v1Time(value time.Time) *time.Time {
 }
 
 func (s *Server) v1RequireItemIndex(w http.ResponseWriter, r *http.Request) bool {
+	if s.deps.Catalog != nil {
+		var v struct{ ManifestHash string }
+		e := s.deps.Catalog.call(r.Context(), catalogRequest{Operation: "metadata"}, &v)
+		s.items.mu.Lock()
+		s.items.buildEr = e
+		s.items.mu.Unlock()
+	}
 	if s.items == nil || !s.items.isReady() || s.items.failure() != nil {
 		v1Fail(w, r, 503, "item_index_unavailable", "当前 PVF 的物品索引尚未准备好", true)
 		return false
@@ -115,9 +122,25 @@ func (s *Server) v1Inventory(w http.ResponseWriter, r *http.Request) {
 		rows = rows[:q.Limit]
 		page.NextCursor = s.v1CursorToken("inventory", filter, strconv.Itoa(rows[len(rows)-1].Slot))
 	}
+	if s.deps.Catalog != nil {
+		ids := []uint32{}
+		for _, row := range rows {
+			if row.Stack.ItemID > 0 && row.Stack.ItemID <= math.MaxUint32 {
+				ids = append(ids, uint32(row.Stack.ItemID))
+			}
+		}
+		if e := s.deps.Catalog.preload(r.Context(), ids); e != nil {
+			s.v1Unavailable(w, r, e)
+			return
+		}
+	}
 	data := []map[string]any{}
 	for _, row := range rows {
-		item := s.v1InventoryRow(container, row, false)
+		item := s.v1InventoryRow(container, row, true)
+		item["revision"] = adminops.InventorySlotRevision(c.AccountID, c.CharacterID, container, row.Slot, row.Stack, container != "shared" || present[row.Slot])
+		// The directory query deliberately omits raw bytes and extra fields.
+		// Its digest describes the displayed summary, not the full write revision.
+		item["revisionScope"] = "summary"
 		if container == "shared" {
 			item["present"] = present[row.Slot]
 		}
@@ -170,6 +193,8 @@ func (s *Server) v1InventoryRow(container string, row repository.InventorySlot, 
 		entry, found = s.items.lookup(uint32(stack.ItemID))
 	}
 	out := map[string]any{"present": true, "slot": row.Slot, "container": container, "itemId": strconv.FormatInt(stack.ItemID, 10), "count": strconv.FormatInt(stack.Count, 10), "bound": stack.Bind, "expiresAt": v1Time(stack.ExpireAt), "definitionKnown": found, "name": entry.Name, "kind": entry.Kind, "rarity": entry.Rarity}
+	out["tag"] = entry.Tag
+	out["minimumLevel"] = entry.MinLevel
 	if !detail {
 		return out
 	}
@@ -201,7 +226,7 @@ func (s *Server) v1InventoryRow(container string, row repository.InventorySlot, 
 			attributes[name] = nil
 		}
 	}
-	if found && entry.Kind == "equipment" {
+	if found && entry.Kind == "equipment" && !itemcfgIsAvatar(entry) && container != "avatars" {
 		put("qualitySeed", has(9, "quality_seed"), strconv.FormatUint(uint64(itemcfgQualitySeed(stack, entry)), 10))
 		put("reinforce", has(0x0a, "ext_data0", "ext0", "packed_flag_byte", "packed_flag", "packed", "reinforce", "upgrade_level", "enchant_upgrade", "enchant_upgrade_count"), itemcfgUpgradeLevelOf(stack))
 		put("amplifyType", has(0x13, "amplify_type", "amplification_type", "amplify_attr", "amplification_attr", "byte_13", "value_13", "value_c"), itemcfgAmplifyTypeOf(stack))
@@ -284,6 +309,18 @@ func (s *Server) v1MailboxDetail(w http.ResponseWriter, r *http.Request) {
 		v1Fail(w, r, 404, "mail_not_found", "邮件不存在或已删除", false)
 		return
 	}
+	if s.deps.Catalog != nil {
+		ids := []uint32{}
+		for _, a := range m.Attachments {
+			if a.ItemID > 0 && a.ItemID <= math.MaxUint32 {
+				ids = append(ids, uint32(a.ItemID))
+			}
+		}
+		if e := s.deps.Catalog.preload(r.Context(), ids); e != nil {
+			s.v1Unavailable(w, r, e)
+			return
+		}
+	}
 	out := v1MailRow(m)
 	out["body"] = m.Body
 	attachments := []map[string]any{}
@@ -344,6 +381,16 @@ func (s *Server) v1CharacterQuests(w http.ResponseWriter, r *http.Request) {
 		page.NextCursor = s.v1CursorToken("character-quests", filter, strconv.FormatInt(rows[len(rows)-1].ID, 10))
 	}
 	data := []map[string]any{}
+	if ix.remote != nil && len(rows) > 0 {
+		ids := make([]int64, 0, len(rows))
+		for _, q := range rows {
+			ids = append(ids, q.ID)
+		}
+		if e := ix.remoteLoad(r.Context(), ids); e != nil {
+			s.v1Unavailable(w, r, e)
+			return
+		}
+	}
 	for _, q := range rows {
 		row, known := ix.find(q.ID)
 		row.ID = q.ID

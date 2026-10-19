@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.ComponentModel;
 using System.IO.Compression;
 using System.Text.Json;
 using ServerS5A3;
@@ -11,17 +12,42 @@ public static class BundleInstaller
     internal static string OutcomeFile(string root) => Path.Combine(root, ".launcher-update-result.json");
     internal static string? PreviousFailure(string root)
     {
+        var outcome = ReadOutcome(root);
+        if (outcome is null || outcome.Succeeded) return null;
+        var detail = outcome.Reason switch
+        {
+            "sharing-violation" => "运行文件被其他进程占用",
+            "access-denied" => "运行目录访问被拒绝",
+            "disk-full" => "磁盘空间不足",
+            "files-in-use" => "旧版未记录具体原因的文件操作失败",
+            "io-error" => "文件操作失败",
+            _ => "新登录器启动检查失败"
+        };
+        var code = outcome.NativeError == 0 ? "" : $"（Windows 错误 {outcome.NativeError}）";
+        return $"上次登录器更新失败：{detail}{code}，已保留旧版。点击“更新登录器”重试。";
+    }
+    internal static BundleOutcome? ReadOutcome(string root)
+    {
         var file = OutcomeFile(root);
         SafeFiles.NoLinks(file);
         if (!File.Exists(file)) return null;
-        var outcome = JsonSerializer.Deserialize(File.ReadAllBytes(file), WireJson.Default.BundleOutcome);
-        if (outcome is null || outcome.Succeeded) return null;
-        return outcome.Reason == "files-in-use"
-            ? "上次登录器运行文件被占用或无法写入，更新未完成，已保留旧版。请关闭所有登录器窗口后重新打开，再安装登录器更新。"
-            : "上次登录器更新未通过启动检查，已恢复旧版。请重试登录器更新，仍失败时下载新的完整便携入口。";
+        return JsonSerializer.Deserialize(File.ReadAllBytes(file), WireJson.Default.BundleOutcome);
     }
-    private static void Outcome(BundleJob job, string version, bool success, string reason) =>
-        SafeFiles.Atomic(OutcomeFile(job.InstallRoot), JsonSerializer.SerializeToUtf8Bytes(new BundleOutcome(version, success, reason), WireJson.Default.BundleOutcome));
+    internal static bool SuppressAutomaticRetry(BundleOutcome? prior, string targetVersion) =>
+        prior is { Succeeded: false } && prior.Reason == "startup-failed" && prior.Version == targetVersion;
+    internal static int NativeError(Exception error) => error is Win32Exception native ? native.NativeErrorCode : error.HResult & 0xffff;
+    internal static string FailureReason(Exception error) => NativeError(error) switch
+    {
+        32 or 33 when error is IOException or Win32Exception => "sharing-violation",
+        5 when error is IOException or UnauthorizedAccessException or Win32Exception => "access-denied",
+        39 or 112 when error is IOException or Win32Exception => "disk-full",
+        _ when error is UnauthorizedAccessException => "access-denied",
+        _ when error is IOException => "io-error",
+        _ => "startup-failed"
+    };
+    private static void Outcome(BundleJob job, string version, Exception? error, string stage) =>
+        SafeFiles.Atomic(OutcomeFile(job.InstallRoot), JsonSerializer.SerializeToUtf8Bytes(new BundleOutcome(version, error is null, error is null ? "" : FailureReason(error))
+        { Stage = stage, NativeError = error is null ? 0 : NativeError(error), FailedAtUtc = error is null ? "" : DateTimeOffset.UtcNow.ToString("O") }, WireJson.Default.BundleOutcome));
     public static void ValidateRoot(string root)
     {
         SafeFiles.NoLinks(root);
@@ -55,8 +81,7 @@ public static class BundleInstaller
         {
             SafeFiles.NoLinks(from); SafeFiles.NoLinks(to);
             try { Directory.Move(from, to); return; }
-            catch (IOException) when (timer.Elapsed < TimeSpan.FromSeconds(20)) { Thread.Sleep(100); }
-            catch (UnauthorizedAccessException) when (timer.Elapsed < TimeSpan.FromSeconds(20)) { Thread.Sleep(100); }
+            catch (IOException error) when ((error.HResult & 0xffff) is 32 or 33 && timer.Elapsed < TimeSpan.FromSeconds(20)) { Thread.Sleep(100); }
         }
     }
     private static void Save(BundleJob job) => SafeFiles.Atomic(Path.Combine(job.InstallRoot, ".launcher-update.json"), JsonSerializer.SerializeToUtf8Bytes(job, WireJson.Default.BundleJob));
@@ -84,25 +109,34 @@ public static class BundleInstaller
         ValidateJob(job);
         var raw = Convert.FromBase64String(job.Envelope); var release = Trust.Verify(raw, root).Launcher ?? throw new InvalidDataException("缺少登录器发布信息。");
         if (!await SafeFiles.Matches(job.Package, release.Size, release.Sha256)) throw new InvalidDataException("登录器包摘要不符。");
-        await WaitFor(job.UiPid, job.UiStart); await WaitFor(job.CorePid, job.CoreStart);
+        var app = Path.Combine(job.InstallRoot, "app");
+        await BundleProcesses.WaitForOwner(app, job.UiPid, job.UiStart);
+        await BundleProcesses.WaitForOwner(app, job.CorePid, job.CoreStart);
         using var gate = new FileStream(Path.Combine(job.InstallRoot, ".launcher-install.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
         if (File.Exists(Path.Combine(job.InstallRoot, ".launcher-update.json"))) Recover(job.InstallRoot);
         Process? launched = null;
+        var stage = "exclusive-check";
         try
         {
+            await BundleProcesses.StopInstalled(app);
             BundleProcesses.RequireExclusive(Path.Combine(job.InstallRoot, "app"));
+            stage = "extract";
             var next = Path.Combine(job.Work, "next"); Extract(job.Package, next);
             job = job with { Phase = "prepared" }; Save(job);
+            stage = "move-old-app";
             MoveDirectory(Path.Combine(job.InstallRoot, "app"), Path.Combine(job.Work, "previous")); job = job with { Phase = "old-moved" }; Save(job);
+            stage = "install-new-app";
             MoveDirectory(next, Path.Combine(job.InstallRoot, "app")); job = job with { Phase = "candidate-installed" }; Save(job);
             SafeFiles.NoLinks(OutcomeFile(job.InstallRoot)); File.Delete(OutcomeFile(job.InstallRoot));
             var health = Path.Combine(job.Work, "ready");
             var start = new ProcessStartInfo(Path.Combine(job.InstallRoot, "app", "DNF90.exe")) { UseShellExecute = false, WorkingDirectory = Path.Combine(job.InstallRoot, "app") };
             start.ArgumentList.Add("--update-health"); start.ArgumentList.Add(health);
+            stage = "start-new-app";
             launched = Process.Start(start);
+            stage = "wait-for-health";
             for (var i = 0; i < 600; i++)
             {
-                if (File.Exists(health)) { Save(job with { Phase = "healthy" }); Outcome(job, release.Version, true, ""); File.Delete(Path.Combine(job.InstallRoot, ".launcher-update.json")); return 0; }
+                if (File.Exists(health)) { Save(job with { Phase = "healthy" }); Outcome(job, release.Version, null, "healthy"); File.Delete(Path.Combine(job.InstallRoot, ".launcher-update.json")); return 0; }
                 if (launched is null || launched.HasExited) break;
                 await Task.Delay(100);
             }
@@ -111,17 +145,16 @@ public static class BundleInstaller
         catch (Exception error)
         {
             // Only this replacement UI may be terminated. No game processes are touched.
-            if (launched is not null && !launched.HasExited) { launched.Kill(); await launched.WaitForExitAsync(); }
+            if (launched is not null) await BundleProcesses.StopLaunched(launched);
             Recover(job.InstallRoot);
-            Outcome(job, release.Version, false, error is IOException or UnauthorizedAccessException ? "files-in-use" : "startup-failed");
-            Process.Start(new ProcessStartInfo(Path.Combine(job.InstallRoot, "app", "DNF90.exe")) { UseShellExecute = false, WorkingDirectory = Path.Combine(job.InstallRoot, "app") });
+            Outcome(job, release.Version, error, stage);
+            var fallback = new ProcessStartInfo(Path.Combine(job.InstallRoot, "app", "DNF90.exe")) { UseShellExecute = false, WorkingDirectory = Path.Combine(job.InstallRoot, "app") };
+            // Only this fallback launch suppresses automatic retry. A later fresh
+            // launch can retry a transient file failure without an endless loop.
+            fallback.ArgumentList.Add("--update-retry-required");
+            Process.Start(fallback);
             return 5;
         }
         finally { launched?.Dispose(); }
-    }
-    private static async Task WaitFor(int pid, long started)
-    {
-        try { using var process = Process.GetProcessById(pid); if (process.StartTime.ToUniversalTime().Ticks != started) return; using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(2)); await process.WaitForExitAsync(timeout.Token); }
-        catch (ArgumentException) { }
     }
 }

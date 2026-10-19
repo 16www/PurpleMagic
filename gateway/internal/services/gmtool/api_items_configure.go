@@ -433,6 +433,16 @@ func itemcfgEntriesOf(record dnfrepo.InventoryRecord, target itemcfgTarget) map[
 // itemcfgEntry 按物品 id 取 PVF 索引条目；索引没建好/查不到都明确失败
 // （**绝不**凭空造一个条目出来）。
 func (s *Server) itemcfgEntry(itemID int64) (itemEntry, error) {
+	if s.deps.Catalog != nil && itemID > 0 && itemID <= math.MaxUint32 {
+		entry, found, e := s.deps.Catalog.item(uint32(itemID))
+		if e != nil {
+			return itemEntry{}, e
+		}
+		if !found {
+			return itemEntry{}, errors.New("物品不在当前 PVF 中")
+		}
+		return entry, nil
+	}
 	if itemID <= 0 || itemID > math.MaxUint32 {
 		return itemEntry{}, itemcfgReject("item_id_invalid",
 			fmt.Errorf("%w: %d", itemcfgErrItemIDInvalid, itemID))
@@ -716,6 +726,11 @@ func (s *Server) itemcfgApplyOptions(
 }
 
 func (s *Server) itemcfgApplyOptionsWithSeed(target itemcfgTarget, entry itemEntry, stack dnfrepo.ItemStack, options *itemcfgOptionsRequest, now time.Time, frozenSeed *uint32) (itemcfgApplied, error) {
+	if s.deps.Catalog != nil {
+		var v itemcfgApplied
+		e := s.deps.Catalog.background(catalogRequest{Operation: "item-apply", ItemID: entry.ID, Target: target, Stack: stack, Options: options, At: now, Seed: frozenSeed}, &v)
+		return v, e
+	}
 	if options == nil {
 		return itemcfgApplied{}, itemcfgReject("missing_options", itemcfgErrOptionsMissing)
 	}
@@ -931,6 +946,11 @@ func itemcfgStampAuditKey(stack dnfrepo.ItemStack, now time.Time) dnfrepo.ItemSt
 // itemcfgBuildCapability 对应 vendor BuildInventoryItemConfigOptions（:118-245）的分支顺序：
 // 装扮 → 装备 → 只读期限。返回的 map 直接并进响应。
 func (s *Server) itemcfgBuildCapability(entry itemEntry, stack dnfrepo.ItemStack, now time.Time) (map[string]any, error) {
+	if s.deps.Catalog != nil {
+		var v map[string]any
+		e := s.deps.Catalog.background(catalogRequest{Operation: "item-capability", ItemID: entry.ID, Stack: stack, At: now}, &v)
+		return v, e
+	}
 	expiration := s.itemcfgExpirationCapability(entry, stack, now)
 	if itemcfgIsAvatar(entry) {
 		if expiration == nil {

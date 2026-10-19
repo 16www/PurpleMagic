@@ -327,7 +327,7 @@ func TestV1SkillPointsMySQL(t *testing.T) {
 			}
 			// HTTP signatures, definition generations, permanent replay and cursor scopes.
 			runtime := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				json.NewEncoder(w).Encode(adminapi.Response{Version: 1, OK: true})
+				writeAccountEditFixture(t, w, r, false)
 			}))
 			defer runtime.Close()
 			s.deps.Runtime, e = adminapi.NewClient(runtime.URL+adminapi.Path, strings.Repeat("x", 32))

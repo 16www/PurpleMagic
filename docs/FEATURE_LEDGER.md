@@ -1,10 +1,18 @@
+<!-- orchid-live-20261019 -->
+## 2026-10-19 兰紫 GM Console 真实接入
+
+新客户端 `gm-console/` 已接同源 Go v1 与 Hub，覆盖查询、八类背包、邮件、任务、成长/资产、自动福利、领域流水和公告/下载源/游戏连接。现有本服能力范围与余项见 [本轮接入与验收](GM_CONSOLE_INTEGRATION_20261019.md)。第一版 `gm-web/` 已封存，新打包入口使用 `gm-console/dist/`。新版已完成隔离数据库和浏览器接入验证；下文历史阶段描述保留作追溯。
+
+<!-- 2026-10-18 -->
+本轮候选已更新GM-01／18／19／20／21：账号与角色复选、账号全部现有角色去重、一次确认连续批次、完整确认名单、启用后后台自动福利、旧规则迁移截止时间与永久回执；角色编辑按目标角色占用，账号共享资产保留账号范围。详见[规则契约](GM_FEEDBACK_RULES.md)。下表其余待办保留，外部服务和持久邮件队列已实现，见[服务分工](GM_EXTERNAL_SERVICES.md)。
+
 # PurpleMagic 功能台账
 
 2026-10-17，覆盖原48项GM目标，补充12项登录器、8项网关、3项前端能力，共71项。原GM编号保持；同一项中包含多个操作时按实际范围列出，不用一个完成百分比覆盖细项。
 
 [全局架构](ARCHITECTURE.md) · [交互图](architecture/current.html) · [基础设施F01～F15](FOUNDATIONS.md) · [实际路由目录](API_CATALOG.md) · [前端分区](FRONTEND_PLAN.md) · [JSON](feature-ledger.json) · [CSV](feature-ledger.csv)
 
-**状态**：已接入＝当前候选有新接口/页面或组件实现；部分完成＝列出的子集已接；旧版实现＝迁移参考有代码、当前管理入口未开放；开发中＝代码存在但验收未完成；待接入/待实现/设计已定＝后续工作。源码、自动化检查、部署、实机验收分别记录。副职业属于GM-06的开发中子项。
+**状态**：已接入＝当前候选有新接口/页面或组件实现；部分完成＝列出的子集已接；旧版实现＝迁移参考有代码、当前管理入口未开放；开发中＝代码存在但验收未完成；待接入/待实现/设计已定＝后续工作。源码、自动化检查、部署、实机验收分别记录。副职业已完成隔离数据库与网页验收。
 
 **来源**：G＝原DNF90GM；A＝提供的C# GM；R＝20260928源码包的网关后台/补丁；S＝用户桌面/安卓参考图；U＝用户新增需求。来源细项见[原48项矩阵](GM_FEATURE_MATRIX.md)。该清单保存已盘点目标，未知参考功能仍可追加编号。
 
@@ -19,7 +27,7 @@
 | **GM-03** 冒险团等级、成长胶囊 | 旧版实现；待迁入账号详情 | 旧版冒险团等级与胶囊操作。<br>后续：迁入v1、预览/回执及新页面 | [F03](FOUNDATIONS.md#f03) / [F04](FOUNDATIONS.md#f04) / [F05](FOUNDATIONS.md#f05)<br>`旧 /api/accounts/{id}/honor-level; growth-capsule` |
 | **GM-04** 密码重置、登录限制与绑定管理 | 待接入；账号安全页待建 | 参考目标已收录。<br>后续：密码、绑定与登录限制接游戏准入 | [F01](FOUNDATIONS.md#f01) / [F03](FOUNDATIONS.md#f03) / [F09](FOUNDATIONS.md#f09) / [F12](FOUNDATIONS.md#f12)<br>`无当前v1管理路由` |
 | **GM-05** 角色战斗属性、SP/TP | 部分完成；技能点页签 | 额外SP/TP、归零/重算与流水。<br>后续：持续战斗属性需游戏侧覆写契约 | [F04](FOUNDATIONS.md#f04) / [F05](FOUNDATIONS.md#f05) / [F06](FOUNDATIONS.md#f06) / [F09](FOUNDATIONS.md#f09)<br>`characters/{c}/skill-points; skill-point-operations` |
-| **GM-06** 等级、转职/觉醒、副职业 | 部分完成；等级/职业/副职业页签 | 等级、转职与觉醒已验证；副职业代码已接。<br>后续：副职业开发中：数据库夹具/网页脚本失败未收尾 | [F04](FOUNDATIONS.md#f04) / [F05](FOUNDATIONS.md#f05) / [F06](FOUNDATIONS.md#f06) / [F09](FOUNDATIONS.md#f09)<br>`characters/{c}/level; level-operations; profession; profession-operations; expert-job; expert-job-operations` |
+| **GM-06** 等级、转职/觉醒、副职业 | 部分完成；等级/职业/副职业页签 | 等级、转职与觉醒及四种副职业已通过隔离数据库与网页验证。<br>后续：游戏适配与网关联合部署、原生重登验收 | [F04](FOUNDATIONS.md#f04) / [F05](FOUNDATIONS.md#f05) / [F06](FOUNDATIONS.md#f06) / [F09](FOUNDATIONS.md#f09)<br>`characters/{c}/level; level-operations; profession; profession-operations; expert-job; expert-job-operations` |
 | **GM-07** 负重、金币携带上限、背包/仓库容量、装备槽与副本权限 | 部分完成；容量页签 | 主背包、装扮栏、个人仓库档位扩容。<br>后续：负重/携金阶段/装备槽/副本权限迁入；持久覆写 | [F04](FOUNDATIONS.md#f04) / [F05](FOUNDATIONS.md#f05) / [F06](FOUNDATIONS.md#f06) / [F09](FOUNDATIONS.md#f09)<br>`characters/{c}/containers; container-operations` |
 | **GM-08** 契约查询与发放 | 旧版实现；契约页面待迁 | 旧版契约查询与发放。<br>后续：v1及期限/归属/回执页面 | [F03](FOUNDATIONS.md#f03) / [F04](FOUNDATIONS.md#f04) / [F06](FOUNDATIONS.md#f06) / [F09](FOUNDATIONS.md#f09)<br>`旧 /api/characters/{id}/premium` |
 | **GM-09** 改名、克隆、删除角色 | 旧版实现；角色管理页面待迁 | 旧版改名、克隆、删除。<br>后续：新接口、关联数据计划与事务验收 | [F03](FOUNDATIONS.md#f03) / [F04](FOUNDATIONS.md#f04) / [F09](FOUNDATIONS.md#f09)<br>`旧 /api/characters/{id}/rename; clone; delete` |
@@ -33,12 +41,12 @@
 | **GM-17** 角色邮箱、附件、单封删除/清理 | 部分完成；邮箱列表/详情/清理 | 筛选、正文附件、选中删除和跨页固定名单清理。<br>后续：附件完整实例字段 | [F03](FOUNDATIONS.md#f03) / [F04](FOUNDATIONS.md#f04) / [F05](FOUNDATIONS.md#f05) / [F07](FOUNDATIONS.md#f07)<br>`characters/{c}/mailbox; mailbox/{mailId}; mailbox-operations; mailbox-cleanups` |
 | **GM-18** 单角色邮件预览与发放 | 已接入；发放页 | 单角色预览、邮件投递及永久回执。<br>后续：新版页面重组 | [F04](FOUNDATIONS.md#f04) / [F05](FOUNDATIONS.md#f05) / [F07](FOUNDATIONS.md#f07)<br>`POST mail/preview; tasks/{id}/run` |
 | **GM-19** 批量邮件、选定/在线角色发放 | 部分完成；名单/在线发放 | 指定最多100人、在线最多5000人，固定快照/分批恢复。<br>后续：游戏online_snapshot适配部署联调 | [F04](FOUNDATIONS.md#f04) / [F05](FOUNDATIONS.md#f05) / [F07](FOUNDATIONS.md#f07) / [F09](FOUNDATIONS.md#f09)<br>`POST mail/preview; mail/online-preview; tasks/{id}/run` |
-| **GM-20** 注册/新手福利与历史补发 | 已接入；福利规则/记录 | 按账号一次/按角色一次、自动扫描、参数附件、跨PVF保留去重。<br>后续：统一规则编辑体验；初始资产政策仍归游戏创建链路 | [F04](FOUNDATIONS.md#f04) / [F05](FOUNDATIONS.md#f05) / [F06](FOUNDATIONS.md#f06) / [F07](FOUNDATIONS.md#f07)<br>`benefits; benefits/{id}/state; benefits/{id}/preview; benefits/{id}/pvf-preview; pvf-apply` |
-| **GM-21** 运营作业、进度和失败重试 | 部分完成；运营作业页 | 邮件/福利批次、进度、重试；邮箱清理另有持久进度。<br>后续：通用调度租约、扫描/索引/快照作业 | [F05](FOUNDATIONS.md#f05) / [F07](FOUNDATIONS.md#f07)<br>`GET tasks; tasks/{id}; tasks/{id}/recipients; POST tasks/{id}/run` |
+| **GM-20** 注册/新手福利与历史补发 | 已接入；福利规则/记录 | 按账号一次/按角色一次、纯金币福利、全部角色预览、连续分批与暂停续发、自动扫描、参数附件、跨PVF保留去重。<br>后续：统一规则编辑体验；初始资产政策仍归游戏创建链路 | [F04](FOUNDATIONS.md#f04) / [F05](FOUNDATIONS.md#f05) / [F06](FOUNDATIONS.md#f06) / [F07](FOUNDATIONS.md#f07)<br>`benefits; benefits/{id}/state; benefits/{id}/preview; benefits/{id}/pvf-preview; pvf-apply` |
+| **GM-21** 运营作业、进度和失败重试 | 部分完成；运营作业页 | 外部持久邮件队列、进度、暂停、重试及重启恢复；邮箱清理另有持久进度。<br>后续：通用调度租约、扫描/索引/快照作业 | [F05](FOUNDATIONS.md#f05) / [F07](FOUNDATIONS.md#f07)<br>`GET tasks; tasks/{id}; tasks/{id}/recipients; POST tasks/{id}/run; 外部 schedule/pause` |
 | **GM-22** 进行中、已完成游戏任务 | 已接入；角色游戏任务 | 已接/完成/全部筛选、进度及读取时刻。<br>后续：新版任务工作区 | [F02](FOUNDATIONS.md#f02) / [F03](FOUNDATIONS.md#f03) / [F06](FOUNDATIONS.md#f06)<br>`GET characters/{c}/quests` |
 | **GM-23** 任务库、可接条件、前置关系、说明与奖励 | 部分完成；任务库与详情 | 名称/ID查询、条件/前置/说明/奖励。<br>后续：角色可接资格和等级/地区筛选 | [F06](FOUNDATIONS.md#f06)<br>`GET quests; quests/{questId}` |
-| **GM-24** 接取、放弃、标记可交 | 部分完成；游戏任务操作 | 接取、放弃、标记可交及回执。<br>后续：涉及物品的联合事务、游戏编辑锁 | [F04](FOUNDATIONS.md#f04) / [F05](FOUNDATIONS.md#f05) / [F06](FOUNDATIONS.md#f06) / [F09](FOUNDATIONS.md#f09)<br>`POST characters/{c}/quest-operations/preview; quest-operations` |
-| **GM-25** 标记完成、恢复未完成、重置任务链 | 已接入；任务完成/恢复/重置 | 无奖励完成、普通任务恢复、关联家族重置。<br>后续：上线前游戏编辑锁；职业变更走专用流程 | [F04](FOUNDATIONS.md#f04) / [F05](FOUNDATIONS.md#f05) / [F06](FOUNDATIONS.md#f06) / [F09](FOUNDATIONS.md#f09)<br>`POST characters/{c}/quest-operations/preview; quest-operations` |
+| **GM-24** 接取、放弃、标记可交 | 部分完成；游戏任务操作 | 接取、放弃、标记可交及回执。<br>后续：涉及物品的联合事务；编辑保护联合部署 | [F04](FOUNDATIONS.md#f04) / [F05](FOUNDATIONS.md#f05) / [F06](FOUNDATIONS.md#f06) / [F09](FOUNDATIONS.md#f09)<br>`POST characters/{c}/quest-operations/preview; quest-operations` |
+| **GM-25** 标记完成、恢复未完成、重置任务链 | 已接入；任务完成/恢复/重置 | 无奖励完成、普通任务恢复、关联家族重置。<br>后续：编辑保护联合部署；职业变更走专用流程 | [F04](FOUNDATIONS.md#f04) / [F05](FOUNDATIONS.md#f05) / [F06](FOUNDATIONS.md#f06) / [F09](FOUNDATIONS.md#f09)<br>`POST characters/{c}/quest-operations/preview; quest-operations` |
 | **GM-26** 批量处理当前已接任务 | 部分完成；游戏任务本页选择 | 选中最多200项，前后值及整批原子提交。<br>后续：跨页全部已接任务 | [F04](FOUNDATIONS.md#f04) / [F05](FOUNDATIONS.md#f05) / [F06](FOUNDATIONS.md#f06)<br>`characters/{c}/quest-operations` |
 | **GM-27** 按等级/分类处理主线、支线、成就、称号、每日与职业任务 | 待实现；任务库分类批处理 | 主线/支线/成就/称号/每日/职业目标已收录。<br>后续：分类资格、奖励语义及批次事务 | [F04](FOUNDATIONS.md#f04) / [F05](FOUNDATIONS.md#f05) / [F06](FOUNDATIONS.md#f06) / [F07](FOUNDATIONS.md#f07)<br>`无当前分类批次路由` |
 | **GM-28** 游戏活动查询与开关 | 旧版实现；游戏活动页待迁 | 旧版活动读取/保存。<br>后续：v1、实际生效状态和新页面 | [F04](FOUNDATIONS.md#f04) / [F09](FOUNDATIONS.md#f09)<br>`旧 /api/activities；游戏运行适配` |
@@ -69,7 +77,7 @@
 | --- | --- | --- | --- |
 | **L-01** 启动初始化与偏好 | 已接入；Flutter首页/设置 | 目录、偏好与引擎状态。<br>后续：与新项目品牌/发行基线对齐 | [F10](FOUNDATIONS.md#f10)<br>`Host initialize/preferences` |
 | **L-02** 账号注册/登录 | 已接入；注册登录表单 | 调用玩家网关，凭据与游戏管理鉴权分开。<br>后续：与实际游戏实例联调 | [F08](FOUNDATIONS.md#f08) / [F10](FOUNDATIONS.md#f10)<br>`Host register/login → /api/account/register; /api/account/login` |
-| **L-03** 客户端目录发现 | 已接入；客户端目录选择 | 保留0.2.6自动目录发现。<br>后续：合入已发布版本时保留回归 | [F10](FOUNDATIONS.md#f10)<br>`ClientDirectoryDiscovery` |
+| **L-03** 客户端目录发现 | 已接入；客户端目录选择 | 0.2.15保留自动目录发现。<br>后续：后续更新持续保留目录发现回归 | [F10](FOUNDATIONS.md#f10)<br>`ClientDirectoryDiscovery` |
 | **L-04** 健康与频道诊断 | 已接入；状态/诊断 | 状态、频道配置与检查逻辑。<br>后续：实际发布profile联调 | [F10](FOUNDATIONS.md#f10)<br>`Host health；ChannelProbe/NativeChannelHistory` |
 | **L-05** 检查/自动/手动更新与暂停 | 已接入；更新进度 | 文件摘要、进度、取消与恢复。<br>后续：对齐最新发行内容源契约 | [F08](FOUNDATIONS.md#f08) / [F10](FOUNDATIONS.md#f10)<br>`Host check/autoUpdate/update/pause` |
 | **L-06** 签名与兼容性校验 | 已接入；启动/更新流程 | 签名、EXE/PVF兼容与完整性检查。<br>后续：对齐当前批准profile和实际玩家资源 | [F08](FOUNDATIONS.md#f08) / [F10](FOUNDATIONS.md#f10)<br>`SignedUpdate/NativeClientGate/NativeGuildCompatibility` |
@@ -103,10 +111,10 @@
 
 ## 下一轮实现顺序
 
-1. 先统一玩家详情的资产、背包/穿戴、游戏任务、成长页面；补完副职业当前验收。
+1. 继续统一玩家详情的资产、背包/穿戴、游戏任务、成长页面。
 2. 继续装扮/附魔/宠物成长、任务物品联合事务与旧版高频管理功能；每项绑定领域事务与回执。
-3. 接游戏编辑锁、准入/封禁、在线会话及统一审计；完成公告/Hub会话统一。
+3. 部署已验证的游戏编辑保护；继续准入/封禁、在线会话及统一审计，完成公告/Hub会话统一。
 4. 建通关事件与统计、异常复核、每日公开快照，再扩展PWA/Android。
 5. 用批准PVF和已发行登录器确切源码做整套联调与上线验收。
 
-当前独立Web的已实现写操作尚需游戏侧跨进程编辑锁与原生客户端验收；当前提取没有部署变更。
+账号编辑保护已完成候选及隔离验证，联合部署与原生客户端验收待执行。

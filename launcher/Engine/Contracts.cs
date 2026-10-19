@@ -13,7 +13,10 @@ public sealed record BundleRelease(string Version, string Url, long Size, string
 public sealed record Bootstrap(string Product, int Format, long Sequence, PlayerProfile Profile, News[] News, ContentRelease? Content, BundleRelease? Launcher);
 // AutoCheck is the persisted legacy key; it now controls automatic check and installation of both update types.
 public sealed record Preferences(string ClientDirectory = "", string Account = "", bool RememberAccount = true, bool AutoCheck = true, bool ReducedEffects = false);
-public sealed record State(string Phase, string Message, double Progress, long Downloaded, long Total, bool CanLogin, bool HasUpdate, bool HasLauncherUpdate, string Source, string Version, Preferences Preferences, News[] News);
+public sealed record State(string Phase, string Message, double Progress, long Downloaded, long Total, bool CanLogin, bool HasUpdate, bool HasLauncherUpdate, string Source, string Version, Preferences Preferences, News[] News)
+{
+    public string LauncherVersion => LauncherEngine.VersionText;
+}
 public sealed record Request(int Id, string Method, JsonElement Args);
 public sealed record Response(int Id, bool Ok, string? Error = null, State? State = null, bool Restart = false, ConfigurationReset? ConfigurationReset = null);
 public sealed record ConfigurationReset(bool Reset, string? BackupPath);
@@ -22,7 +25,12 @@ public sealed record Credentials(string Account, string Password);
 public sealed record TransactionEntry(string Path, bool HadOriginal);
 public sealed record TransactionJournal(string Phase, TransactionEntry[] Entries, string? PreviousReceipt);
 public sealed record BundleJob(string InstallRoot, string Package, string Envelope, int UiPid, long UiStart, int CorePid, long CoreStart, string Work, string Phase);
-public sealed record BundleOutcome(string Version, bool Succeeded, string Reason);
+public sealed record BundleOutcome(string Version, bool Succeeded, string Reason)
+{
+    public string Stage { get; init; } = "";
+    public int NativeError { get; init; }
+    public string FailedAtUtc { get; init; } = "";
+}
 
 [JsonSourceGenerationOptions(PropertyNamingPolicy = JsonKnownNamingPolicy.CamelCase, PropertyNameCaseInsensitive = true)]
 [JsonSerializable(typeof(Bootstrap))]
@@ -57,6 +65,11 @@ public static class Trust
             !Hash(b.Profile.CertificateSha256) || !Hash(b.Profile.ExeSha256) || !Hash(b.Profile.PvfSha256)) throw new InvalidDataException("账号入口或信任根发生不允许的变化。");
         _ = GameContract.Arguments("de509f65000000000000000000000000", b.Profile.GameHost, b.Profile.BootstrapPort);
         ChannelProbe.ValidateConfiguration(b.Profile);
+        if (!string.IsNullOrEmpty(b.Profile.MinimumLauncherVersion) &&
+            (!Regex.IsMatch(b.Profile.MinimumLauncherVersion, @"^\d+\.\d+\.\d+$") || !Version.TryParse(b.Profile.MinimumLauncherVersion, out _)))
+            throw new InvalidDataException("最低登录器版本无效。");
+        if (b.Profile.ChannelHistory is { Adapter.Length: > 0 } history &&
+            !Regex.IsMatch(history.Adapter, "^[a-z0-9-]{1,64}$")) throw new InvalidDataException("频道兼容方案标识无效。");
         if (b.Content is { } c)
         {
             SignedUpdate.RequireHttps(c.Endpoint);

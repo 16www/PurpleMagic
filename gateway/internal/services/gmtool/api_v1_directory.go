@@ -39,7 +39,7 @@ func scanV1Account(row interface{ Scan(...any) error }) (v1AccountRow, error) {
 	return out, err
 }
 func (s *Server) v1AccountSelect() string {
-	return "SELECT a.id,a.account_id,a.account,COALESCE(p.disabled,0),a.created_at,a.last_login_at FROM " + quoteIdentifier(s.cfg.Table) + " a LEFT JOIN " + quoteIdentifier(s.cfg.Table+"_player_accounts") + " p ON p.account_id=a.account_id AND BINARY p.account_id=BINARY a.account_id"
+	return "SELECT a.id,a.account_id,a.account,COALESCE(p.disabled,0),a.created_at,a.last_login_at FROM " + quoteIdentifier(s.cfg.Table) + " a LEFT JOIN " + quoteIdentifier(s.cfg.Table+"_player_accounts") + " p ON p.account_id=BINARY a.account_id"
 }
 func (s *Server) v1LoadAccount(ctx context.Context, id string) (v1AccountRow, error) {
 	if s.db == nil {
@@ -175,12 +175,17 @@ func (s *Server) v1AccountCharacters(w http.ResponseWriter, r *http.Request) {
 	v1Reply(w, r, 200, v1Envelope{Data: characters})
 }
 func (s *Server) v1Characters(w http.ResponseWriter, r *http.Request) {
-	q, err := v1ParseQuery(r)
+	q, err := v1ParseQuery(r, "online")
 	if err != nil {
 		v1Fail(w, r, 400, "invalid_query", "角色查询参数无效", false)
 		return
 	}
-	filter := v1Filter(q, "")
+	status := q.Values.Get("online")
+	if status != "" && status != "online" && status != "offline" {
+		v1Fail(w, r, 400, "invalid_query", "在线状态筛选无效", false)
+		return
+	}
+	filter := v1Filter(q, status)
 	after, err := s.v1CursorAfter(q.Cursor, "characters", filter)
 	if err != nil {
 		v1Fail(w, r, 400, "invalid_cursor", "分页游标无效或筛选已变更，请重新查询", false)
@@ -191,7 +196,28 @@ func (s *Server) v1Characters(w http.ResponseWriter, r *http.Request) {
 		s.v1Unavailable(w, r, err)
 		return
 	}
-	characters, err := reader.SearchSummaries(r.Context(), q.Q, after, q.Limit+1)
+	var characters []repository.CharacterSummary
+	if status == "" {
+		characters, err = reader.SearchSummaries(r.Context(), q.Q, after, q.Limit+1)
+	} else {
+		presenceReader, ok := reader.(interface {
+			SearchSummariesByPresence(context.Context, string, string, int, []string, bool) ([]repository.CharacterSummary, error)
+		})
+		if !ok || s.deps.Runtime == nil {
+			v1Fail(w, r, 503, "presence_unavailable", "在线状态暂时无法读取", true)
+			return
+		}
+		snapshot, e := s.deps.Runtime.OnlineSnapshot(r.Context())
+		if e != nil {
+			v1Fail(w, r, 503, "presence_unavailable", "在线状态暂时无法读取", true)
+			return
+		}
+		ids := make([]string, 0, len(snapshot.Members))
+		for _, member := range snapshot.Members {
+			ids = append(ids, strconv.FormatUint(uint64(member.CharacterID), 10))
+		}
+		characters, err = presenceReader.SearchSummariesByPresence(r.Context(), q.Q, after, q.Limit+1, ids, status == "online")
+	}
 	if err != nil {
 		s.v1Unavailable(w, r, err)
 		return

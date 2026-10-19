@@ -134,8 +134,8 @@ func testV1DirectoryMySQL(t *testing.T, shards int) {
 		t.Fatal(err)
 	}
 	for _, ddl := range []string{
-		"CREATE TABLE web_accounts (id BIGINT PRIMARY KEY,account_id VARCHAR(128) NOT NULL UNIQUE,account VARCHAR(64) NOT NULL,created_at DATETIME(6),last_login_at DATETIME(6))",
-		"CREATE TABLE web_accounts_player_accounts (account_id VARCHAR(128) PRIMARY KEY,disabled BOOLEAN NOT NULL)",
+		"CREATE TABLE web_accounts (id BIGINT PRIMARY KEY,account_id VARCHAR(128) NOT NULL UNIQUE,account VARCHAR(64) NOT NULL,created_at DATETIME(6),last_login_at DATETIME(6)) CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci",
+		"CREATE TABLE web_accounts_player_accounts (account_id VARCHAR(128) PRIMARY KEY,disabled BOOLEAN NOT NULL) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci",
 	} {
 		if _, err := db.Exec(ddl); err != nil {
 			t.Fatal(err)
@@ -162,6 +162,9 @@ func testV1DirectoryMySQL(t *testing.T, shards int) {
 		}
 	}
 	if _, err := db.Exec("INSERT INTO web_accounts(id,account_id,account) VALUES (9007199254740993,'dnf:large','literal_%!')"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.Exec("INSERT INTO web_accounts_player_accounts VALUES ('DNF:large',true)"); err != nil {
 		t.Fatal(err)
 	}
 	if err := g.Character.Save(ctx, repository.CharacterRecord{CharacterID: "9998", AccountID: "dnf:large", Name: "literal_%!", Slot: 0}); err != nil {
@@ -206,6 +209,9 @@ func testV1DirectoryMySQL(t *testing.T, shards int) {
 			want := float64(2)
 			if id == "9007199254740993" {
 				want = 1
+				if a["disabled"] != false {
+					t.Fatal("different-case policy identity matched", a)
+				}
 			}
 			if a["characterCount"] != want || a["lastLoginAt"] != nil {
 				t.Fatal(a)

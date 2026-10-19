@@ -15,6 +15,11 @@ import (
 )
 
 func (s *Server) skillPointDefinition(ctx context.Context, level int) (adminops.SkillPointDefinition, error) {
+	if s.deps.Catalog != nil {
+		var d adminops.SkillPointDefinition
+		e := s.deps.Catalog.call(ctx, catalogRequest{Operation: "skill-points", Level: level}, &d)
+		return d, e
+	}
 	var d adminops.SkillPointDefinition
 	if s.pvf == nil || s.deps.PVF == nil {
 		return d, errRepositoriesUnavailable
@@ -155,7 +160,7 @@ func (s *Server) v1SkillPointOperation(w http.ResponseWriter, r *http.Request) {
 	} else {
 		command.PlanToken = ""
 	}
-	result, err := adminops.RunSkillPointOperation(r.Context(), u, command, commit, s.skillPointDefinition, s.v1QuestOffline)
+	result, err := adminops.RunSkillPointOperation(r.Context(), u, command, commit, s.skillPointDefinition, s.v1CharacterEditCheck(command.AccountID))
 	if err == nil && !commit {
 		v1Reply(w, r, 200, v1Envelope{Data: map[string]any{"receipt": result, "planToken": s.v1CursorToken("skill-points-plan", fingerprint, strconv.FormatInt(time.Now().Unix(), 10))}})
 		return
@@ -174,9 +179,9 @@ func (s *Server) v1SkillPointResult(w http.ResponseWriter, r *http.Request, resu
 	case errors.Is(err, adminops.ErrSkillPointDefinition):
 		v1Fail(w, r, 409, "pvf_conflict", "技能点PVF版本或等级基准已变更，请重新预览", false)
 	case errors.Is(err, adminops.ErrCharacterOnline):
-		v1Fail(w, r, 409, "character_online", "角色在线，请离线后操作", false)
+		v1Fail(w, r, 409, "character_online", "目标角色仍在线或正在退出，请返回角色选择界面后操作", false)
 	case errors.Is(err, adminops.ErrRuntimeUnavailable):
-		v1Fail(w, r, 503, "runtime_unavailable", "暂时无法取得角色在线状态", true)
+		v1Fail(w, r, 503, "runtime_unavailable", "暂时无法取得账号编辑状态", true)
 	case errors.Is(err, adminops.ErrSkillPointMissing):
 		v1Fail(w, r, 422, "skill_ledger_missing", "该角色尚无技能点账本，请先完成角色初始化", false)
 	case errors.Is(err, adminops.ErrSkillPointLedger):

@@ -94,6 +94,30 @@ func (s *mysqlCharStore) SummariesForAccounts(ctx context.Context, ids []string)
 }
 
 func (s *mysqlCharStore) SearchSummaries(ctx context.Context, query, after string, limit int) ([]repository.CharacterSummary, error) {
+	return s.searchSummaries(ctx, query, after, limit, nil, "")
+}
+
+// Presence IDs come from the complete authoritative runtime snapshot. Apply the
+// filter before LIMIT, including across shards, rather than filtering one page.
+func (s *mysqlCharStore) SearchSummariesByPresence(ctx context.Context, query, after string, limit int, ids []string, online bool) ([]repository.CharacterSummary, error) {
+	if len(ids) > 65535 {
+		return nil, repository.ErrCharacterSummaryRange
+	}
+	if len(ids) == 0 && online {
+		return []repository.CharacterSummary{}, nil
+	}
+	clause := ""
+	if len(ids) > 0 {
+		operator := " IN "
+		if !online {
+			operator = " NOT IN "
+		}
+		clause = " AND BINARY character_id" + operator + "(" + strings.TrimSuffix(strings.Repeat("?,", len(ids)), ",") + ")"
+	}
+	return s.searchSummaries(ctx, query, after, limit, ids, clause)
+}
+
+func (s *mysqlCharStore) searchSummaries(ctx context.Context, query, after string, limit int, ids []string, presenceClause string) ([]repository.CharacterSummary, error) {
 	if limit < 1 || limit > 101 || len(query) > 128 || len(after) > 128 || !utf8.ValidString(query) || !utf8.ValidString(after) {
 		return nil, repository.ErrCharacterSummaryRange
 	}
@@ -102,7 +126,12 @@ func (s *mysqlCharStore) SearchSummaries(ctx context.Context, query, after strin
 	seen := map[string]bool{}
 	for _, database := range s.router.readDBs {
 		table := mysqlTable(database, s.router.tablePrefix, mysqlCharTable)
-		rows, err := s.router.db.QueryContext(ctx, "SELECT "+summaryColumns+" FROM "+table+" WHERE delete_flag=0 AND BINARY character_id > ? AND (name LIKE ? ESCAPE '!' OR BINARY character_id=?) ORDER BY BINARY character_id LIMIT ?", after, pattern, query, limit)
+		args := []any{after, pattern, query}
+		for _, id := range ids {
+			args = append(args, id)
+		}
+		args = append(args, limit)
+		rows, err := s.router.db.QueryContext(ctx, "SELECT "+summaryColumns+" FROM "+table+" WHERE delete_flag=0 AND BINARY character_id > ? AND (name LIKE ? ESCAPE '!' OR BINARY character_id=?)"+presenceClause+" ORDER BY BINARY character_id LIMIT ?", args...)
 		if err != nil {
 			return nil, err
 		}

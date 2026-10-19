@@ -9,10 +9,11 @@ namespace Dnf90.Launcher;
 
 public sealed class LauncherEngine : IDisposable
 {
-    public const string VersionText = "0.2.6";
+    public const string VersionText = "0.2.16";
     private readonly PlayerProfile root;
     private readonly string stateRoot;
     private readonly string? previousUpdateFailure;
+    private readonly BundleOutcome? previousUpdateOutcome;
     private readonly SemaphoreSlim operation = new(1, 1);
     private CancellationTokenSource? download;
     private Bootstrap? bootstrap;
@@ -40,19 +41,27 @@ public sealed class LauncherEngine : IDisposable
         if (File.Exists(cached)) { envelope = File.ReadAllBytes(cached); bootstrap = Trust.Verify(envelope, root); }
         var install = Path.GetDirectoryName(Path.GetFullPath(AppContext.BaseDirectory).TrimEnd(Path.DirectorySeparatorChar))!;
         previousUpdateFailure = BundleInstaller.PreviousFailure(install);
-        Emit("ready", discovered ? "已自动识别客户端目录。" : preferences.ClientDirectory == "" ? "请选择客户端目录，检查更新后登录。" : "客户端目录已就绪。");
+        previousUpdateOutcome = BundleInstaller.ReadOutcome(install);
+        Emit("ready", previousUpdateFailure ?? (discovered ? "已自动识别客户端目录。" : preferences.ClientDirectory == "" ? "请选择客户端目录，检查更新后登录。" : "客户端目录已就绪。"));
     }
     private void Emit(string phase, string message, long current = 0, long total = 0)
     {
-        if (phase == "ready" && previousUpdateFailure is not null) message = previousUpdateFailure;
         var busy = phase is "checking" or "downloading" or "installing" or "logging-in" or "resetting";
         State = new(phase, message, total == 0 ? 0 : Math.Clamp((double)current / total, 0, 1), current, total,
-            !busy && phase != "paused" && plan.Length == 0 && preferences.ClientDirectory != "", plan.Length != 0,
+            !busy && phase != "paused" && plan.Length == 0 && preferences.ClientDirectory != "" && SupportsContent(Profile), plan.Length != 0,
             bootstrap?.Launcher is { } b && System.Version.Parse(b.Version) > System.Version.Parse(VersionText),
             bootstrap?.Content?.SourceId ?? "本服批准源", bootstrap?.Content?.Version ?? "", preferences, bootstrap?.News ?? []);
         Changed?.Invoke(State);
     }
     public void Pause() => download?.Cancel();
+    internal static bool SupportsContent(PlayerProfile profile) =>
+        (string.IsNullOrEmpty(profile.MinimumLauncherVersion) ||
+         System.Version.Parse(VersionText) >= System.Version.Parse(profile.MinimumLauncherVersion)) &&
+        NativeChannelHistory.SupportsProfile(profile);
+    internal static void RequireContentSupport(PlayerProfile profile)
+    {
+        if (!SupportsContent(profile)) throw new InvalidOperationException("请先更新登录器，再安装资源或登录游戏。");
+    }
     public void ReportHealthy(string path)
     {
         var install = Path.GetDirectoryName(Path.GetFullPath(AppContext.BaseDirectory).TrimEnd(Path.DirectorySeparatorChar))!;
@@ -81,12 +90,13 @@ public sealed class LauncherEngine : IDisposable
         if (Path.GetFileName(app) != "app") throw new InvalidDataException("请从完整安装目录启动登录器。");
         using var ui = Process.GetProcessById(uiPid);
         if (!Path.GetFullPath(ui.MainModule!.FileName).Equals(Path.Combine(app, "DNF90.exe"), StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException("登录器父进程不匹配。");
-        BundleProcesses.RequireExclusive(app, uiPid, Environment.ProcessId);
         var work = Path.Combine(install, ".updates", Guid.NewGuid().ToString("N")); SafeFiles.NoLinks(work); Directory.CreateDirectory(work);
         var package = Path.Combine(work, "bundle.zip"); using var api = new PlayerApi(root); api.Http.Timeout = Timeout.InfiniteTimeSpan;
         using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(30)); download = timeout;
         Emit("downloading", "正在下载登录器完整更新包…", 0, release.Size);
-        await ContentUpdater.Download(api.Http, new Uri(release.Url), release.Size, release.Sha256, package, count => Emit("downloading", "正在下载登录器完整更新包…", count, release.Size), timeout.Token);
+        using var delivery = new LauncherBundleDownloader(root);
+        var cachedPackage = await delivery.Download(release, Path.Combine(stateRoot, "bundle-downloads"), count => Emit("downloading", "正在下载登录器完整更新包…", count, release.Size), timeout.Token);
+        File.Copy(cachedPackage, package, false);
         download = null;
         RequireNoGames();
         using var own = Process.GetCurrentProcess();
@@ -111,7 +121,7 @@ public sealed class LauncherEngine : IDisposable
             if (State.HasLauncherUpdate)
             {
                 // A failed replacement must not cause an automatic restart/rollback loop.
-                if (previousUpdateFailure is not null) { Emit("ready", previousUpdateFailure); return false; }
+                if (BundleInstaller.SuppressAutomaticRetry(previousUpdateOutcome, bootstrap!.Launcher!.Version)) { Emit("ready", previousUpdateFailure!); return false; }
                 return await UpdateLauncherCore(uiPid);
             }
             await PlanContent();
@@ -191,12 +201,13 @@ public sealed class LauncherEngine : IDisposable
     private async Task PlanContent()
     {
         if (bootstrap is null) return;
+        if (!SupportsContent(Profile)) { plan = []; Emit("ready", "请先更新登录器，再安装资源或登录游戏。"); return; }
         if (preferences.ClientDirectory == "") { Emit("ready", "发布信息已更新，请先选择客户端目录。"); return; }
         RequireNoGames();
         using var transaction = new FileTransaction(preferences.ClientDirectory); transaction.Recover();
         if (bootstrap.Content is { } content)
         {
-            Emit("checking", "正在校验客户端资源…"); plan = await ContentUpdater.Plan(preferences.ClientDirectory, content, CancellationToken.None);
+            Emit("checking", "正在校验客户端资源…"); plan = await ContentUpdater.Plan(preferences.ClientDirectory, content, CancellationToken.None, Path.Combine(stateRoot, "content-check.txt"));
             Emit("ready", plan.Length == 0 ? "客户端资源与本服批准版本一致。" : $"发现 {plan.Length} 个待更新文件，请点击安装更新。");
         }
         else { plan = []; await GameContract.VerifyClient(preferences.ClientDirectory, Profile); Emit("ready", "客户端兼容校验通过；后台尚未发布资源更新。"); }
@@ -214,17 +225,19 @@ public sealed class LauncherEngine : IDisposable
     }
     private async Task InstallContent()
     {
+        RequireContentSupport(Profile);
         if (bootstrap?.Content is not { } content || plan.Length == 0) return;
         RequireNoGames();
         using var transaction = new FileTransaction(preferences.ClientDirectory); transaction.Recover();
-        using var client = ContentUpdater.Client(content); using var cancel = new CancellationTokenSource(TimeSpan.FromMinutes(45)); download = cancel;
+        using var client = ContentUpdater.Client(content); using var cancel = new CancellationTokenSource(TimeSpan.FromHours(6)); download = cancel;
+            using var delivery = new LauncherBundleDownloader(root with { ApiUrl = content.Endpoint, CertificateSha256 = content.CertificateSha256 });
         var total = plan.Sum(ContentUpdater.TransferSize); long finished = 0;
         for (int i = 0; i < plan.Length; i++)
         {
             var file = plan[i]; var lastUpdate = Stopwatch.StartNew();
             Emit("downloading", "正在下载 " + file.Path, finished, total);
             await ContentUpdater.PrepareFile(client, content, file, Path.Combine(stateRoot, "downloads"), transaction.Stage(i), bytes =>
-            { if (lastUpdate.ElapsedMilliseconds >= 80) { Emit("downloading", "正在下载 " + file.Path, finished + bytes, total); lastUpdate.Restart(); } }, cancel.Token);
+            { if (lastUpdate.ElapsedMilliseconds >= 80) { Emit("downloading", "正在下载 " + file.Path, finished + bytes, total); lastUpdate.Restart(); } }, cancel.Token, delivery);
             finished += ContentUpdater.TransferSize(file);
         }
         cancel.Token.ThrowIfCancellationRequested(); download = null; RequireNoGames();
@@ -245,13 +258,14 @@ public sealed class LauncherEngine : IDisposable
         if (!await operation.WaitAsync(0)) throw new InvalidOperationException("已有操作正在进行。");
         try
         {
+            RequireContentSupport(Profile);
             ValidateCredentials(input); Emit("checking", "正在验证客户端与本服版本…");
             using var clientLock = new FileTransaction(preferences.ClientDirectory);
             if (File.Exists(Path.Combine(preferences.ClientDirectory, ".dnf90-update", "journal.json"))) RequireNoGames();
             clientLock.Recover();
             if (bootstrap?.Content is { } content)
             {
-                plan = await ContentUpdater.Plan(preferences.ClientDirectory, content, CancellationToken.None);
+                plan = await ContentUpdater.Plan(preferences.ClientDirectory, content, CancellationToken.None, Path.Combine(stateRoot, "content-check.txt"));
                 if (plan.Length != 0) throw new InvalidOperationException("请先完成客户端资源更新。");
             }
             await GameContract.VerifyClient(preferences.ClientDirectory, Profile);

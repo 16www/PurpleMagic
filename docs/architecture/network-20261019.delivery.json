@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "deliver",
+  "type": "architecture",
+  "input": "network-20261019.json",
+  "output": "network-20261019.html",
+  "specification": {
+    "sha256": "2108cc882aff8d7fb686c55f6651d89693592c72a5956d74dbfe7c7dddaf2303",
+    "bytes": 4727
+  },
+  "artifact": {
+    "sha256": "b881df133487259d5d9cb6b97938150541f7b94a1cb3b9d174dc238aaaa0d83a",
+    "bytes": 727916
+  },
+  "validation": {
+    "checksPassed": 9,
+    "checkCount": 9,
+    "compositionProfile": "showcase",
+    "compositionStatus": "pass",
+    "errors": 0,
+    "warnings": 0
+  }
+}

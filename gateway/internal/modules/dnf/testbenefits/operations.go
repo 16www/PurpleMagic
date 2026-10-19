@@ -89,9 +89,6 @@ func (s *Store) CreateCampaignOnce(ctx context.Context, key string, reward Job, 
 	if err := reward.Validate(); err != nil {
 		return Campaign{}, err
 	}
-	if len(reward.Attachments) != 1 {
-		return Campaign{}, errors.New("物品福利需要一种已核对的物品")
-	}
 	reward = Job{Scope: reward.Scope.Effective(), Gold: reward.Gold, Title: reward.Title, Body: reward.Body, Attachments: reward.Attachments}
 	input := struct {
 		Reward    Job

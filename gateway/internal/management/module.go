@@ -47,9 +47,20 @@ func Open(ctx context.Context, cfg Config, log func(string, ...any)) (_ *Module,
 		}
 	}()
 	var err error
-	m.archive, err = platformpvf.OpenDisk(cfg.PVFPath, cfg.DiskIndexPath(), cfg.PVFSHA256)
-	if err != nil {
-		return nil, errors.New("management PVF disk index unavailable or mismatched")
+	var source dnfpvf.Source
+	var catalog *gmtool.RemoteCatalog
+	if cfg.Catalog != nil {
+		catalog, err = gmtool.NewRemoteCatalog(*cfg.Catalog)
+		if err != nil {
+			return nil, err
+		}
+		source = catalog
+	} else {
+		m.archive, err = platformpvf.OpenDisk(cfg.PVFPath, cfg.DiskIndexPath(), cfg.PVFSHA256)
+		if err != nil {
+			return nil, errors.New("management PVF disk index unavailable or mismatched")
+		}
+		source = m.archive
 	}
 	pool := func(dsn string) (*sql.DB, error) {
 		if db := m.pools[dsn]; db != nil {
@@ -99,7 +110,7 @@ func Open(ctx context.Context, cfg Config, log func(string, ...any)) (_ *Module,
 	if err != nil {
 		return nil, err
 	}
-	deps := gmtool.Deps{RegistrationDB: registration, Runtime: runtime, Benefits: benefits, Repos: func() (repository.Group, bool) { return group, true }, PVF: func() (dnfpvf.Source, error) { return m.archive, nil }}
+	deps := gmtool.Deps{Catalog: catalog, RegistrationDB: registration, Runtime: runtime, Benefits: benefits, Repos: func() (repository.Group, bool) { return group, true }, PVF: func() (dnfpvf.Source, error) { return source, nil }}
 	deps.PremiumTypes = func() ([]int64, error) {
 		r, e := runtime.Call(workerCtx, adminapi.Request{Action: "catalog"})
 		return r.PremiumTypes, e
@@ -112,9 +123,14 @@ func Open(ctx context.Context, cfg Config, log func(string, ...any)) (_ *Module,
 	if cfg.LoginKeySHA256 != "" {
 		secret = cfg.LoginKeySHA256
 	}
-	m.server, err = gmtool.NewManaged(ctx, gmtool.Config{Password: secret, LoginKeySHA256: cfg.LoginKeySHA256, Table: cfg.AccountTable, PVFPath: cfg.PVFPath, ItemIndexCachePath: cfg.ItemIndexPath, DatabaseLabel: "MariaDB", RequireOffline: true, Logger: log}, deps)
+	m.server, err = gmtool.NewManaged(ctx, gmtool.Config{Password: secret, LoginKeySHA256: cfg.LoginKeySHA256, SessionStorePath: cfg.SessionStorePath, Table: cfg.AccountTable, PVFPath: cfg.PVFPath, ItemIndexCachePath: cfg.ItemIndexPath, DatabaseLabel: "MariaDB", RequireOffline: true, Logger: log}, deps)
 	if err != nil {
 		return nil, err
+	}
+	if cfg.Catalog != nil {
+		m.Handler = m.server.GatewayHandler(cfg.ServiceToken, cfg.PVFSHA256)
+		close(m.done)
+		return m, nil
 	}
 	m.Handler = m.server.ManagementHandler(cfg.WebRoot)
 	started = true

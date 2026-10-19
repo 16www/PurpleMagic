@@ -94,9 +94,10 @@ func equippedOperationStorage(ctx context.Context, g repository.Group, c Invento
 				delete(eq.Entries, entryKey)
 			} else {
 				entry := eq.Entries[entryKey]
-				if stack.Count != 1 || stack.ItemID != entry.ItemID {
+				if stack.Count != 1 {
 					return ErrInventoryInput
 				}
+				entry.ItemID = stack.ItemID
 				entry.Bind, entry.ExpireAt, entry.RawEntry, entry.Extra = stack.Bind, stack.ExpireAt, stack.RawEntry, stack.Extra
 				eq.Entries[entryKey] = entry
 			}

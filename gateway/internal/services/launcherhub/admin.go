@@ -209,10 +209,12 @@ func (h *Hub) AdminHandler() http.Handler {
 			h.uploadBundle(w, r)
 		case r.Method == "POST" && (r.URL.Path == "/admin/api/logout" || r.URL.Path == "/api/auth/logout"):
 			h.logout(w, r, id)
+		case r.Method == "PUT" && r.URL.Path == "/admin/api/connection":
+			h.publishConnection(w, r)
 		case r.Method == "GET" && r.URL.Path == "/admin/api/state":
 			h.mu.Lock()
 			defer h.mu.Unlock()
-			reply(w, 200, map[string]any{"csrf": s.CSRF, "expires": s.Expires, "sources": h.state.Sources, "published": h.state.Published, "gmConfigured": h.cfg.GMUpstream != "", "newsRevision": newsRevision(h.state.Published.News)})
+			reply(w, 200, map[string]any{"csrf": s.CSRF, "expires": s.Expires, "sources": h.state.Sources, "published": h.state.Published, "gmConfigured": h.cfg.GMUpstream != "", "newsRevision": newsRevision(h.state.Published.News), "connectionRevision": connectionRevision(h.state.Published.Profile)})
 		case r.Method == "PUT" && r.URL.Path == "/admin/api/source":
 			var source Source
 			if e := readBody(w, r, &source); e != nil {

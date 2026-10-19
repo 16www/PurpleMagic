@@ -36,7 +36,7 @@ func TestV1EquippedOperationsMySQL(t *testing.T) {
 			s.items = newItemIndex("", s, func(string, ...any) {})
 			s.items.setEntriesLocked(itemcfgTestEntries())
 			runtime := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				json.NewEncoder(w).Encode(adminapi.Response{Version: 1, OK: true})
+				writeAccountEditFixture(t, w, r, false)
 			}))
 			defer runtime.Close()
 			var e error

@@ -107,7 +107,7 @@ func (s *Server) v1AdvanceMailboxCleanup(w http.ResponseWriter, r *http.Request)
 		}
 		return nil
 	}
-	j, e := adminops.AdvanceMailboxCleanup(r.Context(), u, c.AccountID, c.CharacterID, r.PathValue("cleanupId"), r.PathValue("action"), s.v1CleanupActor(), body.Revision, confirm, s.v1QuestOffline)
+	j, e := adminops.AdvanceMailboxCleanup(r.Context(), u, c.AccountID, c.CharacterID, r.PathValue("cleanupId"), r.PathValue("action"), s.v1CleanupActor(), body.Revision, confirm, s.v1CharacterEditCheck(c.AccountID))
 	s.v1CleanupResult(w, r, j, e)
 }
 func (s *Server) v1MailboxCleanup(w http.ResponseWriter, r *http.Request) {

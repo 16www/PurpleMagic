@@ -19,6 +19,7 @@ var ErrInventoryContainer = errors.New("inventory container needs its own transa
 var ErrInventorySlot = errors.New("inventory slot missing or changed")
 
 type InventoryOptions struct {
+	ItemID            *string `json:"itemId,omitempty"`
 	QualityMode       *int    `json:"qualityMode,omitempty"`
 	UpgradeLevel      *int    `json:"upgradeLevel,omitempty"`
 	AmplifyType       *int    `json:"amplifyType,omitempty"`
@@ -162,6 +163,17 @@ func validInventoryCommand(c InventoryCommand, commit bool) error {
 	}
 	if (c.Action == "delete" && c.Options != nil) || (c.Action == "configure" && c.Options == nil) {
 		return ErrInventoryInput
+	}
+	if c.Options != nil && c.Options.ItemID != nil {
+		o := c.Options
+		id, err := strconv.ParseUint(*o.ItemID, 10, 32)
+		if err != nil || id == 0 || strconv.FormatUint(id, 10) != *o.ItemID || len(c.Items) != 1 || o.Count != nil || o.QualityMode != nil || o.UpgradeLevel != nil || o.AmplifyType != nil || o.ForgingLevel != nil || o.AvatarOptionValue != nil || o.ExpirationDays != nil {
+			return ErrInventoryInput
+		}
+		v := c.Items[0]
+		if v.Container == "shared" || InventoryPetTarget(v) || InventoryArtifactTarget(v) {
+			return ErrInventoryContainer
+		}
 	}
 	if commit && (len(c.Key) < 16 || len(c.Key) > 128 || len(c.PlanToken) == 0) {
 		return ErrInventoryInput
@@ -329,7 +341,11 @@ func RunInventoryOperation(ctx context.Context, u repository.InventoryManagement
 				if e != nil {
 					return &InventoryOperationError{v.Container, v.Slot, e}
 				}
-				if updated.ItemID != stack.ItemID || updated.Count < 0 || (updated.Count == 0 && v.Container != "shared") {
+				expectedID := stack.ItemID
+				if c.Options.ItemID != nil {
+					expectedID, _ = strconv.ParseInt(*c.Options.ItemID, 10, 64)
+				}
+				if updated.ItemID != expectedID || updated.Count < 0 || (updated.Count == 0 && v.Container != "shared") {
 					return ErrInventoryInput
 				}
 				if updated.Count == 0 {

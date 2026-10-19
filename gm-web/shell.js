@@ -1,6 +1,6 @@
 import {$,icon} from './ui.js';
 
-export const nav=[['overview','概览','grid'],['players','账号与角色','users'],['items','物品目录','box'],['mail','邮件与福利','mail'],['tasks','任务记录','list'],['gateway','网关与更新','server'],['settings','工作台设置','settings']];
+export const nav=[['overview','概览','grid'],['players','玩家管理','users'],['items','PVF 资料库','box'],['mail','批量与福利','mail'],['tasks','记录与维护','list'],['gateway','登录器与连接','server'],['settings','工作台设置','settings']];
 const mobile=matchMedia('(max-width:760px)');
 const collapseKey='soft-gm-console.sidebar-collapsed';
 let collapsed=false;

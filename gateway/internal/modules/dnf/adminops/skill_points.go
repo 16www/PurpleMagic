@@ -119,7 +119,7 @@ func validSkillPointCommand(c SkillPointCommand, commit bool) error {
 		if (c.Target != "sp" && c.Target != "tp") || n != 0 {
 			return ErrSkillPointInput
 		}
-	case "sync":
+	case "sync", "reset_defaults":
 		if c.Target != "both" || n != 0 {
 			return ErrSkillPointInput
 		}
@@ -223,6 +223,9 @@ func RunSkillPointOperation(ctx context.Context, u repository.SkillPointManageme
 			return ErrSkillPointDefinition
 		}
 		after := before
+		if c.Action == "reset_defaults" {
+			after.BonusSP, after.BonusTP = 0, 0
+		}
 		if c.Action == "add" || c.Action == "subtract" || c.Action == "set" {
 			n, _ := strconv.ParseInt(c.Amount, 10, 64)
 			bonus := &after.BonusSP

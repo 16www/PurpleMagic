@@ -86,6 +86,9 @@ func (s *mysqlCharStore) withinCharacterManagementRouter(ctx context.Context, ac
 	r.db = sqlTransactionDB{tx: tx}
 	r.readDBs = append([]string(nil), r.writeDBs...)
 	r.lockReads = true
+	if err = lockManagedAccount(ctx, tx, r, accountID); err != nil {
+		return err
+	}
 	table, err := r.writeTable(mysqlCharTable, characterID)
 	if err != nil {
 		return err

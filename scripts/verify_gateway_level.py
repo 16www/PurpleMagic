@@ -106,7 +106,7 @@ def main():
         expect(panel.get_by_role('button',name='预览等级变更')).to_be_disabled()
         dialog.get_by_role('button',name='关闭',exact=True).click()
         open_character('流光','流光·剑影');preview(80,'在线角色拒绝')
-        panel.get_by_role('button',name='确认等级提交').click();expect(panel.get_by_role('alert')).to_contain_text('角色在线')
+        panel.get_by_role('button',name='确认等级提交').click();expect(panel.get_by_role('alert')).to_contain_text('账号仍连接游戏')
         dialog.get_by_role('button',name='关闭',exact=True).click()
         page.locator('#theme-open').click();page.locator('[data-action=preset][data-value=ember-dusk]').click()
         page.locator('[data-action=mode][data-value=dark]').click();page.keyboard.press('Escape');open_character()

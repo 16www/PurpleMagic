@@ -21,6 +21,10 @@ def main():
     state=json.loads((STATE/'process.json').read_text(encoding='utf-8'))
     assert state['status']=='running' and state['container'].startswith('dnf90-gateway-preview-')
     source=json.loads((STATE/'gateway.json').read_text(encoding='utf-8'))
+    index=json.loads(Path(source['management']['itemIndexPath']).read_text(encoding='utf-8'))
+    assert index['pvfChecksum']==source['management']['pvfSha256'], 'Index generation does not match the configured PVF'
+    item_count=len(index['entries'])
+    del index
     cfg=json.loads(json.dumps(source));m=cfg['management']
     m['listen']='127.0.0.1:8879'
     for key in ('repositoryDsn','registrationDsn'):
@@ -42,7 +46,7 @@ for attempt in range(30):
 key=json.load(open('/preview/login-key.json'))['key']
 response=json.load(opener.open(urllib.request.Request(url+'/api/auth/login',json.dumps({'password':key}).encode(),{'Content-Type':'application/json'})))
 assert response['success']
-paths=['/api/v1/accounts?limit=20','/api/v1/accounts/preview:1/currency','/api/v1/accounts/preview:1/currency-adjustments','/api/v1/items?limit=20','/api/v1/items/490009735','/api/v1/quests?limit=20','/api/v1/characters/10/quests?limit=20','/api/v1/characters/10/gold','/api/v1/characters/10/gold-operations','/api/v1/characters/10/skill-points','/api/v1/characters/10/skill-point-operations','/api/v1/characters/10/level','/api/v1/characters/10/level-operations','/api/v1/characters/10/profession','/api/v1/characters/10/profession-operations','/api/v1/characters/20/inventory/pets/0','/api/v1/characters/20/inventory/equipped/26/options','/api/v1/characters/21/mailbox?claimed=claimed&limit=20','/api/v1/characters/21/mailbox-cleanups?limit=20','/api/v1/characters/21/mailbox-operations?limit=20','/api/v1/accounts/preview:2/vault']
+paths=['/api/v1/accounts?limit=20','/api/v1/accounts/preview:1/currency','/api/v1/accounts/preview:1/currency-adjustments','/api/v1/items?limit=20','/api/v1/items/490009735','/api/v1/quests?limit=20','/api/v1/characters/10/quests?limit=20','/api/v1/characters/10/gold','/api/v1/characters/10/gold-operations','/api/v1/characters/10/skill-points','/api/v1/characters/10/skill-point-operations','/api/v1/characters/10/level','/api/v1/characters/10/level-operations','/api/v1/characters/10/profession','/api/v1/characters/10/profession-operations','/api/v1/characters/10/expert-job','/api/v1/characters/10/expert-job-operations','/api/v1/characters/20/inventory/pets/0','/api/v1/characters/20/inventory/equipped/26/options','/api/v1/characters/21/mailbox?claimed=claimed&limit=20','/api/v1/characters/21/mailbox-cleanups?limit=20','/api/v1/characters/21/mailbox-operations?limit=20','/api/v1/accounts/preview:2/vault']
 for path in paths:
  result=json.load(opener.open(url+path,timeout=10));assert 'error' not in result
 print(json.dumps({'readChecks':len(paths),'authenticated':True}))
@@ -54,7 +58,7 @@ print(json.dumps({'readChecks':len(paths),'authenticated':True}))
              '-v',str(binary)+':/gateway:ro','-v',str(OUT)+':/config:ro','-v',str(STATE)+':/preview:ro',
              '-v',str(Path(source['management']['pvfPath']).parent)+':/assets:ro',
              '-v',str(Path(source['management']['itemIndexPath']).parent)+':/indexes:ro',
-             '-v',str(ROOT/'gm-web')+':/web:ro','--entrypoint','/gateway','alpine:latest','--config','/config/gateway.json'])
+             '-v',str(ROOT/'gm-console/dist')+':/web:ro','--entrypoint','/gateway','alpine:latest','--config','/config/gateway.json'])
         started=True
         probe=json.loads(run(['docker','run','--rm','--network','container:'+name,'-v',str(STATE)+':/preview:ro','-v',str(OUT)+':/probe:ro','--entrypoint','python','usdof-python:3.12.10-bookworm-local','/probe/probe.py']))
         time.sleep(2)
@@ -63,7 +67,7 @@ print(json.dumps({'readChecks':len(paths),'authenticated':True}))
         current=int(run(['docker','exec',name,'cat','/sys/fs/cgroup/memory.current']))
         peak=int(run(['docker','exec',name,'cat','/sys/fs/cgroup/memory.peak']))
         swap=int(run(['docker','exec',name,'cat','/sys/fs/cgroup/memory.swap.current']))
-        result={'platform':'Linux amd64 Docker local','binarySHA256':hashlib.sha256(binary.read_bytes()).hexdigest(),'pvfSHA256':source['management']['pvfSha256'],'items':154729,'processKiB':fields,'cgroupBytes':{'current':current,'peak':peak,'swap':swap},'probe':probe,'scope':'one gateway; database in separate container; offline indexes; example players; no concurrent load'}
+        result={'platform':'Linux amd64 Docker local','binarySHA256':hashlib.sha256(binary.read_bytes()).hexdigest(),'pvfSHA256':source['management']['pvfSha256'],'items':item_count,'processKiB':fields,'cgroupBytes':{'current':current,'peak':peak,'swap':swap},'probe':probe,'scope':'one gateway; database in separate container; offline indexes; example players; no concurrent load'}
         result['GOMEMLIMIT']=args.gomemlimit or 'Go default'
         (OUT/'result.json').write_text(json.dumps(result,indent=2),encoding='utf-8')
         print(json.dumps(result))

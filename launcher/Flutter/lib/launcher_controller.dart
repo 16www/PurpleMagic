@@ -124,6 +124,7 @@ class LauncherController extends ChangeNotifier {
   bool reducedEffects = false, autoUpdate = true, canLogin = false;
   bool hasUpdate = false, hasLauncherUpdate = false, connected = false;
   String source = '本服批准源', message = '正在连接登录器核心…', version = '';
+  String launcherVersion = '';
   String clientDirectory = '', account = '';
   bool rememberAccount = true;
   List<Map<String, dynamic>> news = [];
@@ -175,6 +176,7 @@ class LauncherController extends ChangeNotifier {
     message = state['message'] as String? ?? '';
     source = state['source'] as String? ?? '本服批准源';
     version = state['version'] as String? ?? '';
+    launcherVersion = state['launcherVersion'] as String? ?? '';
     news = (state['news'] as List? ?? []).cast<Map<String, dynamic>>();
     final prefs = state['preferences'] as Map<String, dynamic>? ?? {};
     clientDirectory = prefs['clientDirectory'] as String? ?? '';
@@ -225,13 +227,22 @@ class LauncherController extends ChangeNotifier {
     }
   }
 
-  void beginUpdate() {
-    if (busy || !connected) return;
-    unawaited(
-      _background(
+  Future<bool> beginUpdate() async {
+    if (busy || !connected) return false;
+    try {
+      if (hasLauncherUpdate) return await updateLauncher();
+      await _background(
         hasUpdate || phase == UpdatePhase.paused ? 'update' : 'check',
-      ),
-    );
+      );
+      return false;
+    } catch (error) {
+      if (!_disposed) {
+        message = error.toString().replaceFirst('Bad state: ', '');
+        phase = UpdatePhase.error;
+        notifyListeners();
+      }
+      return false;
+    }
   }
 
   void pauseOrResume() {

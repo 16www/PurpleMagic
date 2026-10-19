@@ -17,6 +17,9 @@ internal static class AutomaticUpdateChecks
         var state = Path.Combine(temp, "auto-preferences");
         using (var engine = new LauncherEngine(profile, state))
         {
+            using var serialized = JsonDocument.Parse(JsonSerializer.Serialize(engine.State, WireJson.Default.State));
+            check(serialized.RootElement.GetProperty("launcherVersion").GetString() == LauncherEngine.VersionText,
+                "wire state reports running launcher version independently of content version");
             await engine.SavePreferences(new(AutoCheck: false));
         }
         using (var engine = new LauncherEngine(profile, state))

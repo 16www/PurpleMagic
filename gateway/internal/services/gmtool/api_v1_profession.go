@@ -165,7 +165,7 @@ func (s *Server) v1ProfessionOperation(w http.ResponseWriter, r *http.Request) {
 	} else {
 		command.PlanToken = ""
 	}
-	result, e := adminops.RunProfessionOperation(r.Context(), u, command, commit, s.professionDefinition, s.v1QuestOffline)
+	result, e := adminops.RunProfessionOperation(r.Context(), u, command, commit, s.professionDefinition, s.v1CharacterEditCheck(command.AccountID))
 	if e == nil && !commit {
 		command.DefinitionRevision = result.DefinitionRevision
 		v1Reply(w, r, 200, v1Envelope{Data: map[string]any{"receipt": result, "definitionRevision": result.DefinitionRevision, "planToken": s.v1CursorToken("profession-plan", adminops.ProfessionIdentity(command), strconv.FormatInt(time.Now().Unix(), 10))}})

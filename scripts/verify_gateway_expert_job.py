@@ -78,13 +78,13 @@ def main():
         preview(0,'experience',0,'取消副职业');submit(0,0)
         records=get('characters/10/expert-job-operations?limit=20')
         assert len(records)==6
-        quests=get('characters/10/quests?limit=100')
+        quests=get('characters/10/quests?state=all&limit=100')['quests']
         assert not any(q['questId'] in (2702,2708,2710,2712) for q in quests)
         requests.clear();page.wait_for_timeout(1800);assert not requests,requests
         dialog.get_by_role('button',name='关闭',exact=True).click()
         open_character('流光','流光·剑影');preview(3,'level',1,'在线拒绝')
         panel.get_by_role('button',name='确认副职业提交').click()
-        expect(panel.get_by_role('alert')).to_contain_text('角色在线')
+        expect(panel.get_by_role('alert')).to_contain_text('账号仍连接游戏')
         dialog.get_by_role('button',name='关闭',exact=True).click()
         page.locator('#theme-open').click();page.locator('[data-action=preset][data-value=ember-dusk]').click()
         page.locator('[data-action=mode][data-value=dark]').click();page.keyboard.press('Escape')

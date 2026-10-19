@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"net/http"
 	"strings"
+	"time"
 )
 
 // handleStatus 复刻 A21 的 /api/status。前端完全由它决定登录面板和工作区，
@@ -44,6 +45,7 @@ func (s *Server) handleStatus(w http.ResponseWriter, r *http.Request) {
 
 type loginRequest struct {
 	Password string `json:"password"`
+	Remember bool   `json:"remember"`
 }
 
 func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
@@ -53,7 +55,7 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 	}
 	ip := clientIP(r)
 	if !s.allowLogin(ip) {
-		writeFailure(w, "密码尝试过于频繁，请稍后再试。")
+		writeFailure(w, "Token 尝试过于频繁，请稍后再试")
 		return
 	}
 	expected := sha256Sum(s.cfg.Password)
@@ -68,10 +70,19 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 	provided := sha256Sum(body.Password)
 	if !equalHash(expected, provided) {
 		s.recordLoginFailure(ip)
-		writeFailure(w, "密码错误。")
+		writeFailure(w, "Token 无效，请检查后重试")
 		return
 	}
-	token, err := s.startSession()
+	var token string
+	var err error
+	ttl := sessionTTL
+	expires := time.Now().Add(ttl)
+	if body.Remember {
+		ttl = rememberedSessionTTL
+		token, expires, err = s.startRememberedSession()
+	} else {
+		token, err = s.startSession()
+	}
 	if err != nil {
 		writeFailure(w, "会话创建失败。")
 		return
@@ -84,20 +95,25 @@ func (s *Server) handleLogin(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: true,
 		SameSite: http.SameSiteStrictMode,
 		Secure:   r.TLS != nil,
-		MaxAge:   int(sessionTTL / 1e9),
+		MaxAge:   int(ttl / time.Second),
+		Expires:  expires,
 	})
 	writeOK(w, map[string]any{"authenticated": true})
 }
 
 func (s *Server) handleLogout(w http.ResponseWriter, r *http.Request) {
 	if cookie, err := r.Cookie(CookieName); err == nil && cookie != nil {
-		s.endSession(cookie.Value)
+		if err := s.endSession(cookie.Value); err != nil {
+			writeFailure(w, "Token 记忆清除失败，请重试")
+			return
+		}
 	}
 	http.SetCookie(w, &http.Cookie{
 		Name:     CookieName,
 		Value:    "",
 		Path:     "/",
 		HttpOnly: true,
+		Secure:   r.TLS != nil,
 		SameSite: http.SameSiteStrictMode,
 		MaxAge:   -1,
 	})

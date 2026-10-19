@@ -11,6 +11,7 @@ const Version = 1
 const Path = "/api/game/admin"
 
 type Request struct {
+	AccountID   string                      `json:"accountId,omitempty"`
 	Version     int                         `json:"version"`
 	Action      string                      `json:"action"`
 	CharacterID uint16                      `json:"characterId,omitempty"`
@@ -22,6 +23,8 @@ type Request struct {
 }
 
 type Response struct {
+	CharacterEdit      *CharacterEditStatus         `json:"characterEdit,omitempty"`
+	AccountEdit        *AccountEditStatus           `json:"accountEdit,omitempty"`
 	OnlineSnapshot     *OnlineSnapshot              `json:"onlineSnapshot,omitempty"`
 	Version            int                          `json:"version"`
 	OK                 bool                         `json:"ok"`

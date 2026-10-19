@@ -47,6 +47,13 @@ func (s *Server) v1MailGrantOptions(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) v1ProjectMailDraft(d testbenefits.MailDraft, at time.Time) (testbenefits.Job, error) {
+	if s.deps.Catalog != nil && d.ItemID != "" {
+		var v testbenefits.Job
+		d.Recipients = nil
+		d.AccountIDs = nil
+		e := s.deps.Catalog.background(catalogRequest{Operation: "mail", Draft: d, At: at}, &v)
+		return v, e
+	}
 	j, _, err := s.v1ResolveReward(v1RewardInput{Title: d.Title, Body: d.Body, Gold: d.Gold, ItemID: d.ItemID, Count: d.Count}, testbenefits.ScopeCharacter)
 	if err != nil {
 		return j, err

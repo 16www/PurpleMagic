@@ -7,6 +7,7 @@ import (
 	"crypto/rsa"
 	"crypto/tls"
 	"crypto/x509"
+	"dnf90.local/gateway/internal/services/baidudelivery"
 	"embed"
 	"encoding/hex"
 	"encoding/json"
@@ -39,6 +40,7 @@ type persisted struct {
 	SourceDigests   map[string]string  `json:"sourceDigests"`
 }
 type Hub struct {
+	baidu     *baidudelivery.Resolver
 	cfg       Config
 	key       *rsa.PrivateKey
 	profile   Profile
@@ -138,6 +140,12 @@ func New(c Config) (*Hub, error) {
 	// paired with content approved for a different EXE/PVF.
 	if h.state.Published.Profile.ExeSHA256 != p.ExeSHA256 || h.state.Published.Profile.PvfSHA256 != p.PvfSHA256 {
 		return nil, errors.New("approved profile changed: migrate publication state explicitly")
+	}
+	if c.Baidu != nil {
+		h.baidu, e = baidudelivery.New(*c.Baidu)
+		if e != nil {
+			return nil, e
+		}
 	}
 	return h, nil
 }
@@ -295,7 +303,7 @@ func (h *Hub) publish(id string) (Bootstrap, error) {
 }
 func (h *Hub) PublicHandler() http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.URL.RawQuery == "" && (r.Method == "GET" || r.Method == "HEAD") && h.serveBundle(w, r) {
+		if r.URL.RawQuery == "" && r.URL.RawPath == "" && (r.Method == "GET" || r.Method == "HEAD") && (h.serveBundle(w, r) || h.serveContentBlob(w, r)) {
 			return
 		}
 		if r.URL.Path != "/launcher/v2/bootstrap.json" || r.URL.RawQuery != "" || (r.Method != "GET" && r.Method != "HEAD") {

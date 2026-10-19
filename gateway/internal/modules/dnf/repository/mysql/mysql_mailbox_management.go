@@ -109,6 +109,9 @@ func (s *mysqlCharStore) WithinMailboxManagement(ctx context.Context, account, i
 	r.db = sqlTransactionDB{tx: tx}
 	r.readDBs = append([]string(nil), r.writeDBs...)
 	r.lockReads = true
+	if e = lockManagedAccount(ctx, tx, r, account); e != nil {
+		return e
+	}
 	table, e := r.writeTable(mysqlMailboxTable, id)
 	if e != nil {
 		return e

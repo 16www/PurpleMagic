@@ -46,7 +46,7 @@ func TestV1SharedResourcesMySQL(t *testing.T) {
 			s.items = newItemIndex("", s, func(string, ...any) {})
 			s.items.setEntriesLocked(entries)
 			runtime := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				json.NewEncoder(w).Encode(adminapi.Response{Version: 1, OK: true})
+				writeAccountEditFixture(t, w, r, false)
 			}))
 			defer runtime.Close()
 			var e error

@@ -13,6 +13,11 @@ import (
 )
 
 func (s *Server) expertJobDefinitions(ctx context.Context) (adminops.ExpertJobDefinitions, error) {
+	if s.deps.Catalog != nil {
+		var d adminops.ExpertJobDefinitions
+		e := s.deps.Catalog.call(ctx, catalogRequest{Operation: "expert"}, &d)
+		return d, e
+	}
 	x, e := s.expertJobResources(ctx)
 	if e != nil {
 		return adminops.ExpertJobDefinitions{}, e
@@ -124,7 +129,7 @@ func (s *Server) v1ExpertJobOperation(w http.ResponseWriter, r *http.Request) {
 	} else {
 		command.PlanToken = ""
 	}
-	result, e := adminops.RunExpertJobOperation(r.Context(), u, command, commit, s.expertJobDefinitions, s.v1QuestOffline)
+	result, e := adminops.RunExpertJobOperation(r.Context(), u, command, commit, s.expertJobDefinitions, s.v1CharacterEditCheck(command.AccountID))
 	if e == nil && !commit {
 		command.DefinitionRevision = result.DefinitionRevision
 		v1Reply(w, r, 200, v1Envelope{Data: map[string]any{"receipt": result, "definitionRevision": result.DefinitionRevision, "planToken": s.v1CursorToken("expert-job-plan", adminops.ExpertJobIdentity(command), strconv.FormatInt(time.Now().Unix(), 10))}})

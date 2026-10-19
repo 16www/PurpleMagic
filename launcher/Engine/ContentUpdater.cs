@@ -17,16 +17,44 @@ public static class ContentUpdater
             DateTime.UtcNow >= cert.NotBefore.ToUniversalTime() && DateTime.UtcNow <= cert.NotAfter.ToUniversalTime() && Trust.Digest(cert.RawData).Equals(source.CertificateSha256, StringComparison.OrdinalIgnoreCase);
         return new HttpClient(handler) { Timeout = Timeout.InfiniteTimeSpan };
     }
-    public static async Task<ContentFile[]> Plan(string directory, ContentRelease release, CancellationToken cancel)
+    public static async Task<ContentFile[]> Plan(string directory, ContentRelease release, CancellationToken cancel, string? reportPath = null)
     {
         var result = new List<ContentFile>();
+        var report = new System.Text.StringBuilder();
+        report.AppendLine("客户端资源检查（只按实际文件内容决定下载）");
+        report.AppendLine("目录：" + Path.GetFullPath(directory));
+        report.AppendLine("版本：" + release.Version);
+        report.AppendLine("文件\t检查结果\t本地字节\t预期字节\t本地SHA256\t预期SHA256");
         foreach (var file in release.Files)
         {
             cancel.ThrowIfCancellationRequested();
-            if (await SafeFiles.Matches(SafeFiles.Target(directory, file.Path), file.Length, file.Sha256, cancel)) continue;
+            var target = SafeFiles.Target(directory, file.Path);
+            long actualSize = -1; string actualHash = "";
+            if (File.Exists(target))
+            {
+                await using var input = new FileStream(target, FileMode.Open, FileAccess.Read, FileShare.Read, 65536, true);
+                actualSize = input.Length;
+                actualHash = Convert.ToHexString(await SHA256.HashDataAsync(input, cancel)).ToLowerInvariant();
+            }
+            var matches = actualSize == file.Length && actualHash.Equals(file.Sha256, StringComparison.OrdinalIgnoreCase);
+            var reason = matches ? "一致，无需下载" : actualSize < 0 ? "文件缺失" : actualSize != file.Length ? "文件大小不同" : "文件摘要不同";
+            report.AppendLine($"{file.Path}\t{reason}\t{actualSize}\t{file.Length}\t{actualHash}\t{file.Sha256}");
+            if (matches) continue;
             if (!file.Downloadable) throw new InvalidDataException($"缺少或不匹配的基线文件：{file.Path}。请使用配套完整客户端。");
             result.Add(file);
         }
+        report.AppendLine($"需要下载：{result.Count} 项，{result.Sum(TransferSize)} 字节（压缩传输量）。");
+        // A local diagnostic is best effort; it must never turn a matching file
+        // into a download or expose a transient provider URL/OAuth credential.
+        try
+        {
+            if (reportPath is not null) {
+                SafeFiles.NoLinks(reportPath); Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(reportPath))!);
+                SafeFiles.Atomic(reportPath, System.Text.Encoding.UTF8.GetBytes(report.ToString()));
+            }
+        }
+        catch (IOException) { }
+        catch (UnauthorizedAccessException) { }
         return result.ToArray();
     }
     public static long TransferSize(ContentFile f) => f.Compression == "gzip" ? f.BlobLength : f.Length;
@@ -62,11 +90,12 @@ public static class ContentUpdater
         }
         if (!await SafeFiles.Matches(partial, size, hash, cancel)) { File.Delete(partial); throw new InvalidDataException("下载摘要不匹配，已丢弃损坏负载。"); }
     }
-    public static async Task PrepareFile(HttpClient client, ContentRelease release, ContentFile file, string cache, string stage, Action<long>? progress, CancellationToken cancel)
+    public static async Task PrepareFile(HttpClient client, ContentRelease release, ContentFile file, string cache, string stage, Action<long>? progress, CancellationToken cancel, LauncherBundleDownloader? delivery = null)
     {
         var hash = file.Compression == "gzip" ? file.BlobSha256 : file.Sha256;
         var partial = Path.Combine(cache, hash.ToLowerInvariant() + ".part");
-        await Download(client, new Uri(release.Endpoint.TrimEnd('/') + "/blobs/" + hash), TransferSize(file), hash, partial, progress, cancel);
+        if (delivery is null) await Download(client, new Uri(release.Endpoint.TrimEnd('/') + "/blobs/" + hash), TransferSize(file), hash, partial, progress, cancel);
+        else await delivery.DownloadContent(release, file, partial, progress, cancel);
         SafeFiles.NoLinks(stage);
         try
         {

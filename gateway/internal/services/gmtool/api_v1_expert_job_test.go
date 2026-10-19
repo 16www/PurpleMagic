@@ -68,6 +68,15 @@ func TestV1ExpertJobMySQL(t *testing.T) {
 			s.pvf = newPVFCache()
 			s.items = newItemIndex(summary, s, nil)
 			s.deps.PVF = func() (pvf.Source, error) { return source, nil }
+			var fixtureDatabase string
+			check(s.db.QueryRowContext(ctx, "SELECT DATABASE()").Scan(&fixtureDatabase))
+			if !strings.HasPrefix(fixtureDatabase, "gm_currency_") || !strings.HasSuffix(fixtureDatabase, "_0") {
+				t.Fatal("unexpected disposable fixture database")
+			}
+			fixtureSchemas := make([]string, shards)
+			for i := range shards {
+				fixtureSchemas[i] = fmt.Sprintf("%s_%d", strings.TrimSuffix(fixtureDatabase, "_0"), i)
+			}
 			for i, id := range []string{"10", "11", "20", "21"} {
 				a := "wallet:1"
 				if i > 1 {
@@ -78,6 +87,17 @@ func TestV1ExpertJobMySQL(t *testing.T) {
 					level = 1
 				}
 				check(g.Character.Save(ctx, repository.CharacterRecord{CharacterID: id, AccountID: a, Slot: i, Name: "副职业" + id, Job: "0", Level: level, Stats: map[string]int64{"gold": 888, "expert_job_type": 2, "expert_job_exp": 10, "expert_job_recipe_2_123": 1, "expert_job_machine_grade": 2, "expert_job_machine_endurance": 123, "expert_job_give_up_state": 2, "premium_crystal_selection": -1, "keep": 87}}))
+				updated := false
+				for _, schema := range fixtureSchemas {
+					result, e := s.db.ExecContext(ctx, fmt.Sprintf("UPDATE `%s`.`dnf_characters` SET `premium_crystal_selection`=-1 WHERE `character_id`=?", schema), id)
+					check(e)
+					count, e := result.RowsAffected()
+					check(e)
+					updated = updated || count > 0
+				}
+				if !updated {
+					t.Fatal("premium_crystal_selection fixture row not found", id)
+				}
 				check(g.Quest.Save(ctx, repository.QuestRecord{CharacterID: id, States: map[int64]repository.QuestState{1: {Status: "active", ProgressValue: 7, Extra: map[string]string{"story": "keep"}}, 3: {Status: "completed", Extra: map[string]string{"old": "receipt"}}, 4: {Status: "active", ProgressValue: 3, RewardSelectIndex: 5, Multiplier: 3, Extra: map[string]string{"target": "keep"}}}, Progress: map[int64]repository.QuestState{3: {Status: "active"}}}))
 			}
 			u := g.Character.(repository.ExpertJobManagementUnitOfWork)
@@ -227,7 +247,7 @@ func TestV1ExpertJobMySQL(t *testing.T) {
 			}
 			// HTTP signed preview, tamper rejection, source generation and durable recovery.
 			runtime := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				json.NewEncoder(w).Encode(adminapi.Response{Version: 1, OK: true})
+				writeAccountEditFixture(t, w, r, false)
 			}))
 			defer runtime.Close()
 			s.deps.Runtime, e = adminapi.NewClient(runtime.URL+adminapi.Path, strings.Repeat("x", 32))

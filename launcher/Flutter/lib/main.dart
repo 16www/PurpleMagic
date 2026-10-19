@@ -127,7 +127,9 @@ class _PreviewHomeState extends State<PreviewHome> {
               launchArguments.first == '--update-health') {
             await model.reportHealthy(launchArguments[1]);
           }
-          if (mounted) await _automaticUpdate();
+          if (mounted && !launchArguments.contains('--update-retry-required')) {
+            await _automaticUpdate();
+          }
         })
         .catchError((Object failure) {
           if (mounted) {
@@ -142,6 +144,10 @@ class _PreviewHomeState extends State<PreviewHome> {
     if (await model.automaticUpdate() && mounted) {
       await windowAction('close');
     }
+  }
+
+  Future<void> _beginUpdate() async {
+    if (await model.beginUpdate() && mounted) await windowAction('close');
   }
 
   Future<void> _setAutoUpdate(bool enabled) async {
@@ -801,9 +807,11 @@ class _PreviewHomeState extends State<PreviewHome> {
             ),
           ),
           const SizedBox(height: 15),
-          const Text(
-            '90CN  ·  0.2.5',
-            style: TextStyle(
+          Text(
+            model.launcherVersion.isEmpty
+                ? '90CN'
+                : '90CN  ·  ${model.launcherVersion}',
+            style: const TextStyle(
               fontSize: 9,
               color: Color(0xffa59bb4),
               letterSpacing: 1.7,
@@ -838,8 +846,12 @@ class _PreviewHomeState extends State<PreviewHome> {
             ),
             if (!model.busy && model.phase != UpdatePhase.paused)
               _link(
-                model.hasUpdate ? '安装更新' : '检查更新',
-                model.beginUpdate,
+                model.hasLauncherUpdate
+                    ? '更新登录器'
+                    : model.hasUpdate
+                    ? '安装更新'
+                    : '检查更新',
+                _beginUpdate,
                 key: 'check-update',
               )
             else if (model.phase == UpdatePhase.downloading ||
@@ -1363,7 +1375,7 @@ class _PreviewHomeState extends State<PreviewHome> {
                             ? null
                             : () {
                                 Navigator.pop(context);
-                                model.beginUpdate();
+                                _beginUpdate();
                               },
                         child: const Text('检查更新'),
                       ),

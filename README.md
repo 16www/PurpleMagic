@@ -2,16 +2,18 @@
 
 # PurpleMagic
 
-![Flutter](https://img.shields.io/badge/UI-Flutter-02569B?style=flat-square)
-![Go](https://img.shields.io/badge/Gateway-Go-00ADD8?style=flat-square)
-![.NET 8](https://img.shields.io/badge/Launcher-.NET%208-512BD4?style=flat-square)
+![React](https://img.shields.io/badge/GM-React%20%2B%20TypeScript-61DAFB?style=flat-square)
+![Flutter](https://img.shields.io/badge/Launcher-Flutter-02569B?style=flat-square)
+![Go](https://img.shields.io/badge/Services-Go-00ADD8?style=flat-square)
+![.NET 8](https://img.shields.io/badge/Engine-.NET%208-512BD4?style=flat-square)
 ![MariaDB](https://img.shields.io/badge/Storage-MariaDB-003545?style=flat-square)
+[![Stars](https://img.shields.io/github/stars/Cec1c/PurpleMagic?style=flat-square)](https://github.com/Cec1c/PurpleMagic/stargazers)
 
-**A player launcher, update gateway and GM management toolkit for DNF90.**
+**A Windows player launcher, update gateway and GM management toolkit for DNF90.**
 
-One source repository, independently shipped components—from player login and updates to character and operations management.
+One source repository with independently built components, from player login and updates to inventory, mail and benefit management.
 
-[简体中文](README.zh-CN.md) ｜ [Quick preview](#quick-preview) ｜ [Feature ledger](docs/FEATURE_LEDGER.md) ｜ [Architecture](docs/ARCHITECTURE.md) ｜ [Documentation](#documentation)
+[简体中文](README.zh-CN.md) ｜ [Quick preview](#quick-preview) ｜ [Network and APIs](docs/architecture/NETWORK_AND_CONTRACTS_20261019.md) ｜ [Feature ledger](docs/FEATURE_LEDGER.md) ｜ [Documentation](#documentation)
 
 </div>
 
@@ -19,89 +21,95 @@ One source repository, independently shipped components—from player login and 
 
 | Workflow | Current capabilities |
 | --- | --- |
-| Player login | Windows registration and login, client-directory discovery, channel checks and game launch |
-| Updates | Configurable sources, signature and file-digest verification, download progress, pause, installation and rollback |
-| Player assets | Account and character lookup; premium currency, gold, account vault and shared-resource adjustments with operation history |
-| Inventory | Browse bags, equipped items and storage; inspect instances; edit quality, enhancement, amplification, forging, quantity and expiry; delete selected batches |
-| Character progression | Adjust level, profession, awakening and SP/TP with change previews and durable receipts |
-| Game quests | Browse character quests and definitions; accept, abandon, mark ready, complete without rewards and reset; process selected batches |
-| Mail and benefits | Send to one character, selected recipients or an online snapshot; grant once per account or character; track batches and retry failures |
-| Announcements and appearance | Publish launcher announcements through the Hub; choose ten GM palettes, custom accents, light/dark modes and saved appearance preferences |
+| Player login | Windows registration and login, client-directory discovery, channel checks and game launch; launcher source aligned with 0.2.16 |
+| Updates | Configurable sources, signed manifests and file hashes, progress, pause, installation and rollback; launcher and game-content updates have separate contracts |
+| Accounts and characters | Search, cursor pagination, online filtering, account expansion and deduplicated recipient selection |
+| Inventory | Eight views for bags, equipment, pet equipment, character/account storage, pets, avatars and emblems; inspect instances and edit supported attributes, replace compatible items or delete selected batches |
+| Progression and assets | Adjust level, profession, awakening, SP/TP, gold and premium currency through previewed transactions with durable receipts |
+| Game quests | Read character quests and definitions; accept, abandon, mark ready, complete without rewards and reset through management APIs; the console exposes completion and reset actions |
+| Mail and benefits | Selecting an account includes all its existing characters; confirm the final recipient list once, then track the durable queue; enabled benefit rules run automatically |
+| Announcements and downloads | Edit announcements, update sources and the signed game connection profile through the Hub from the console |
+| GM workspace | Orchid glass light/dark themes, floating navigation, page transitions, fixed-position loading indicators and a centered Token form with an optional 30-day session |
 
-The [71-item feature ledger](docs/FEATURE_LEDGER.md) records each operation's scope, APIs and remaining work. Current priorities include auxiliary-profession validation, advanced item properties, game edit leases, moderation, dungeon telemetry and daily public snapshots. Announcement editing currently uses the Hub page; integration into the independent GM page is scheduled for a later iteration.
+The [integration guide](docs/GM_CONSOLE_INTEGRATION_20261019.md) maps each page to the actual Go APIs. Pet growth editing, full avatar attribute changes, emblem sockets, equipment enchantments and token-coupon currency remain outside the current write contracts. The [feature ledger](docs/FEATURE_LEDGER.md) tracks the broader roadmap, including moderation, telemetry and public snapshots.
 
-## One gateway, two clients
+## Service layout
 
-The player launcher and GM Web share gateway infrastructure. A single process hosts the public player HTTPS entry, update Hub and private management API, connected to the existing game service and MariaDB. Player and management traffic use separate listeners and authentication settings.
+The external GMService owns administrator sessions, PVF definitions, queries, persistent mail queues and benefit scheduling. The game-side PlayerGateway owns database transactions, game admission checks and receipts. Public player traffic and private management traffic use separate listeners and credentials.
 
-| Component | Directory | Artifact |
+| Component | Directory | Output |
 | --- | --- | --- |
-| Player launcher | `launcher/` | Flutter Windows UI, C# engine, installation and self-update components |
-| Gateway and Hub | `gateway/` | Linux / Windows executables with management domain services and database transactions |
-| GM Web | `gm-web/` | Independent static package, served at `/console/` on the management listener |
-| Offline tools and migration sources | `gm/` | Original GM implementation, PVF index tools and compatibility contracts |
+| Player launcher | `launcher/` | Flutter Windows UI, C# engine, portable installer and self-update components |
+| Game-side gateway and Hub | `gateway/` | `PlayerGateway`: player APIs, signing/publication and private management transactions |
+| External GM and PVF | `gateway/` | `GMService` and offline `GMIndex`; full PVF indexes stay outside the game service |
+| GM Console | `gm-console/` | React/TypeScript static application served under `/console/` |
+| Offline tools and migration sources | `gm/` | Original GM tools, PVF tooling and compatibility contracts |
 
-[Open the interactive architecture](docs/architecture/current.html) · [Repository and release boundaries](docs/REPOSITORY_BOUNDARIES.md)
+The [network and API brief](docs/architecture/NETWORK_AND_CONTRACTS_20261019.md) separates game TCP, account HTTPS, management tunnels and download sources. It also distinguishes existing APIs from the proposed scheduler, publisher and launcher build workers. Download the repository and open the [offline overview](docs/architecture/overview-20261019.html), [network diagram](docs/architecture/network-20261019.html) or [module diagram](docs/architecture/modules-20261019.html) in a browser.
 
-### On-demand reads and recoverable operations
+### Reads, edits and recovery
 
-Accounts, inventory, mailboxes and quests are read by page, container and cursor. PVF disk indexes use the full file digest; item details and quest definitions load on demand, while the profession index caches the selected profession. A PVF update creates a new index generation. Benefit rules use a difference preview to retain their existing delivery records across generations.
+Accounts, inventory, mailboxes and quests load by page, container and cursor. A PVF generation is identified by its complete SHA256; changing the file requires rebuilding and verifying its indexes. The game gateway requests bounded definitions from the external service.
 
-Management writes go through domain transactions with revision checks, idempotent requests and durable receipts. Mail, benefits and mailbox cleanup persist batch progress for continuation and result tracking. See [API foundations](docs/FOUNDATIONS.md) for the call paths.
-
-## Split deployment plan
-
-The proposed deployment places GM management, PVF indexes and the launcher publishing service on an external management host. A lightweight gateway on the game host handles bounded queries, domain transactions and durable receipts.
-
-[![PurpleMagic planned split deployment: external GM and PVF services, game-side gateway and download sources](docs/architecture/split-deployment-plan.png)](docs/architecture/split-deployment-plan.png)
+Management writes use revision checks, idempotency keys and durable receipts. Character-specific edits check the selected character's offline state; shared account assets retain account-level protection. Confirmed mail keeps running after the browser closes and resumes after service restarts. Benefit rules preserve their delivery records across retries and index generations.
 
 ## Quick preview
 
-With Python 3 installed, run from the repository root:
+Use Node.js 24 and npm:
 
 ```text
-python scripts/preview_console.py --port 8765
+cd gm-console
+npm ci
+npm run dev
 ```
 
-Open **http://127.0.0.1:8765/** to explore account search, item selection, mail drafts, navigation and themes using sample data. Press `Ctrl+C` to stop. See [preview interactions and data scope](docs/CONSOLE_PREVIEW.md).
+Open **http://127.0.0.1:8778/** for the standalone sample-data preview. The production build uses the real API adapter. For local integration with a disposable database, follow the [GM Console guide](docs/GM_CONSOLE_INTEGRATION_20261019.md); for service deployment configuration, see [external GM services](docs/GM_EXTERNAL_SERVICES.md).
 
-For the management API, prepare the gateway configuration, MariaDB, private game endpoint and matching PVF indexes, then follow the [single-gateway setup](docs/GM_GATEWAY_IMPLEMENTATION.md). The GM page establishes a session using a login key.
+> [!NOTE]
+> `gm-console/` is the current frontend and design baseline. The first `gm-web/` is archived as `FROZEN_DO_NOT_REFERENCE`; production packaging uses `gm-console/dist/`.
 
 ## Build and check
 
-Toolchain: Go 1.26.5, Python 3, .NET 8 and Flutter Windows. Launcher release builds also use Visual Studio C++ and NativeAOT.
+Toolchain: Node.js 24, Go 1.26.5, Python 3, .NET 8 and Flutter Windows. Launcher release builds also use Visual Studio C++ and NativeAOT.
+
+Run from the repository root after installing the frontend dependencies:
 
 ```text
+npm --prefix gm-console test
+npm --prefix gm-console run build
+python scripts/package_gm_web.py
 python scripts/check_boundaries.py
 python scripts/build_gateway.py linux amd64
-python scripts/package_gm_web.py
 ```
 
-Gateway artifacts go to `dist/gateway/linux-amd64/`; the web package is `dist/gm-web/GM-Web.zip`. Replace `linux` with `windows` for a Windows gateway build. Build the original GM tools with `python gm/scripts/build.py linux amd64`.
+The static package is `dist/gm-console/PurpleMagic-GM-Console.zip`. `PlayerGateway`, `GMService` and `GMIndex` are written to `dist/gateway/linux-amd64/`; replace `linux` with `windows` for Windows. Build the original GM tools with `python gm/scripts/build.py linux amd64`.
 
 ```text
 python scripts/verify_component.py gateway
 python scripts/verify_component.py gm
 python scripts/verify_component.py launcher --dotnet <dotnet8>
 python scripts/verify_component.py flutter --flutter <flutter>
+python gateway/scripts/test_mysql.py
+python gm/scripts/test_mysql.py
 ```
 
-Build the launcher with `BUILD_FLUTTER.bat --flutter <flutter> --dotnet <dotnet8> --profile-dir <profile-directory> --output <new-output-directory>`. Supply the [signing profile and artwork](docs/LAUNCHER_INPUTS.md), then use `BUILD_PORTABLE.bat` to wrap the complete ZIP.
+Database checks create disposable MariaDB containers and require Docker. Build the launcher with `BUILD_FLUTTER.bat --flutter <flutter> --dotnet <dotnet8> --profile-dir <profile-directory> --output <new-output-directory>`. Supply the [signing profile and artwork](docs/LAUNCHER_INPUTS.md), then use `BUILD_PORTABLE.bat` to wrap the complete ZIP.
 
 > [!IMPORTANT]
-> The deployment environment supplies runtime configuration, signing material, game assets and player data. Match the player, game-service and GM EXE/PVF/profile combination, then verify the published files in the [documented release order](docs/REPOSITORY_BOUNDARIES.md).
+> Runtime configuration, signing material, game assets and player data are supplied by the deployment environment. Match the player, game-service and GM EXE/PVF/profile combination, then verify the published files in the [documented release order](docs/REPOSITORY_BOUNDARIES.md).
 
 ## Documentation
 
 | Topic | References |
 | --- | --- |
-| Scope, progress and page redesign | [Feature ledger](docs/FEATURE_LEDGER.md) · [Frontend plan](docs/FRONTEND_PLAN.md) |
-| Services, caching and transactions | [Architecture](docs/ARCHITECTURE.md) · [15 API foundations](docs/FOUNDATIONS.md) |
-| Management APIs and operations | [Current routes](docs/API_CATALOG.md) · [Mail, benefits and jobs](docs/GM_OPERATIONS_V1.md) |
-| Item descriptions and indexes | [PVF item details](docs/GM_ITEM_DETAILS.md) · [Character resources](docs/GM_CHARACTER_RESOURCES.md) |
+| Network, interfaces and future modules | [Topology and contracts](docs/architecture/NETWORK_AND_CONTRACTS_20261019.md) · [Architecture](docs/ARCHITECTURE.md) |
+| Console and visual baseline | [Real API integration](docs/GM_CONSOLE_INTEGRATION_20261019.md) · [Orchid design archive](docs/design/purplemagic-orchid-20261019/README.md) |
+| Features and transactions | [Feature ledger](docs/FEATURE_LEDGER.md) · [API foundations](docs/FOUNDATIONS.md) |
+| Management services | [External GM/PVF](docs/GM_EXTERNAL_SERVICES.md) · [Current routes](docs/API_CATALOG.md) · [Mail and benefits](docs/GM_OPERATIONS_V1.md) |
+| Items and character data | [PVF item details](docs/GM_ITEM_DETAILS.md) · [Character resources](docs/GM_CHARACTER_RESOURCES.md) |
 | Announcements and public queries | [Launcher announcements](docs/LAUNCHER_ANNOUNCEMENTS.md) · [Public snapshot design](docs/PUBLIC_PLAYER_SNAPSHOTS.md) |
-| Versions and changes | [Changelog](changlog.md) · [Provenance and compatibility](docs/PROVENANCE.md) |
+| Changes and source versions | [Changelog](changlog.md) · [Provenance](docs/PROVENANCE.md) · [Launcher 0.2.16 import](docs/launcher-0.2.16-import.json) |
 
 ## Sources and licenses
 
-Components retain their original licenses and copyright notices. See [source provenance](docs/PROVENANCE.md), the [GM notice](gm/NOTICE.md) and [frontend third-party notices](gm-web/THIRD_PARTY_NOTICES.md).
+Components retain their original licenses and copyright notices. See [source provenance](docs/PROVENANCE.md), the [GM notice](gm/NOTICE.md), [current frontend notices](gm-console/THIRD_PARTY_NOTICES.md) and [archived frontend notices](gm-web/THIRD_PARTY_NOTICES.md).

@@ -35,6 +35,8 @@ type questIndexRow struct {
 	SHA256   string `json:"sha256"`
 }
 type questDiskIndex struct {
+	remote       *RemoteCatalog
+	remoteRows   map[int64]catalogQuest
 	Path         string
 	Checksum     string
 	ManifestHash string
@@ -117,6 +119,10 @@ func readQuestIndex(ctx context.Context, path, checksum string) (*questDiskIndex
 	return ix, ctx.Err()
 }
 func (ix *questDiskIndex) find(id int64) (questIndexRow, bool) {
+	if ix.remote != nil {
+		v, ok := ix.remoteRows[id]
+		return v.Row, ok && v.Found
+	}
 	i := sort.Search(len(ix.Rows), func(i int) bool { return ix.Rows[i].ID >= id })
 	if i < len(ix.Rows) && ix.Rows[i].ID == id {
 		return ix.Rows[i], true
@@ -124,6 +130,19 @@ func (ix *questDiskIndex) find(id int64) (questIndexRow, bool) {
 	return questIndexRow{}, false
 }
 func (ix *questDiskIndex) definition(ctx context.Context, id int64) (dnfquest.Definition, error) {
+	if ix.remote != nil {
+		v, ok := ix.remoteRows[id]
+		if !ok {
+			if e := ix.remoteLoad(ctx, []int64{id}); e != nil {
+				return dnfquest.Definition{}, e
+			}
+			v = ix.remoteRows[id]
+		}
+		if !v.Found {
+			return dnfquest.Definition{}, os.ErrNotExist
+		}
+		return v.Definition, nil
+	}
 	var d dnfquest.Definition
 	if err := ctx.Err(); err != nil {
 		return d, err
@@ -308,6 +327,9 @@ func BuildQuestIndex(ctx context.Context, source dnfpvf.Source, summary string) 
 }
 
 func (s *Server) questReadIndex(ctx context.Context) (*questDiskIndex, error) {
+	if s.deps.Catalog != nil {
+		return s.deps.Catalog.questIndex(ctx)
+	}
 	if s.deps.PVF == nil || s.items == nil {
 		return nil, errors.New("PVF unavailable")
 	}

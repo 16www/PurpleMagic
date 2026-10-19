@@ -20,6 +20,22 @@ func (s *Server) questOperationCatalog(ctx context.Context, ix *questDiskIndex, 
 	loaded := map[int64]bool{}
 	definitions := []quest.Definition{}
 	for len(queue) > 0 {
+		if ix.remote != nil {
+			ids := []int64{}
+			for _, id := range queue {
+				if _, ok := ix.remoteRows[id]; !ok {
+					ids = append(ids, id)
+				}
+				if len(ids) == 200 {
+					break
+				}
+			}
+			if len(ids) > 0 {
+				if e := ix.remoteLoad(ctx, ids); e != nil {
+					return nil, e
+				}
+			}
+		}
 		id := queue[0]
 		queue = queue[1:]
 		if loaded[id] {
@@ -44,22 +60,21 @@ func (s *Server) questOperationCatalog(ctx context.Context, ix *questDiskIndex, 
 	return quest.CatalogFromDefinitions(definitions)
 }
 
-func (s *Server) v1QuestOffline(ctx context.Context, id string) error {
-	if s.deps.Runtime == nil {
-		return adminops.ErrRuntimeUnavailable
+// Used inside the account-row transaction, before mutations and before commit.
+func (s *Server) v1AccountEditCheck(account string) adminops.QuestOfflineCheck {
+	return func(ctx context.Context, _ string) error {
+		if s.deps.Runtime == nil || account == "" {
+			return adminops.ErrRuntimeUnavailable
+		}
+		result, err := s.deps.Runtime.Call(ctx, adminapi.Request{Action: "account_edit_status", AccountID: account})
+		if err != nil || !result.OK || result.AccountEdit == nil || result.AccountEdit.Protocol != adminapi.AccountEditProtocol || result.AccountEdit.AccountID != account {
+			return adminops.ErrRuntimeUnavailable
+		}
+		if result.AccountEdit.Busy {
+			return adminops.ErrCharacterOnline
+		}
+		return nil
 	}
-	n, err := strconv.ParseUint(id, 10, 16)
-	if err != nil || n == 0 || strconv.FormatUint(n, 10) != id {
-		return adminops.ErrQuestInput
-	}
-	result, err := s.deps.Runtime.Call(ctx, adminapi.Request{Action: "online", CharacterID: uint16(n)})
-	if err != nil || !result.OK {
-		return adminops.ErrRuntimeUnavailable
-	}
-	if result.Online {
-		return adminops.ErrCharacterOnline
-	}
-	return nil
 }
 
 func (s *Server) v1QuestOperation(w http.ResponseWriter, r *http.Request) {
@@ -146,7 +161,7 @@ func (s *Server) v1QuestOperation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	command.PVFChecksum = ix.Checksum
-	result, err := adminops.RunQuestOperation(r.Context(), u, catalog, command, commit, s.v1QuestOffline)
+	result, err := adminops.RunQuestOperation(r.Context(), u, catalog, command, commit, s.v1CharacterEditCheck(command.AccountID))
 	s.v1QuestOperationResult(w, r, result, err)
 }
 
@@ -166,9 +181,9 @@ func (s *Server) v1QuestOperationResult(w http.ResponseWriter, r *http.Request, 
 	case errors.Is(err, adminops.ErrIdempotency):
 		fail(409, "idempotency_conflict", "此请求编号已用于其他操作", false)
 	case errors.Is(err, adminops.ErrCharacterOnline):
-		fail(409, "character_online", "角色在线，请离线后操作", false)
+		fail(409, "character_online", "目标角色仍在线或正在退出，请返回角色选择界面后操作", false)
 	case errors.Is(err, adminops.ErrRuntimeUnavailable):
-		fail(503, "runtime_unavailable", "暂时无法取得角色在线状态", true)
+		fail(503, "runtime_unavailable", "暂时无法取得账号编辑状态", true)
 	case errors.Is(err, adminops.ErrAccount) || errors.Is(err, sql.ErrNoRows):
 		fail(404, "character_not_found", "角色不存在或归属已变更", false)
 	case errors.Is(err, adminops.ErrQuestInput):

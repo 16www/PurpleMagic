@@ -202,7 +202,7 @@ func TestV1AccountInventoryMySQL(t *testing.T) {
 			runtime := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 				var v adminapi.Request
 				json.NewDecoder(r.Body).Decode(&v)
-				json.NewEncoder(w).Encode(adminapi.Response{Version: 1, OK: true, Online: v.CharacterID == 11 && siblingOnline.Load()})
+				json.NewEncoder(w).Encode(adminapi.Response{Version: 1, OK: true, AccountEdit: &adminapi.AccountEditStatus{Protocol: adminapi.AccountEditProtocol, AccountID: v.AccountID, Busy: siblingOnline.Load()}})
 			}))
 			defer runtime.Close()
 			s.deps.Runtime, e = adminapi.NewClient(runtime.URL+adminapi.Path, strings.Repeat("x", 32))

@@ -13,6 +13,11 @@ import (
 )
 
 func (s *Server) vaultDefinition() (adminops.VaultDefinition, error) {
+	if s.deps.Catalog != nil {
+		var d adminops.VaultDefinition
+		e := s.deps.Catalog.background(catalogRequest{Operation: "vault"}, &d)
+		return d, e
+	}
 	if s.deps.PVF == nil {
 		return adminops.VaultDefinition{}, adminops.ErrVaultDefinition
 	}
@@ -120,7 +125,7 @@ func (s *Server) v1VaultOperation(w http.ResponseWriter, r *http.Request) {
 		s.v1VaultResult(w, r, adminops.VaultReceipt{}, e)
 		return
 	}
-	result, e := adminops.RunVaultOperation(r.Context(), u, command, definition, commit, s.v1QuestOffline)
+	result, e := adminops.RunVaultOperation(r.Context(), u, command, definition, commit, s.v1AccountEditCheck(command.AccountID))
 	if e == nil && !commit {
 		token := s.v1CursorToken("vault-plan", fingerprint, strconv.FormatInt(time.Now().Unix(), 10))
 		v1Reply(w, r, 200, v1Envelope{Data: map[string]any{"receipt": result, "planToken": token}})
@@ -137,9 +142,9 @@ func (s *Server) v1VaultResult(w http.ResponseWriter, r *http.Request, result ad
 	case errors.Is(e, adminops.ErrIdempotency):
 		v1Fail(w, r, 409, "idempotency_conflict", "此请求编号已用于其他操作", false)
 	case errors.Is(e, adminops.ErrCharacterOnline):
-		v1Fail(w, r, 409, "character_online", "此账号有角色在线，请全部离线后操作", false)
+		v1Fail(w, r, 409, "character_online", "账号仍连接游戏，请退出该账号后操作", false)
 	case errors.Is(e, adminops.ErrRuntimeUnavailable):
-		v1Fail(w, r, 503, "runtime_unavailable", "暂时无法取得账号角色的在线状态", true)
+		v1Fail(w, r, 503, "runtime_unavailable", "暂时无法取得账号编辑状态", true)
 	case errors.Is(e, adminops.ErrVaultDefinitionChanged):
 		v1Fail(w, r, 409, "vault_definition_changed", "PVF金库配置已更新，请刷新后重新预览", false)
 	case errors.Is(e, adminops.ErrVaultDefinition):

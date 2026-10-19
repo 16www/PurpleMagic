@@ -15,6 +15,9 @@ import (
 )
 
 func (s *Server) levelDefinition(ctx context.Context, c repository.CharacterRecord, level int) (adminops.LevelDefinition, error) {
+	if s.deps.Catalog != nil {
+		return s.remoteLevel(ctx, c, level)
+	}
 	var d adminops.LevelDefinition
 	if level < 1 || level > adminops.MaximumCharacterLevel {
 		return d, adminops.ErrLevelInput
@@ -178,7 +181,7 @@ func (s *Server) v1LevelOperation(w http.ResponseWriter, r *http.Request) {
 	} else {
 		command.PlanToken = ""
 	}
-	result, e := adminops.RunLevelOperation(r.Context(), u, command, commit, s.levelDefinition, s.v1QuestOffline)
+	result, e := adminops.RunLevelOperation(r.Context(), u, command, commit, s.levelDefinition, s.v1CharacterEditCheck(command.AccountID))
 	if e == nil && !commit {
 		command.DefinitionRevision = result.DefinitionRevision
 		v1Reply(w, r, 200, v1Envelope{Data: map[string]any{"receipt": result, "definitionRevision": result.DefinitionRevision, "planToken": s.v1CursorToken("level-plan", adminops.LevelIdentity(command), strconv.FormatInt(time.Now().Unix(), 10))}})

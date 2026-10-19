@@ -33,6 +33,7 @@ def create_server(port=0,item_details=None):
     return server
 
 def main():
+    raise SystemExit("First GM UI is archived. Use preview-gm-console.bat or gm-console live mode.")
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--port', type=int, default=8765)
     parser.add_argument('--item-details',type=Path,help='local compiled PVF samples for ?pvf=1 preview')

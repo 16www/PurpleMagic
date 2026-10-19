@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 3.15)
+project(LauncherExitFixture C)
+add_library(ExitDelay SHARED delay.c)
+add_executable(DNF90 WIN32 main.c)
+target_link_libraries(DNF90 PRIVATE ExitDelay)

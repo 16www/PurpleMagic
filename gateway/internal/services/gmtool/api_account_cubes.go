@@ -112,6 +112,14 @@ func (s *Server) crystalCubeItemIDs() ([accountCubeSelectionCount]int64, error) 
 // 与 dnfbridge 的 Extra 口径一致：dungeon_drop_catalog.go:261）与 `[stack limit]`。
 // 解析不出来就明确失败——**不允许**写一个只有 ItemID 的栈让客户端渲染成别的样子。
 func (s *Server) accountCubeDefinition(itemID int64) (accountCubeStackDefinition, error) {
+	if s.deps.Catalog != nil {
+		var d accountCubeStackDefinition
+		if itemID <= 0 || itemID > math.MaxUint32 {
+			return d, errCrystalCubeCatalogIncomplete
+		}
+		e := s.deps.Catalog.background(catalogRequest{Operation: "cube", ItemID: uint32(itemID)}, &d)
+		return d, e
+	}
 	definition := accountCubeStackDefinition{ItemID: uint32(itemID)}
 	if itemID <= 0 || itemID > math.MaxUint32 {
 		return accountCubeStackDefinition{}, fmt.Errorf("%w: 物品 %d 超出 uint32", errCrystalCubeCatalogIncomplete, itemID)

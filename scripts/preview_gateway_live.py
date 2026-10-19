@@ -47,6 +47,10 @@ def example_runtime(token):
                     result={'version':1,'ok':True,'online':False,'onlineSnapshot':{
                         'id':secrets.token_hex(16),'observedAt':datetime.datetime.now(datetime.timezone.utc).isoformat(),'complete':True,
                         'members':[{'characterId':n,'generation':'1'} for n in (40,41)]}}
+                elif body.get('action')=='account_edit_status' and set(body)=={'version','action','accountId'} and body['accountId'] in ('preview:1','preview:2','preview:3','preview:4'):
+                    result={'version':1,'ok':True,'accountEdit':{'protocol':'account-row-v1','accountId':body['accountId'],'busy':body['accountId']=='preview:4'}}
+                elif body.get('action')=='character_edit_status' and set(body)=={'version','action','accountId','characterId'} and body['characterId'] in (10,11,20,21,30,31,40,41) and body['accountId']==f"preview:{body['characterId']//10}":
+                    result={'version':1,'ok':True,'characterEdit':{'protocol':'character-admission-v1','accountId':body['accountId'],'characterId':body['characterId'],'busy':body['characterId'] in (40,41)}}
                 elif body.get('action')=='online' and body.get('characterId') in (10,11,20,21,30,31,40,41):
                     result={'version':1,'ok':True,'online':body['characterId'] in (40,41)}
                 else:
@@ -66,13 +70,17 @@ def example_runtime(token):
 
 
 def main():
+    global STATE
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--port', type=int, default=8768)
     parser.add_argument('--pvf', type=Path)
     parser.add_argument('--index-dir', type=Path)
     parser.add_argument('--sha256')
     parser.add_argument('--stop', action='store_true')
+    parser.add_argument('--state-dir', type=Path, default=STATE)
+    parser.add_argument('--web-root', type=Path, default=ROOT/'gm-console/dist')
     args = parser.parse_args()
+    STATE = args.state_dir.resolve()
     STATE.mkdir(parents=True, exist_ok=True)
     if args.stop:
         (STATE/'stop').touch()
@@ -85,9 +93,9 @@ def main():
         probe.bind(('127.0.0.1',args.port))
     for name in ('ready.json','stop'):
         (STATE/name).unlink(missing_ok=True)
-    shutil.copytree(ROOT/'gm-web',STATE/'web',dirs_exist_ok=True)
-    page=STATE/'web/index.html'
-    page.write_text(page.read_text(encoding='utf-8').replace('<div class="topbar-actions">','<div class="topbar-actions"><span class="preview-badge">本地预览 · 示例玩家</span>',1),encoding='utf-8')
+    if not (args.web_root/'index.html').is_file():
+        parser.error('Build gm-console first or provide --web-root')
+    shutil.copytree(args.web_root,STATE/'web',dirs_exist_ok=True)
     private_key=rsa.generate_private_key(public_exponent=65537,key_size=2048)
     subject=x509.Name([x509.NameAttribute(NameOID.COMMON_NAME,'localhost')])
     now=datetime.datetime.now(datetime.timezone.utc)
@@ -131,12 +139,28 @@ def main():
         binary=STATE/('gateway.exe' if os.name=='nt' else 'gateway')
         with (STATE/'server.log').open('w',encoding='utf-8') as log:
             subprocess.run(['go','test','-buildvcs=false','-count=1','-run','^TestConsoleInteractivePreview$','./internal/services/gmtool'],cwd=ROOT/'gateway',env=env,stdout=log,stderr=subprocess.STDOUT,check=True)
+            # The same real Hub service as production, with local-only signing
+            # material and a disposable publication profile.
+            hub_token=secrets.token_urlsafe(48)
+            (STATE/'hub-token.json').write_text(json.dumps({'token':hub_token}),encoding='utf-8')
+            public_key=private_key.public_key().public_bytes(serialization.Encoding.PEM,serialization.PublicFormat.SubjectPublicKeyInfo).decode()
+            profile={'ApiUrl':f'https://127.0.0.1:{args.port}','CertificateSha256':certificate.fingerprint(hashes.SHA256()).hex(),
+                'UpdatePublicKey':public_key,'SettingsUrl':f'https://127.0.0.1:{args.port}/launcher/v2/bootstrap.json',
+                'GameHost':'game.preview.test','BootstrapPort':10011,'ExeSha256':'1'*64,'PvfSha256':args.sha256,'DefaultClientDirectory':'DNF'}
+            (STATE/'hub-profile.json').write_text(json.dumps(profile),encoding='utf-8')
+            cfg=json.loads((STATE/'gateway.json').read_text(encoding='utf-8'))
+            cfg['management']['scanSeconds']=5
+            cfg['management']['sessionStorePath']=str(STATE/'remembered-sessions.json')
+            cfg['launcher_hub']={'admin_listen':f'127.0.0.1:{args.port}','admin_token_sha256':hashlib.sha256(hub_token.encode()).hexdigest(),
+                'data_dir':str(STATE/('hub-'+container)),'signing_key_file':str(STATE/'localhost-key.pem'),'profile_file':str(STATE/'hub-profile.json')}
+            (STATE/'gateway.json').write_text(json.dumps(cfg),encoding='utf-8')
+            (STATE/'hub-token.json').chmod(0o600)
             subprocess.run(['go','build','-buildvcs=false','-o',str(binary),'./cmd/playergateway'],cwd=ROOT/'gateway',env=env,stdout=log,stderr=subprocess.STDOUT,check=True)
             subprocess.run([str(binary),'--config',str(STATE/'gateway.json'),'--init-management-schema'],cwd=ROOT/'gateway',stdout=log,stderr=subprocess.STDOUT,check=True)
             # Credentials for fixture creation stay out of the long-running process environment.
             runtime_env=os.environ|{'GOMEMLIMIT':os.environ.get('GOMEMLIMIT','128MiB')}
             child=subprocess.Popen([str(binary),'--config',str(STATE/'gateway.json')],cwd=ROOT/'gateway',env=runtime_env,stdout=log,stderr=subprocess.STDOUT)
-            url=f'https://127.0.0.1:{args.port}/console/#players'
+            url=f'https://127.0.0.1:{args.port}/console/#inventory'
             for _ in range(60):
                 if child.poll() is not None:raise RuntimeError('Gateway exited; inspect preview server.log')
                 try:

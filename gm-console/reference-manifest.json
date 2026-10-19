@@ -1,0 +1,26 @@
+{
+  "capturedAt": "2026-10-19",
+  "sourcePage": "https://dforigin.online/forum?line=90",
+  "assets": [
+    {
+      "file": "index.css",
+      "url": "https://dforigin.online/assets/index-BjwhO770-226df7df1d76.css",
+      "sha256": "24306b350c7a4063e593de4e19d25c9f9c2637c2b38129e4a0b6c827b070f572"
+    },
+    {
+      "file": "experience.css",
+      "url": "https://dforigin.online/assets/experience-5d6569f05c04.css",
+      "sha256": "3e9d612b75dc118d52b6d7ff9a58e94175fd412acc9a0d689976dba82495e7f9"
+    },
+    {
+      "file": "community.css",
+      "url": "https://dforigin.online/assets/community-dDC-4fon-226df7df1d76.css",
+      "sha256": "5ea24c4bcbb47da2a120e9d0ccf5f04698f6692ccaa1c8e97554cf402e2b5fd8"
+    },
+    {
+      "file": "dnf90-origin.png",
+      "url": "https://dforigin.online/assets/dnf90-origin-a1f02622c24e-original.png",
+      "sha256": "a1f02622c24e049deb37cd1e4dc9b298f9e89454eea0c0a22109c0087410d703"
+    }
+  ]
+}

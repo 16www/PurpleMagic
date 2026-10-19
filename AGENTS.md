@@ -1,68 +1,18 @@
-# PurpleMagic
+# PurpleMagic repository guidance
 
-This independent repository combines the Windows Flutter launcher, Linux player
-gateway and administration hub, and GM Web. The user named it PurpleMagic on
-2026-10-17. The public repository is https://github.com/Cec1c/PurpleMagic.
-
-- Start with docs/FEATURE_LEDGER.md, docs/FOUNDATIONS.md and docs/ARCHITECTURE.md
-  for current implementation facts. docs/GM_GATEWAY_ARCHITECTURE.md and
-  docs/GM_API_V1_DRAFT.md retain earlier design material.
-- The copied launcher baseline is 0.2.6; reconcile the exact later released
-  launcher source before an integrated release. Preserve client directory discovery.
-- The auxiliary-profession candidate is unfinished. Read the project-local paused
-  handoff before resuming it. The 2026-10-17 inventory/extraction task does not
-  resume all paused feature implementation.
-- PVF indexes follow the full hash of the operator-approved PVF. Generate and
-  verify a new index generation after PVF changes; do not replace the approved
-  PVF with upstream assets automatically.
-- An EXE-dependent server release requires final compatible EXE Release/mirror,
-  then actual player-channel signature and downloaded-asset hash readbacks,
-  including matching EXE/PVF/dstr/NPK/profile, before dependent server deployment.
-
-- The 2026-10-16 target is an independently released GM Web/PWA client using a
-  versioned management API in one server gateway process. Native Android is a
-  possible later client, not a separate implementation of database rules.
-  See docs/ARCHITECTURE.md. gm/ remains the legacy migration and offline-tool
-  source. The gateway now hosts v1 GM APIs, and gm-web/
-  is the independently shipped client; see docs/GM_GATEWAY_IMPLEMENTATION.md.
-  Preserve separate player and management listeners and authentication.
-
-- Read changlog.md and local-notes/PROJECT_PLAN.md before changes. The five-phase
-  plan applies only to this project and its original 90cn-source workspace.
-  Reference repositories do not inherit this project goal.
-- Check Git status and preserve existing changes. No source is imported from a
-  neighboring checkout at build time. The source manifest records the extraction.
-- The GM keeps its existing module and transaction contracts under gm/. Follow
-  gm/AGENTS.md for changes there. gateway/ is a separate standalone Go module.
-- Game listeners, game-server startup and player databases belong to the game
-  service. Private management APIs must not become public gateway routes.
-- Runtime files, keys, profiles, game assets, generated binaries and private
-  investigation reports remain ignored. Never use real players for test grants.
-- Windows entrypoints use BAT/Python. Build, Git publication and deployment are
-  separate actions. Preserve rule IDs, receipts and signed release sequences.
-- For extraction/Go changes, run go list/test/vet in both modules, independent
-  boundary checks and Windows/Linux builds. Database-affecting changes require
-  the changed module scripts/test_mysql.py against its new disposable database.
-- Launcher checks: Core Tests, EngineTests, PortableTests, Flutter analyze/test.
-  Gateway changes include its route isolation and launcherhub tests. Browser
-  checks use isolated fixtures. Actual player interaction is separately verified.
-- Product text uses PurpleMagic names and describes features directly. Keep
-  third-party attribution in provenance and license notices. Theme names use
-  descriptive palette names, such as Sky Blue / 晴空蓝.
-- Preserve the accepted sidebar, header and page structure. Remove decorative
-  workspace/server selectors unless they perform a required action. The old GM
-  supplies verified operations and contracts, not the new visual layout.
-- UI and documents state behavior directly. Omit defensive copy, repeated demo
-  caveats and implementation commentary in product screens. Label the demo once;
-  retain meaningful error states, operation results and factual validation scope.
-- Continue feature work within the accepted layout;
-  theme fixes must follow the selected palette in both light and dark modes.
-- The experimental public-player API reads low-priority snapshots, refreshed daily
-  by default. Support a selected-character list and all characters including future
-  creations. Track its contract in docs/PUBLIC_PLAYER_SNAPSHOTS.md; keep public
-  snapshot reads separate from authenticated management operations.
-- Preserve the operational goals of the old GM and supplied reference sources.
-  Track feature coverage in docs/GM_FEATURE_MATRIX.md. Prioritize player inventory,
-  equipped item instances, storage, mailbox and game quests. Game quests and GM
-  batch jobs are separate features. Redesign read scope and refresh behavior while
-  reusing verified domain transactions and PVF definitions.
+- Read `docs/FEATURE_LEDGER.md`, `docs/FOUNDATIONS.md`, `docs/ARCHITECTURE.md`, `docs/PROVENANCE.md` and `changlog.md` before choosing a baseline. Preserve existing working-tree changes.
+- `gm-console/` is the only active GM frontend. Its accepted orchid glass design is archived in `docs/design/purplemagic-orchid-20261019/`. Preserve the floating sidebar, capsule header, purple/pink light and dark themes, density and functional grouping. Product text states behavior directly.
+- `gm-web/` is **FROZEN_DO_NOT_REFERENCE**: keep it only for historical builds and provenance. Do not copy, import or restyle its layout or components. The 86jp reference supplies function semantics, not the current visual design.
+- The seven console sections are search, inventory, mail, quests, GM, accounts/characters, and announcements/download sources. Inventory contains bags, equipment, pet equipment, storage, account storage, pets, avatars and emblems.
+- Build and package the frontend from `gm-console/dist/`. Node.js is a development/build dependency; the production frontend is static. Its API adapters live in `gm-console/src/api/`.
+- `gateway/` and `gm/` are independent Go modules. Follow `gm/AGENTS.md` for changes there. Never import source from a neighboring checkout at build time.
+- External GMService owns full PVF indexes, definition lookup, administrator sessions, mail scheduling and benefit scans. Game-side PlayerGateway owns transaction validation, admission checks and durable receipts. Keep public player and private management listeners and authentication separate.
+- Use the actual server schema and binary layouts. Preserve rule IDs, fixed recipient snapshots, idempotency keys and permanent receipts. Selecting an account for mail includes all existing characters; character-specific edits check the target character, while shared assets retain account protection.
+- PVF generations use the complete hash of the operator-approved file. Rebuild and verify indexes after a hash change; do not replace approved assets automatically.
+- Game listeners, game startup and player databases belong to the game service. Forums and public-player snapshots have separate read contracts, authentication and deployment.
+- Runtime configuration, keys, profiles, game assets, generated binaries and private reports stay ignored. Use disposable databases for tests; never grant assets to real players for verification.
+- Validate Go list/test/vet in both modules, module boundary checks and Windows/Linux builds for extraction or Go changes. Database-affecting changes also require the changed module's `scripts/test_mysql.py` with a fresh disposable database.
+- Launcher checks cover Core, EngineTests, PortableTests and Flutter analyze/test. Preserve client directory discovery and channel compatibility; the imported launcher baseline is 0.2.16.
+- New frontend changes require type checking, build, relevant tests and browser checks against isolated fixtures. Keep accepted design references separate from private screenshots and credentials.
+- Build, Git publication, deployment and native game acceptance are separate actions. Compatible EXE/PVF/dstr/NPK/profile signatures and downloaded hashes must be verified before dependent server deployment.
+- Windows entrypoints use BAT/Python. Retain third-party license and provenance notices.

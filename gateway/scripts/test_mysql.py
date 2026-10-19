@@ -13,12 +13,20 @@ def main():
     parser=argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--console-browser-script',type=Path)
     parser.add_argument('--benefit-pvf-browser-script',type=Path)
+    parser.add_argument('--gold-benefit-browser-script',type=Path)
+    parser.add_argument('--feedback-browser-script',type=Path)
+    parser.add_argument('--run',default='Benefits|ItemRule|Standalone|V1|Managed',help='Go test name filter')
+    parser.add_argument('--output-dir',type=Path,default=ROOT/'runtime/tests')
     args=parser.parse_args()
     if args.console_browser_script and not args.console_browser_script.is_file():
         parser.error('Console browser script does not exist')
     if args.benefit_pvf_browser_script and not args.benefit_pvf_browser_script.is_file():
         parser.error('Benefit PVF browser script does not exist')
-    out = ROOT/'runtime/tests'
+    if args.gold_benefit_browser_script and not args.gold_benefit_browser_script.is_file():
+        parser.error('Gold benefit browser script does not exist')
+    if args.feedback_browser_script and not args.feedback_browser_script.is_file():
+        parser.error('Feedback browser script does not exist')
+    out = args.output_dir.resolve()
     out.mkdir(parents=True, exist_ok=True)
     name = 'dnf90gm-test-' + secrets.token_hex(6)
     password = secrets.token_hex(24)
@@ -40,6 +48,14 @@ def main():
         env=os.environ | {'DNFBRIDGE_PLAYER_TEST_DSN':f'root:{password}@tcp(127.0.0.1:{port})/gm_fixture?parseTime=true'}
         env.pop('DNF90GM_V1_BROWSER_SCRIPT',None)
         env.pop('DNF90GM_BENEFIT_PVF_BROWSER_SCRIPT',None)
+        env.pop('DNF90GM_GOLD_BENEFIT_BROWSER_SCRIPT',None)
+        env.pop('DNF90GM_FEEDBACK_BROWSER_SCRIPT',None)
+        env.pop('DNF90GM_FEEDBACK_BROWSER_OUTPUT',None)
+        if args.feedback_browser_script:
+            env['DNF90GM_FEEDBACK_BROWSER_SCRIPT']=str(args.feedback_browser_script.resolve())
+            env['DNF90GM_FEEDBACK_BROWSER_OUTPUT']=str(out/'browser')
+        if args.gold_benefit_browser_script:
+            env['DNF90GM_GOLD_BENEFIT_BROWSER_SCRIPT']=str(args.gold_benefit_browser_script.resolve())
         if args.benefit_pvf_browser_script:
             env['DNF90GM_BENEFIT_PVF_BROWSER_SCRIPT']=str(args.benefit_pvf_browser_script.resolve())
         if args.console_browser_script:
@@ -47,9 +63,9 @@ def main():
         with (out/'mysql.log').open('w',encoding='utf-8') as log:
             result=subprocess.run(['go','test','-buildvcs=false','-count=1','-v',
                 './internal/modules/dnf/testbenefits','./internal/services/gmtool',
-                '-run','Benefits|ItemRule|Standalone|V1|Managed'],cwd=ROOT,env=env,stdout=log,stderr=subprocess.STDOUT)
+                '-run',args.run],cwd=ROOT,env=env,stdout=log,stderr=subprocess.STDOUT)
         (out/'mysql-result.json').write_text(json.dumps({'exit':result.returncode,'disposable':True})+'\n')
-        print('Disposable MariaDB tests:', 'PASS' if result.returncode == 0 else 'FAIL (runtime/tests/mysql.log)')
+        print('Disposable MariaDB tests:', 'PASS' if result.returncode == 0 else f'FAIL ({out / "mysql.log"})')
         return result.returncode
     finally:
         if started: subprocess.run(['docker','stop',name],stdout=subprocess.DEVNULL,stderr=subprocess.DEVNULL)

@@ -1,4 +1,4 @@
-"""Build the independent player gateway; never deploy."""
+"""Build PlayerGateway, GMService and GMIndex without deploying them."""
 import argparse
 import os
 from pathlib import Path
@@ -20,5 +20,8 @@ def main():
     indexer=out/('GMIndex.exe' if args.goos=='windows' else 'GMIndex')
     subprocess.run(['go','build','-buildvcs=false','-mod=readonly','-trimpath','-ldflags=-s -w','-o',str(indexer),'./cmd/gmindex'],cwd=ROOT/'gateway',env=env,check=True)
     print(indexer)
+    service=out/('GMService.exe' if args.goos=='windows' else 'GMService')
+    subprocess.run(['go','build','-buildvcs=false','-mod=readonly','-trimpath','-ldflags=-s -w','-o',str(service),'./cmd/gmservice'],cwd=ROOT/'gateway',env=env,check=True)
+    print(service)
 
 if __name__=='__main__':main()

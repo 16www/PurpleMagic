@@ -1,0 +1,255 @@
+/* Selected source tokens and shell rules from dforigin.online. See THIRD_PARTY_NOTICES.md. */
+:root {
+  --fs-12: 12px;
+  --fs-13: 13px;
+  --fs-14: 14px;
+  --fs-15: 15px;
+  --fs-16: 16px;
+  --fs-18: 18px;
+  --fs-20: 20px;
+  --fs-24: 24px;
+  --fs-28: 28px;
+  --fs-32: 32px;
+  --fs-48: 48px;
+  --lh-body: 1.75;
+  --lh-ui: 1.5;
+  --lh-title: 1.35;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 16px;
+  --radius-full: 999px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 40px;
+  --space-9: 48px;
+  --dur-fast: 120ms;
+  --dur-base: 180ms;
+  --dur-slow: 600ms;
+  --ease: ease-out;
+  --ease-emph: cubic-bezier(0.16, 1, 0.3, 1);
+  --blur-glass: 20px;
+  --bg: #151719;
+  --bg-sidebar: #111315;
+  --surface-1: #1b1e20;
+  --surface-2: #202427;
+  --surface-input: #191c1f;
+  --hover: #24282b;
+  --hover-subtle: #ffffff02;
+  --border-1: #2b2f32;
+  --border-2: #3a3f43;
+  --text-1: #e7ebed;
+  --text-2: #c7cdd1;
+  --text-3: #929da5;
+  --accent: #80d5d2;
+  --accent-hover: #9be3df;
+  --accent-contrast: #122729;
+  --accent-soft: #80d5d213;
+  --success: #81c99a;
+  --success-soft: #81c99a14;
+  --warning: #e6be76;
+  --warning-soft: #e6be7615;
+  --danger: #ef9c9e;
+  --danger-soft: #ef9c9e16;
+  --scrim: #080d11ac;
+  --scrim-2: #00000088;
+  --warning-tint: #e6be76;
+  --danger-ink: #191313;
+  --glass-bg: #0b0d10a8;
+  --glass-bg-strong: #0b0d10e6;
+  --glass-border: #ffffff17;
+  --glass-sheen: #ffffff0a;
+  --veil: #000000;
+  --glow-1: #80d5d214;
+  --glow-2: #b9a4e626;
+  --glow-3: #8fb6ff1f;
+  --shadow-1: 0 4px 14px rgb(0 0 0 / 0.16);
+  --shadow-2: 0 12px 32px rgb(0 0 0 / 0.32);
+  --shadow-3: 0 24px 100px rgb(0 0 0 / 0.55);
+  --accent-text: var(--accent-contrast);
+  --accent-dim: var(--accent-soft);
+  --text-s: var(--fs-12);
+  --text-m: var(--fs-13);
+  --text-l: var(--fs-15);
+  --radius-s: var(--radius-md);
+  --radius-m: var(--radius-lg);
+  --radius-l: var(--radius-lg);
+  --shadow-float: var(--shadow-2);
+}
+:root[data-theme="light"] {
+  --bg: #f9fafb;
+  --bg-sidebar: #ffffff;
+  --surface-1: #ffffff;
+  --surface-2: #ffffff;
+  --surface-input: #ffffff;
+  --hover: #edf1f3;
+  --hover-subtle: #edf1f366;
+  --border-1: #dde3e6;
+  --border-2: #c5cdd2;
+  --text-1: #202a31;
+  --text-2: #40525d;
+  --text-3: #586a76;
+  --accent: #126d70;
+  --accent-hover: #126c6d;
+  --accent-contrast: #ffffff;
+  --accent-soft: #187b7c0c;
+  --success: #287147;
+  --success-soft: #2f835012;
+  --warning: #805d11;
+  --warning-soft: #bb892014;
+  --danger: #ad3845;
+  --danger-soft: #be4b5410;
+  --scrim: #080d11ac;
+  --scrim-2: #00000088;
+  --warning-tint: #bb8920;
+  --danger-ink: #191313;
+  --glass-bg: #ffffffb8;
+  --glass-bg-strong: #ffffffeb;
+  --glass-border: #00000014;
+  --glass-sheen: #ffffff99;
+  --veil: #f9fafb;
+  --glow-1: #126d7012;
+  --glow-2: #6b4fb314;
+  --glow-3: #2f5fc012;
+  --shadow-1: 0 4px 14px rgb(20 40 50 / 0.1);
+  --shadow-2: 0 12px 32px rgb(20 40 50 / 0.14);
+  --shadow-3: 0 24px 100px rgb(20 40 50 / 0.24);
+  --accent-text: var(--accent-contrast);
+  --accent-dim: var(--accent-soft);
+  --text-s: var(--fs-12);
+  --text-m: var(--fs-13);
+  --text-l: var(--fs-15);
+  --radius-s: var(--radius-md);
+  --radius-m: var(--radius-lg);
+  --radius-l: var(--radius-lg);
+  --shadow-float: var(--shadow-2);
+}
+.app-shell:before,
+.app-shell:after {
+  content: "";
+  position: fixed;
+  z-index: -1;
+  pointer-events: none;
+}
+.app-shell:before {
+  inset: -80px;
+  background: url(/assets/dnf90-origin.webp) center 30% / cover no-repeat;
+  filter: blur(40px) saturate(0.6);
+  opacity: 0.6;
+}
+html[data-line="90"] .app-shell:before {
+  background-image: url(/assets/dnf90-origin.webp);
+  background-position: center;
+}
+:root[data-theme="light"] .app-shell:before {
+  filter: blur(40px) saturate(0.5);
+  opacity: 0.35;
+}
+.app-shell:after {
+  inset: 0;
+  background:
+    radial-gradient(900px 520px at 85% -10%, var(--glow-2), transparent),
+    radial-gradient(800px 600px at 10% 105%, var(--glow-3), transparent),
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--veil) 45%, transparent),
+      color-mix(in srgb, var(--veil) 72%, transparent) 50%,
+      color-mix(in srgb, var(--veil) 88%, transparent)
+    );
+}
+/* The top bar floats: a glass capsule inside the bar's old 72 / 61 px, staying at the top while the page scrolls under it (the
+   sticky things below it start under it). It stays under the phone drawer and its backdrop (29, 30). */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  border-bottom-color: transparent;
+  background: transparent;
+}
+.topbar:before {
+  content: "";
+  position: absolute;
+  inset: 10px 20px;
+  z-index: -1;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--blur-glass));
+  backdrop-filter: blur(var(--blur-glass));
+  box-shadow: var(--shadow-1);
+}
+@media (max-width: 1200px) {
+  .topbar:before {
+    inset: 10px 12px;
+  }
+}
+@media (max-width: 760px) {
+  .topbar:before {
+    inset: 6px 6px;
+  }
+}
+/* On a phone the page's name is in its own head right under the bar; in the bar it was squeezed to a letter. */
+@media (max-width: 520px) {
+  .topbar-trail {
+    display: none;
+  }
+}
+.wardrobe-preview {
+  top: calc(var(--topbar-h) + var(--space-6));
+}
+/* The sidebar is a glass panel standing off the window's edges, inside its old column; the chosen entry is a soft light
+   plate instead of the accent bar. On phones it is the drawer, the same glass, blurred. */
+@media (min-width: 761px) {
+  .sidebar {
+    top: var(--space-3);
+    bottom: var(--space-3);
+    left: var(--space-3);
+    width: 212px;
+    padding-right: var(--space-3);
+    padding-left: var(--space-3);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-xl);
+    background: var(--glass-bg);
+    box-shadow: var(--shadow-1);
+  }
+}
+@media (min-width: 761px) and (max-width: 1200px) {
+  .sidebar {
+    width: 193px;
+  }
+}
+@media (max-width: 760px) {
+  .sidebar {
+    border-right-color: var(--glass-border);
+    border-radius: 0 var(--radius-xl) var(--radius-xl) 0;
+    background: var(--glass-bg-strong);
+    -webkit-backdrop-filter: blur(var(--blur-glass));
+    backdrop-filter: blur(var(--blur-glass));
+  }
+}
+.sidebar nav a {
+  border-radius: var(--radius-lg);
+  transition:
+    background-color var(--dur-fast) var(--ease),
+    color var(--dur-fast) var(--ease);
+}
+.sidebar nav a:hover {
+  background: color-mix(in srgb, var(--text-1) 6%, transparent);
+  color: var(--text-1);
+}
+.sidebar nav a.active {
+  background: color-mix(in srgb, var(--text-1) 10%, transparent);
+  color: var(--text-1);
+  font-weight: 500;
+}
+.sidebar nav a.active svg {
+  color: var(--accent);
+}
+.sidebar nav a.active:before {
+  content: none;
+}

@@ -15,6 +15,7 @@ import (
 
 	"dnf90.local/gateway/internal/modules/dnf/repository"
 	"dnf90.local/gateway/internal/modules/dnf/testbenefits"
+	"dnf90.local/gateway/internal/servicehttp"
 )
 
 func (s *Server) v1OperationRoutes(read, write *http.ServeMux) {
@@ -26,6 +27,7 @@ func (s *Server) v1OperationRoutes(read, write *http.ServeMux) {
 	read.HandleFunc("GET /api/v1/benefits/{id}", s.v1Campaign)
 	read.HandleFunc("GET /api/v1/tasks", s.v1Tasks)
 	read.HandleFunc("GET /api/v1/tasks/{id}", s.v1Task)
+	read.HandleFunc("GET /api/v1/tasks/{id}/confirmation", s.v1Task)
 	read.HandleFunc("GET /api/v1/tasks/{id}/recipients", s.v1Recipients)
 	write.HandleFunc("POST /api/v1/benefits", s.v1CreateCampaign)
 	write.HandleFunc("POST /api/v1/benefits/{id}/state", s.v1CampaignState)
@@ -44,7 +46,7 @@ func (s *Server) v1CSRF(r *http.Request) string {
 	return hex.EncodeToString(mac.Sum(nil))
 }
 func (s *Server) v1CheckWrite(w http.ResponseWriter, r *http.Request) bool {
-	if r.Header.Get("Sec-Fetch-Site") == "cross-site" || !hmac.Equal([]byte(r.Header.Get("X-CSRF-Token")), []byte(s.v1CSRF(r))) {
+	if !servicehttp.Authenticated(r) && (r.Header.Get("Sec-Fetch-Site") == "cross-site" || s.v1CSRF(r) == "" || !hmac.Equal([]byte(r.Header.Get("X-CSRF-Token")), []byte(s.v1CSRF(r)))) {
 		v1Fail(w, r, 403, "csrf_required", "请刷新页面后重试", false)
 		return false
 	}
@@ -188,6 +190,11 @@ func (s *Server) v1Reward(w http.ResponseWriter, r *http.Request, in v1RewardInp
 }
 
 func (s *Server) v1ResolveReward(in v1RewardInput, scope testbenefits.GrantScope) (testbenefits.Job, string, error) {
+	if s.deps.Catalog != nil && in.ItemID != "" {
+		var v catalogReward
+		e := s.deps.Catalog.background(catalogRequest{Operation: "reward", Reward: in, Scope: scope}, &v)
+		return v.Job, v.Name, e
+	}
 	j := testbenefits.Job{Title: strings.TrimSpace(in.Title), Body: in.Body, Gold: in.Gold, Scope: scope}
 	name := ""
 	if in.ItemID != "" {
@@ -229,7 +236,7 @@ func v1JobDTO(j testbenefits.JobSummary) map[string]any {
 	return map[string]any{"id": j.ID, "revision": j.Revision, "campaignId": j.CampaignID, "scope": j.Scope, "createdAt": j.CreatedAt, "state": j.State, "total": j.Total, "sent": j.Sent, "failed": j.Failed, "pending": j.Pending, "pvfChecksum": j.PVFChecksum, "recipientSource": j.RecipientSource, "reward": v1RewardDTO(testbenefits.Job{Title: j.Title, Body: j.Body, Gold: j.Gold, Attachments: j.Attachments, RewardPlan: j.RewardPlan})}
 }
 func v1CampaignDTO(c testbenefits.Campaign) map[string]any {
-	return map[string]any{"id": c.ID, "revision": c.Revision, "scope": c.Reward.Scope.Effective(), "createdAt": c.CreatedAt, "firstEnabledAt": c.FirstEnabledAt, "enabled": c.Enabled, "autoNewCharacters": c.AutoNewCharacters, "itemName": c.ItemName, "pvfChecksum": c.Reward.PVFChecksum, "reward": v1RewardDTO(c.Reward)}
+	return map[string]any{"id": c.ID, "revision": c.Revision, "scope": c.Reward.Scope.Effective(), "createdAt": c.CreatedAt, "firstEnabledAt": c.FirstEnabledAt, "enabled": c.Enabled, "autoNewCharacters": c.AutoNewCharacters, "autoExistingCharacters": c.AutoExistingCharacters, "itemName": c.ItemName, "pvfChecksum": c.Reward.PVFChecksum, "reward": v1RewardDTO(c.Reward)}
 }
 func (s *Server) v1CreateCampaign(w http.ResponseWriter, r *http.Request) {
 	var in struct {
@@ -267,10 +274,6 @@ func (s *Server) v1CreateCampaign(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	if len(j.Attachments) != 1 {
-		v1Fail(w, r, 422, "invalid_reward", "福利规则需要一种物品", false)
-		return
-	}
 	c, err := s.deps.Benefits.CreateCampaignOnce(r.Context(), key, j, name, in.AutoNewCharacters)
 	if err != nil {
 		s.v1OperationError(w, r, err)
@@ -284,6 +287,7 @@ func (s *Server) v1MailPreview(w http.ResponseWriter, r *http.Request) {
 		AccountID   string                    `json:"accountId"`
 		CharacterID string                    `json:"characterId"`
 		Recipients  []testbenefits.MailTarget `json:"recipients"`
+		AccountIDs  []string                  `json:"accountIds"`
 		Options     *testbenefits.MailOptions `json:"options"`
 		PVFChecksum string                    `json:"pvfChecksum"`
 	}
@@ -294,16 +298,16 @@ func (s *Server) v1MailPreview(w http.ResponseWriter, r *http.Request) {
 	if !ok {
 		return
 	}
-	if in.Recipients != nil || in.Options != nil || in.PVFChecksum != "" {
-		if in.Recipients != nil && (in.AccountID != "" || in.CharacterID != "") {
+	if in.Recipients != nil || in.AccountIDs != nil || in.Options != nil || in.PVFChecksum != "" {
+		if (in.Recipients != nil || in.AccountIDs != nil) && (in.AccountID != "" || in.CharacterID != "") {
 			v1Fail(w, r, 422, "invalid_recipients", "收件名单与单角色字段请选择一种", false)
 			return
 		}
 		targets := in.Recipients
-		if targets == nil {
+		if targets == nil && in.AccountIDs == nil {
 			targets = []testbenefits.MailTarget{{AccountID: in.AccountID, CharacterID: in.CharacterID}}
 		}
-		draft := testbenefits.MailDraft{Recipients: targets, Title: in.Title, Body: in.Body, Gold: in.Gold, ItemID: in.ItemID, Count: in.Count, PVFChecksum: in.PVFChecksum}
+		draft := testbenefits.MailDraft{AccountIDs: in.AccountIDs, Recipients: targets, Title: in.Title, Body: in.Body, Gold: in.Gold, ItemID: in.ItemID, Count: in.Count, PVFChecksum: in.PVFChecksum}
 		if in.Options != nil {
 			draft.Options = *in.Options
 		}
@@ -350,7 +354,7 @@ func (s *Server) v1CampaignState(w http.ResponseWriter, r *http.Request) {
 		v1Fail(w, r, 422, "confirmation_required", "请核对规则并确认操作", false)
 		return
 	}
-	c, err := s.deps.Benefits.EnableCampaign(r.Context(), r.PathValue("id"), *in.Revision, *in.Enabled)
+	c, err := s.deps.Benefits.EnableAutomaticCampaign(r.Context(), r.PathValue("id"), *in.Revision, *in.Enabled)
 	if err != nil {
 		s.v1OperationError(w, r, err)
 		return
@@ -494,7 +498,19 @@ func (s *Server) v1Task(w http.ResponseWriter, r *http.Request) {
 		s.v1OperationError(w, r, err)
 		return
 	}
-	v1Reply(w, r, 200, v1Envelope{Data: v1JobDTO(testbenefits.Summarize(j))})
+	data := v1JobDTO(testbenefits.Summarize(j))
+	if strings.HasSuffix(r.URL.Path, "/confirmation") {
+		if len(j.Recipients) > testbenefits.MaxOnlineMailRecipients {
+			s.v1OperationError(w, r, testbenefits.ErrPreviewLimit)
+			return
+		}
+		rows := make([]map[string]string, 0, len(j.Recipients))
+		for _, target := range j.Recipients {
+			rows = append(rows, map[string]string{"accountId": target.AccountID, "characterId": target.CharacterID, "name": target.Name})
+		}
+		data["recipients"] = rows
+	}
+	v1Reply(w, r, 200, v1Envelope{Data: data})
 }
 func (s *Server) v1Recipients(w http.ResponseWriter, r *http.Request) {
 	resource := "recipients:" + r.PathValue("id")

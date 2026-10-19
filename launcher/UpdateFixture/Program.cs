@@ -12,5 +12,5 @@ if (args.Length == 2 && args[0] == "--update-health")
     File.WriteAllText(args[1], "ready");
     return 0;
 }
-File.WriteAllText(Path.Combine(AppContext.BaseDirectory, "fixture-started"), "started");
+File.WriteAllText(Path.Combine(AppContext.BaseDirectory, "fixture-started"), string.Join(" ", args));
 return 0;

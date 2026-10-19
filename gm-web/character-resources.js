@@ -17,7 +17,7 @@ const button=(label,action,disabled=false)=>'<button type="button" class="button
 const field=(name,value)=>'<div><dt>'+escape(name)+'</dt><dd>'+escape(value??'未知')+'</dd></div>';
 const error=e=>'<div class="hint-box" role="alert">'+escape(e.message)+(e.requestId?'<p class="mono">请求编号：'+escape(e.requestId)+'</p>':'')+'</div>';
 
-export function createCharacterResources({request,cancel,state,renderDialog}){
+export function createCharacterResources({request,cancel,state,renderDialog,currency}){
   const mailbox=createMailboxOperations({request,cancel,state,render:renderDialog,refresh:fresh});
   const vault=createVault({request,cancel,state,render:renderDialog});
   const capacity=createContainers({request,cancel,state,render:renderDialog});
@@ -29,11 +29,12 @@ export function createCharacterResources({request,cancel,state,renderDialog}){
   const inventory=createInventoryOperations({request,cancel,state,render:renderDialog,refresh:fresh});
   const quests=createQuestOperations({request,cancel,state,render:renderDialog,refresh:fresh});
   function model(){const d=state.detail;if(!d)return null;return d.resources??={tab:'profile',container:'equipment',questState:'active',query:'',index:0,cursors:[''],next:'',rows:[],loading:false,error:null,selected:null};}
-  function reset(){mailbox.reset();vault.reset();capacity.reset();gold.reset();points.reset();level.reset();profession.reset();expertJob.reset();cancel('character-resource-list');cancel('character-resource-detail');quests.reset();inventory.reset();}
+  function reset(){currency.reset();mailbox.reset();vault.reset();capacity.reset();gold.reset();points.reset();level.reset();profession.reset();expertJob.reset();cancel('character-resource-list');cancel('character-resource-detail');quests.reset();inventory.reset();}
   function fresh(){const m=model();if(!m)return;m.index=0;m.cursors=[''];m.next='';load();}
   function load(){
     const owner=state.detail,m=model();if(!owner||!m||m.tab==='profile')return;
     if(m.tab==='vault'){vault.open(owner.data.character);return;}
+    if(m.tab==='currency'){currency.open(owner.data.character.accountId);return;}
     if(m.tab==='gold'){gold.open(owner.data.character);return;}
     if(m.tab==='points'){points.open(owner.data.character);return;}
     if(m.tab==='level'){level.open(owner.data.character);return;}
@@ -67,7 +68,23 @@ export function createCharacterResources({request,cancel,state,renderDialog}){
     else path='v1/quests/'+encodeURIComponent(id);
     request('character-resource-detail',path,body=>{if(state.detail!==owner||m.selected!==selected)return;selected.loading=false;selected.data=body.data;renderDialog();},e=>{if(state.detail!==owner||m.selected!==selected)return;selected.loading=false;selected.error=e;renderDialog();});
   }
-  function tabs(){const m=model();if(!m)return '';return '<div class="resource-tabs" role="tablist" aria-label="角色资料页签">'+[['profile','基本资料'],['gold','金币与流水'],['points','SP / TP'],['level','等级与成长'],['profession','转职与觉醒'],['expert-job','副职业'],['capacity','容量管理'],['vault','账号金库'],['inventory','背包与仓库'],['mailbox','邮箱'],['mailbox-log','邮件删除记录'],['quests','游戏任务'],['catalog','任务库'],['quest-log','任务操作记录'],['inventory-log','物品操作记录'],['account-inventory-log','账号物品记录']].map(([id,label])=>'<button type="button" role="tab" aria-selected="'+(m.tab===id)+'" class="button '+(m.tab===id?'primary':'')+'" data-resource-tab="'+id+'">'+label+'</button>').join('')+'</div>';}
+  const workspaceGroups=[
+    ['inventory','背包与仓库',[['inventory','物品'],['capacity','容量管理']]],
+    ['assets','金币与点券',[['gold','角色金币'],['currency','账号点券'],['vault','账号金库']]],
+    ['growth','角色成长',[['level','等级与成长'],['profession','转职与觉醒'],['expert-job','副职业'],['points','SP / TP']]],
+    ['quests','游戏任务',[['quests','角色任务'],['catalog','任务库']]],
+    ['send','发邮件',[]],['mailbox','邮箱',[['mailbox','收件箱']]],
+    ['logs','资产流水',[['inventory-log','物品操作记录'],['account-inventory-log','账号物品记录'],['mailbox-log','邮件删除记录'],['quest-log','任务操作记录']]],
+    ['account','账号管理',[['profile','基本资料']]]
+  ];
+  function tabs(){
+    const m=model();if(!m)return '';
+    const group=workspaceGroups.find(g=>g[2].some(([id])=>id===m.tab))||workspaceGroups[0];
+    const groups='<div class="resource-tabs workspace-tabs" role="tablist" aria-label="玩家工作区页签">'+workspaceGroups.map(([id,label,children])=>`<button type="button" role="tab" aria-selected="${id===group[0]}" class="button ${id===group[0]?'primary':''}" ${id==='send'?'data-action="mail-character"':`data-resource-tab="${children[0][0]}"`}>${label}</button>`).join('')+'</div>';
+    return groups+(group[2].length>1?'<div class="resource-tabs resource-subtabs">'+group[2].map(([id,label])=>`<button type="button" class="button ${m.tab===id?'primary':''}" data-resource-tab="${id}">${label}</button>`).join('')+'</div>':'');
+  }
+  function selectTab(tab){const m=model();if(!m)return;reset();m.tab=tab;m.selected=null;fresh();renderDialog();}
+
   function selection(m){
     const selected=m.selected;if(!selected)return '';if(selected.loading)return '<section class="resource-detail" aria-live="polite">正在读取详情…</section>';
     if(selected.error)return '<section class="resource-detail">'+error(selected.error)+'</section>';
@@ -88,7 +105,7 @@ export function createCharacterResources({request,cancel,state,renderDialog}){
     return '<section class="resource-detail" aria-label="所选记录详情">'+html+'</section>';
   }
   function view(){
-    const m=model();if(!m||m.tab==='profile')return '';if(m.tab==='vault')return vault.view();if(m.tab==='gold')return gold.view();if(m.tab==='points')return points.view();if(m.tab==='level')return level.view();if(m.tab==='profession')return profession.view();if(m.tab==='expert-job')return expertJob.view();if(m.tab==='capacity')return capacity.view();
+    const m=model();if(!m||m.tab==='profile')return '';if(m.tab==='currency')return currency.view();if(m.tab==='vault')return vault.view();if(m.tab==='gold')return gold.view();if(m.tab==='points')return points.view();if(m.tab==='level')return level.view();if(m.tab==='profession')return profession.view();if(m.tab==='expert-job')return expertJob.view();if(m.tab==='capacity')return capacity.view();
     let controls='';
     if(m.tab==='mailbox'){const f=m.mailDraft||{};controls=`<form id="resource-mail-filter"><label>邮件标题或编号<input name="q" maxlength="128" value="${escape(f.q||'')}"></label><label>邮件发件人<input name="sender" maxlength="64" value="${escape(f.sender||'')}"></label><label>附件领取状态<select name="claimed" aria-label="附件领取状态">${[['all','全部'],['claimed','已领取'],['unclaimed','未领取']].map(([v,t])=>`<option value="${v}" ${(f.claimed||'all')===v?'selected':''}>${t}</option>`).join('')}</select></label><label>起始时间<input type="datetime-local" name="from" value="${escape(f.from||'')}"></label><label>截止时间（不含）<input type="datetime-local" name="to" value="${escape(f.to||'')}"></label><div class="actions"><button type="submit" class="button primary" ${m.loading?'disabled':''}>筛选邮件</button>${button('清除邮件筛选','mail-clear',m.loading)}</div></form>`;}
     if(m.tab==='inventory')controls='<label>物品容器<select data-resource-select="container">'+containers.map(([id,label])=>'<option value="'+id+'" '+(m.container===id?'selected':'')+'>'+label+'</option>').join('')+'</select></label>';
@@ -108,8 +125,8 @@ export function createCharacterResources({request,cancel,state,renderDialog}){
     return '<section class="character-resources" role="tabpanel"><div class="resource-controls">'+controls+button('刷新记录','refresh',m.loading)+'</div>'+content+'<div class="table-footer"><span>第 '+(m.index+1)+' 页'+(m.observedAt?' · 读取于 '+escape(stamp(m.observedAt)):'')+'</span><div class="actions">'+button('上一页','prev',m.loading||m.index===0)+button('下一页','next',m.loading||!m.next)+'</div></div>'+selection(m)+(m.tab==='mailbox'?mailbox.view():'')+(m.tab==='inventory'?inventory.view():'')+(['quests','catalog'].includes(m.tab)?quests.view():'')+'</section>';
   }
   document.addEventListener('click',e=>{
-    const b=e.target.closest('button');if(!b||!b.closest('#dialog'))return;const m=model();if(!m)return;
-    if(b.dataset.resourceTab){mailbox.reset();vault.reset();capacity.reset();gold.reset();points.reset();level.reset();profession.reset();expertJob.reset();cancel('character-resource-list');cancel('character-resource-detail');mailbox.clearSelection();quests.clearSelection();inventory.clearSelection();m.tab=b.dataset.resourceTab;m.selected=null;fresh();renderDialog();}
+    const b=e.target.closest('button');if(!b||!b.closest('#player-workspace, #dialog'))return;const m=model();if(!m)return;
+    if(b.dataset.resourceTab)selectTab(b.dataset.resourceTab);
     if(b.dataset.mailReceipt!==undefined){m.selected={data:m.rows[Number(b.dataset.mailReceipt)]};renderDialog();}
     if(b.dataset.inventoryReceipt!==undefined){m.selected={data:m.rows[Number(b.dataset.inventoryReceipt)]};renderDialog();}
     if(b.dataset.questReceipt!==undefined){m.selected={data:m.rows[Number(b.dataset.questReceipt)]};renderDialog();}
@@ -126,5 +143,5 @@ export function createCharacterResources({request,cancel,state,renderDialog}){
   document.addEventListener('input',mailDraft);document.addEventListener('change',mailDraft);
   document.addEventListener('submit',e=>{if(e.target.id==='resource-mail-filter'){e.preventDefault();const m=model();if(!m)return;const f=Object.fromEntries(new FormData(e.target));try{for(const key of ['from','to']){if(f[key])f[key]=new Date(f[key]).toISOString();else delete f[key];}m.mailFilter=f;fresh();}catch{m.error=Error('请选择有效的起止时间。');renderDialog();}}});
   document.addEventListener('submit',e=>{if(e.target.id==='resource-quest-search'){e.preventDefault();fresh();}});
-  return {tabs,view,reset,isProfile:()=>model()?.tab==='profile'};
+  return {selectTab,tabs,view,reset,isProfile:()=>model()?.tab==='profile'};
 }

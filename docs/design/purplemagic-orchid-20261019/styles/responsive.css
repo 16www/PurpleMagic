@@ -1,0 +1,21 @@
+/* A closed mobile drawer must also be absent from keyboard navigation. */
+.quest-layout > * {
+  min-width: 0;
+}
+
+@media (max-width: 760px) {
+  .sidebar {
+    visibility: hidden;
+  }
+  .sidebar.open {
+    visibility: visible;
+  }
+  .topbar .icon-button {
+    min-width: 36px;
+    min-height: 36px;
+  }
+  .modal .icon-button {
+    min-width: 36px;
+    min-height: 36px;
+  }
+}

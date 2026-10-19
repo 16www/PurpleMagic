@@ -10,6 +10,7 @@ using ServerS5A3;
 if (args.Length == 2 && args[0] == "--interop") { await Integration.Run(args[1]); return; }
 if (args.Length == 2 && args[0] == "--news-interop") { await NewsIntegration.Run(args[1]); return; }
 if (args.Length == 2 && args[0] == "--bundle-lifecycle") { await BundleLifecycleChecks.Run(args[1]); return; }
+if (args.Length == 2 && args[0] == "--bundle-exit") { await BundleExitChecks.Run(args[1]); return; }
 
 var passed = 0;
 void Check(bool condition, string name) { if (!condition) throw new Exception(name); passed++; Console.WriteLine("PASS " + name); }
@@ -21,8 +22,12 @@ try
     using var key = RSA.Create(2048);
     var root = new PlayerProfile("https://accounts.example.test", new string('a', 64), key.ExportSubjectPublicKeyInfoPem(), "https://accounts.example.test/old-wpf-settings", "192.0.2.1", 7001, new string('b', 64), new string('c', 64), "");
     await ClientDirectoryChecks.Run(temp, root, Check);
+    await LauncherBundleDownloadChecks.Run(temp, root, Check);
+    await ContentDirectDownloadChecks.Run(temp, root, Check);
     await GameConfigurationChecks.Run(temp, root, Check, RejectAsync);
     await AutomaticUpdateChecks.Run(temp, root, Check);
+    BundleFailureChecks.Run(temp, Check);
+    await ContentCompatibilityChecks.Run(temp, Check);
     var content = new ContentRelease("1", "author", "stable", 5, new string('d', 64), "https://content.example.test", "", [new("DNF.exe", 10, root.ExeSha256, true, "", "", 0), new("Script.pvf", 20, root.PvfSha256, true, "", "", 0)]);
     var bootstrap = new Bootstrap("DNF90-Flutter", 1, 10, root, [], content, null);
     byte[] Sign(Bootstrap value, RSASignaturePadding? padding = null)

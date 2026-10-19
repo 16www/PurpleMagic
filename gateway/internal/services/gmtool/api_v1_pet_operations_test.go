@@ -97,7 +97,7 @@ func TestV1PetOperationsMySQL(t *testing.T) {
 			}
 			s.items.setEntriesLocked(entries)
 			runtime := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				json.NewEncoder(w).Encode(adminapi.Response{Version: 1, OK: true})
+				writeAccountEditFixture(t, w, r, false)
 			}))
 			defer runtime.Close()
 			var e error
