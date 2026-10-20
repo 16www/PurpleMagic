@@ -120,7 +120,7 @@ npm ci
 npm run dev
 ```
 
-打开 **http://127.0.0.1:8778/?demo=1**，查看使用示例数据的独立视觉预览。生产构建使用真实 API 适配器。本地一次性数据库联调见 [GM Console 接入说明](docs/GM_CONSOLE_INTEGRATION_20261019.md)，服务配置见[外部 GM 运行说明](docs/GM_EXTERNAL_SERVICES.md)。
+打开 [http://127.0.0.1:8778/?demo=1](http://127.0.0.1:8778/?demo=1)，查看使用示例数据的独立视觉预览。生产构建使用真实 API 适配器。本地一次性数据库联调见 [GM Console 接入说明](docs/GM_CONSOLE_INTEGRATION_20261019.md)，服务配置见[外部 GM 运行说明](docs/GM_EXTERNAL_SERVICES.md)。
 
 > [!NOTE]
 > `gm-console/` 是当前前端与唯一设计基准。第一版 `gm-web/` 已封存为 `FROZEN_DO_NOT_REFERENCE`，正式打包使用 `gm-console/dist/`。

@@ -120,7 +120,7 @@ npm ci
 npm run dev
 ```
 
-Open **http://127.0.0.1:8778/?demo=1** for the standalone sample-data preview. The production build uses the real API adapter. For local integration with a disposable database, follow the [GM Console guide](docs/GM_CONSOLE_INTEGRATION_20261019.md); for service deployment configuration, see [external GM services](docs/GM_EXTERNAL_SERVICES.md).
+Open [http://127.0.0.1:8778/?demo=1](http://127.0.0.1:8778/?demo=1) for the standalone sample-data preview. The production build uses the real API adapter. For local integration with a disposable database, follow the [GM Console guide](docs/GM_CONSOLE_INTEGRATION_20261019.md); for service deployment configuration, see [external GM services](docs/GM_EXTERNAL_SERVICES.md).
 
 > [!NOTE]
 > `gm-console/` is the current frontend and design baseline. The first `gm-web/` is archived as `FROZEN_DO_NOT_REFERENCE`; production packaging uses `gm-console/dist/`.
