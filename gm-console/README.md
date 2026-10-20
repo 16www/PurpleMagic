@@ -15,11 +15,13 @@ npm test
 
 Node.js 24.15.0 已验证。Node 只承担开发与构建，`dist/` 是静态资源。运行 `../preview-gm-console.bat` 也可启动。
 
-七个入口：查询、背包、邮件、任务、GM、账号与角色、公告与下载源。背包包含物品栏、穿戴栏、宠物栏、仓库、账号仓库、宠物、时装、徽章。
+七个入口：查询、背包、邮件、任务、GM、账号与角色、公告与下载源。背包包含物品栏、穿戴栏、宠物栏、仓库、账号仓库、宠物、时装、徽章；GM 内含活动管理、成长与职业、金币与点券、福利规则和操作记录。
 
-development演示模式使用独立本地演示状态，存储键 `purplemagic-glass-preview-v1`；外观偏好为 `purplemagic-glass-appearance-v1`。演示包括批量账号解析、单次确认、背包属性保存、邮件与回执、任务、成长/货币、福利启用发放、公告与源配置。可在外观设置中重置演示数据。
+development演示模式使用独立本地演示状态，存储键 `purplemagic-glass-preview-v1`；外观偏好为 `purplemagic-glass-appearance-v1`，未保存活动草稿使用 `purplemagic-activity-draft-v1`。演示包括批量账号解析、单次确认、背包属性保存、邮件与回执、任务、活动启停、成长/货币、福利启用发放、公告与源配置。可在外观设置中重置演示数据。
 
 生产构建默认接入同源 Go v1/Hub API，API客户端位于 `src/api/`。背包、邮件、任务、成长、资产、自动福利及公告/下载源/游戏连接的接入范围、启动方式与恢复语义见[真实接入说明](../docs/GM_CONSOLE_INTEGRATION_20261019.md)。演示执行器 `src/domain.ts` 只用于8778独立演示。
+
+活动管理使用 `GET/POST /api/v1/activities`，读取 `data.activityControls`；保存体为 `{revision, activities:[{id, enabled}]}`。重启是保存后的独立动作，使用 `POST /api/v1/activities/restart` 和 `{revision}`；只有响应提供 `restartAvailable: true` 时页面才显示重启按钮。草稿检索不改变保存范围，刷新会保留仍有对应活动行的未保存开关。
 
 - [检查与验证](design-qa.md)
 - [来源](THIRD_PARTY_NOTICES.md)

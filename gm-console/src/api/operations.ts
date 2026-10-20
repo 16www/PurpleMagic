@@ -2,6 +2,7 @@ import type { Command, Selection } from "../domain";
 import type { ConsoleAPI } from "./console";
 import type { DTO, Pending, Step } from "./model";
 import { segment, ApiError } from "./http";
+import { activitySnapshot } from "../activity";
 const reason = "PurpleMagic 管理操作";
 function changed(a: unknown, b: unknown) {
   return !(Object.is(a, b) || (Number.isNaN(a) && Number.isNaN(b)));
@@ -441,6 +442,43 @@ export async function prepareOperation(
         },
         { kind: "task", result: task },
       );
+  } else if (command.kind === "activity-save") {
+    if (!Number.isSafeInteger(command.revision) || command.revision < 0)
+      throw new Error("活动设置版本无效，请刷新活动列表");
+    if (!command.activities.length || !command.changes.length)
+      throw new Error("没有需要保存的活动修改");
+    if (
+      new Set(command.activities.map((row) => row.id)).size !==
+        command.activities.length ||
+      command.activities.some(
+        (row) =>
+          !Number.isSafeInteger(row.id) ||
+          row.id <= 0 ||
+          typeof row.enabled !== "boolean",
+      )
+    )
+      throw new Error("活动草稿格式无效，请重新选择");
+    const labels = command.changes.map(
+      (row) => `${row.enabled ? "开启" : "关闭"}「${row.name}」`,
+    );
+    p.target = `游戏活动设置 · 已保存版本 ${command.revision}`;
+    p.summary = `保存 ${command.changes.length} 项活动设置：${labels.slice(0, 8).join("、")}${labels.length > 8 ? ` 等 ${labels.length} 项` : ""}。保存后以服务端返回的实际运行和待重启状态为准。`;
+    add("保存活动开关", "/api/v1/activities", {
+      revision: command.revision,
+      activities: command.changes.map((row) => ({
+        id: row.id,
+        enabled: row.enabled,
+      })),
+    });
+  } else if (command.kind === "activity-restart") {
+    if (!Number.isSafeInteger(command.revision) || command.revision < 0)
+      throw new Error("活动设置版本无效，请刷新活动列表");
+    p.target = `游戏服务器 · 活动版本 ${command.revision}`;
+    p.summary =
+      "请求重启游戏服务器，使已保存的活动设置生效。游戏连接会中断，在线玩家需要重新登录；服务端会再次核对该版本。";
+    add("请求重启游戏服务器", "/api/v1/activities/restart", {
+      revision: command.revision,
+    });
   } else if (command.kind === "news") {
     if (!api.meta.hub) throw new Error("请先登录公告与下载源管理");
     if (!command.title.trim()) throw new Error("请填写公告标题");
@@ -602,9 +640,55 @@ export async function executeOperation(api: ConsoleAPI, p: Pending) {
           step.headers,
         );
         step.result = response.data ?? response;
+        if (step.path === "/api/v1/activities" && step.result) {
+          api.applyActivityData(step.result);
+        }
+        if (
+          step.path === "/api/v1/activities/restart" &&
+          step.result?.restartRequested === true
+        ) {
+          api.patch({
+            activityRestartRequestedRevision: Number(step.body.revision),
+          });
+        }
       } catch (e) {
         // Campaign state writes are revision guarded; recover only the exact desired readback.
-        if (
+        if (e instanceof ApiError && e.status === 409 && step.path === "/api/v1/activities") {
+          const { data } = await api.http.get<DTO>("/api/v1/activities");
+          const { snapshot } = activitySnapshot(data || {});
+          const rows = Array.isArray(snapshot.activities)
+            ? snapshot.activities
+            : [];
+          const desired = new Map(
+            (step.body.activities as DTO[]).map((row) => [
+              Number(row.id),
+              row.enabled === true,
+            ]),
+          );
+          if (
+            rows.length < desired.size ||
+            ![...desired].every(([id, enabled]) => {
+              const row = rows.find((item) => Number(item.id) === id);
+              return row?.enabled === enabled;
+            })
+          )
+            throw e;
+          api.applyActivityData(data || {});
+          step.result = data;
+        } else if (
+          e instanceof ApiError &&
+          e.status === 409 &&
+          e.code === "restart_already_requested" &&
+          step.path === "/api/v1/activities/restart"
+        ) {
+          step.result = {
+            restartRequested: true,
+            revision: Number(step.body.revision),
+          };
+          api.patch({
+            activityRestartRequestedRevision: Number(step.body.revision),
+          });
+        } else if (
           e instanceof ApiError &&
           e.status === 409 &&
           step.path.match(/\/benefits\/[^/]+\/state$/)

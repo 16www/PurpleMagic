@@ -11,7 +11,7 @@ import (
 
 func (s *Server) handleActivities(w http.ResponseWriter, r *http.Request) {
 	if s.deps.Runtime != nil {
-		result, err := s.deps.Runtime.Call(r.Context(), adminapi.Request{Action: "activities"})
+		result, err := s.deps.Runtime.Call(r.Context(), adminapi.Request{Action: adminapi.ActivityAction})
 		if err != nil || result.Activities == nil {
 			writeFailure(w, "游戏活动接口不可用")
 			return
@@ -64,7 +64,7 @@ func (s *Server) handleSaveActivities(w http.ResponseWriter, r *http.Request) {
 	var err error
 	if s.deps.Runtime != nil {
 		var result adminapi.Response
-		result, err = s.deps.Runtime.Call(r.Context(), adminapi.Request{Action: "save_activities", Revision: *request.Revision, Changes: changes})
+		result, err = s.deps.Runtime.Call(r.Context(), adminapi.Request{Action: adminapi.SaveActivityAction, Revision: *request.Revision, Changes: changes})
 		if err == nil && result.Activities == nil {
 			writeFailure(w, "游戏活动接口响应无效")
 			return

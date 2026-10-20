@@ -106,6 +106,19 @@ export type Benefit = {
   scopeLabel?: string;
   rewardSummary?: string;
 };
+export type Activity = {
+  id: number;
+  name: string;
+  description: string;
+  source: string;
+  group: string;
+  availabilityOnly: boolean;
+  defaultEnabled: boolean;
+  enabled: boolean;
+  effectiveEnabled: boolean;
+  pendingRestart: boolean;
+  rewards: string[];
+};
 export type News = {
   id: string;
   title: string;
@@ -123,6 +136,11 @@ export type State = {
   mails: Mail[];
   questStates: Record<string, Record<string, string>>;
   benefits: Benefit[];
+  activities: Activity[];
+  activityRevision: number;
+  activityRestartAvailable: boolean;
+  activityRestartRequired: boolean;
+  activityRestartRequestedRevision?: number;
   receipts: Receipt[];
   news: News[];
   sources: { download: string; gameHost: string; gamePort: number };
@@ -178,6 +196,13 @@ export type Command =
       scope: "existing" | "future";
     }
   | { kind: "benefit-toggle"; id: string }
+  | {
+      kind: "activity-save";
+      revision: number;
+      activities: { id: number; enabled: boolean }[];
+      changes: { id: number; name: string; enabled: boolean }[];
+    }
+  | { kind: "activity-restart"; revision: number }
   | { kind: "task-control"; id: string; action: "resume" | "retry" | "pause" }
   | {
       kind: "news";
@@ -385,6 +410,54 @@ export function applyCommand(
       b.enabled = !b.enabled;
       target = b.name;
       summary = b.enabled ? "规则已启用，已自动检查收件名单" : "规则已暂停";
+      break;
+    }
+    case "activity-save": {
+      if (command.revision !== s.activityRevision)
+        throw new Error("活动设置已更新，请刷新后重新确认");
+      if (!command.changes.length) throw new Error("没有需要保存的活动修改");
+      const known = new Set(s.activities.map((row) => row.id));
+      if (
+        command.activities.some(
+          (row) =>
+            !Number.isSafeInteger(row.id) ||
+            row.id <= 0 ||
+            !known.has(row.id) ||
+            typeof row.enabled !== "boolean",
+        )
+      )
+        throw new Error("活动列表已更新，请刷新后重试");
+      for (const change of command.activities) {
+        const row = s.activities.find((activity) => activity.id === change.id)!;
+        row.enabled = change.enabled;
+        row.pendingRestart = row.enabled !== row.effectiveEnabled;
+      }
+      s.activityRevision += 1;
+      s.activityRestartRequired = s.activities.some(
+        (row) => row.pendingRestart,
+      );
+      s.activityRestartRequestedRevision = undefined;
+      target = `${command.changes.length} 项活动设置`;
+      summary = `保存活动设置：${command.changes
+        .map((row) => `${row.enabled ? "开启" : "关闭"}「${row.name}」`)
+        .join("、")}；实际运行状态以服务端值为准`;
+      break;
+    }
+    case "activity-restart": {
+      if (!s.activityRestartAvailable)
+        throw new Error("当前服务未提供活动重启接口");
+      if (command.revision !== s.activityRevision)
+        throw new Error("活动设置已更新，请刷新后重新确认");
+      if (!s.activityRestartRequired)
+        throw new Error("活动设置已生效，无需重启游戏服务器");
+      for (const row of s.activities) {
+        row.effectiveEnabled = row.enabled;
+        row.pendingRestart = false;
+      }
+      s.activityRestartRequired = false;
+      s.activityRestartRequestedRevision = command.revision;
+      target = "游戏服务器";
+      summary = "已请求重启游戏服务器，使活动设置生效";
       break;
     }
     case "news": {

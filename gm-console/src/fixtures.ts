@@ -496,6 +496,78 @@ export function initialState(): State {
         recipients: [],
       },
     ],
+    activities: [
+      {
+        id: 2347,
+        name: "累计在线得好礼",
+        description: "在线累计达到阶段时领取奖励。界面仍在补齐，开关可用不代表对应 HUD 已修复。",
+        source: "online_event/attendance.evb",
+        group: "在线与签到",
+        availabilityOnly: false,
+        defaultEnabled: true,
+        enabled: true,
+        effectiveEnabled: true,
+        pendingRestart: false,
+        rewards: ["无色小晶块 × 20", "复活币 × 1"],
+      },
+      {
+        id: 350,
+        name: "史诗之路：超越征程",
+        description: "史诗之路活动入口与进度内容。",
+        source: "npc/chn_epic_road.npc",
+        group: "成长活动",
+        availabilityOnly: false,
+        defaultEnabled: true,
+        enabled: true,
+        effectiveEnabled: true,
+        pendingRestart: false,
+        rewards: ["时间引导石 × 50", "史诗灵魂 × 2"],
+      },
+      {
+        id: 2222,
+        name: "饺子大师",
+        description: "活动城镇 NPC 与幸运饺子铺入口。",
+        source: "npc/chn_newyear_lucky.npc",
+        group: "活动入口",
+        availabilityOnly: true,
+        defaultEnabled: false,
+        enabled: false,
+        effectiveEnabled: false,
+        pendingRestart: false,
+        rewards: [],
+      },
+      {
+        id: 2370,
+        name: "每日签到得好礼",
+        description: "日历入口。开启入口后仍需按活动开放时间进入。",
+        source: "npc/chn_daily_attendance.npc",
+        group: "在线与签到",
+        availabilityOnly: true,
+        defaultEnabled: true,
+        enabled: true,
+        effectiveEnabled: false,
+        pendingRestart: true,
+        rewards: ["成长胶囊 × 1"],
+      },
+      {
+        id: 331,
+        name: "普通签到",
+        description: "通用活动列表中的普通签到条目。",
+        source: "npc/chn_event_list.npc",
+        group: "活动入口",
+        availabilityOnly: true,
+        defaultEnabled: true,
+        enabled: true,
+        effectiveEnabled: true,
+        pendingRestart: false,
+        rewards: [
+          "雷米的援助 × 5",
+        ],
+      },
+    ],
+    activityRevision: 8,
+    activityRestartAvailable: true,
+    activityRestartRequired: true,
     receipts: [],
     news: [
       {
@@ -527,7 +599,15 @@ export function loadState(): State {
       Array.isArray(s.characters) &&
       Array.isArray(s.items)
     )
-      return s;
+      return {
+        ...s,
+        activities: Array.isArray(s.activities) ? s.activities : [],
+        activityRevision: Number.isSafeInteger(s.activityRevision)
+          ? s.activityRevision
+          : 0,
+        activityRestartAvailable: s.activityRestartAvailable === true,
+        activityRestartRequired: s.activityRestartRequired === true,
+      };
   } catch {
     /* Reset invalid preview storage. */
   }

@@ -10,6 +10,13 @@ import (
 const Version = 1
 const Path = "/api/game/admin"
 
+// Activity actions are part of the private game-runtime contract. Keep these
+// strings stable: deployed game adapters dispatch on the exact action name.
+const (
+	ActivityAction     = "activities"
+	SaveActivityAction = "save_activities"
+)
+
 type Request struct {
 	AccountID   string                      `json:"accountId,omitempty"`
 	Version     int                         `json:"version"`

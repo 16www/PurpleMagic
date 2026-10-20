@@ -111,6 +111,9 @@ func Open(ctx context.Context, cfg Config, log func(string, ...any)) (_ *Module,
 		return nil, err
 	}
 	deps := gmtool.Deps{Catalog: catalog, RegistrationDB: registration, Runtime: runtime, Benefits: benefits, Repos: func() (repository.Group, bool) { return group, true }, PVF: func() (dnfpvf.Source, error) { return source, nil }}
+	if cfg.GameRestartSocket != "" {
+		deps.RestartGame = gameRestartClient(cfg.GameRestartSocket)
+	}
 	deps.PremiumTypes = func() ([]int64, error) {
 		r, e := runtime.Call(workerCtx, adminapi.Request{Action: "catalog"})
 		return r.PremiumTypes, e
@@ -123,7 +126,7 @@ func Open(ctx context.Context, cfg Config, log func(string, ...any)) (_ *Module,
 	if cfg.LoginKeySHA256 != "" {
 		secret = cfg.LoginKeySHA256
 	}
-	m.server, err = gmtool.NewManaged(ctx, gmtool.Config{Password: secret, LoginKeySHA256: cfg.LoginKeySHA256, SessionStorePath: cfg.SessionStorePath, Table: cfg.AccountTable, PVFPath: cfg.PVFPath, ItemIndexCachePath: cfg.ItemIndexPath, DatabaseLabel: "MariaDB", RequireOffline: true, Logger: log}, deps)
+	m.server, err = gmtool.NewManaged(ctx, gmtool.Config{Password: secret, LoginKeySHA256: cfg.LoginKeySHA256, SessionStorePath: cfg.SessionStorePath, Table: cfg.AccountTable, RegistrationProfile: cfg.RegistrationProfile, PVFPath: cfg.PVFPath, ItemIndexCachePath: cfg.ItemIndexPath, DatabaseLabel: "MariaDB", RequireOffline: true, Logger: log}, deps)
 	if err != nil {
 		return nil, err
 	}

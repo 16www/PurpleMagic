@@ -93,6 +93,9 @@ func (s *Server) v1Routes() http.Handler {
 	mux.HandleFunc("GET /api/v1/accounts/{accountId}/currency-adjustments", s.v1CurrencyLog)
 	writes.HandleFunc("POST /api/v1/accounts/{accountId}/currency-adjustments", s.v1AdjustCurrency)
 	mux.HandleFunc("GET /api/v1/capabilities", s.v1Capabilities)
+	mux.HandleFunc("GET /api/v1/activities", s.v1Activities)
+	writes.HandleFunc("POST /api/v1/activities", s.v1SaveActivities)
+	writes.HandleFunc("POST /api/v1/activities/restart", s.v1RestartActivities)
 	mux.HandleFunc("GET /api/v1/presence", s.v1Presence)
 	mux.HandleFunc("GET /api/v1/accounts", s.v1Accounts)
 	mux.HandleFunc("GET /api/v1/accounts/{accountId}", s.v1Account)
@@ -136,7 +139,11 @@ func (s *Server) v1Routes() http.Handler {
 				if !s.v1CheckWrite(w, r) {
 					return
 				}
-				ctx, cancel := context.WithTimeout(r.Context(), 8*time.Second)
+				timeout := 8 * time.Second
+				if r.URL.Path == "/api/v1/activities/restart" {
+					timeout = 25 * time.Second
+				}
+				ctx, cancel := context.WithTimeout(r.Context(), timeout)
 				defer cancel()
 				writes.ServeHTTP(w, r.WithContext(ctx))
 				return
@@ -317,5 +324,8 @@ func (s *Server) v1Capabilities(w http.ResponseWriter, r *http.Request) {
 	_, accountInventoryWrites := group.AccountInventory.(repository.InventoryManagementUnitOfWork)
 	features["inventory.account.write"] = available && accountInventoryWrites && items && s.deps.Runtime != nil
 	features["quests.write"] = available && questWrites && questErr == nil && s.deps.Runtime != nil
+	features["activities.read"] = s.activityAvailable()
+	features["activities.write"] = s.activityAvailable()
+	features["activities.restart"] = s.activityAvailable() && s.deps.RestartGame != nil
 	v1Reply(w, r, 200, v1Envelope{Data: map[string]any{"apiVersion": "1", "features": features, "csrfToken": s.v1CSRF(r), "benefitScopes": []string{"account", "character"}, "legacyBenefitsScopes": []string{"account", "character"}, "itemIndexReady": items, "maxPageSize": 100, "mailBatchSize": 10}})
 }

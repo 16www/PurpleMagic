@@ -170,3 +170,6 @@ Database checks create disposable MariaDB containers and require Docker. Build t
 ## Sources and licenses
 
 Components retain their original licenses and copyright notices. See [source provenance](docs/PROVENANCE.md), the [GM notice](gm/NOTICE.md), [current frontend notices](gm-console/THIRD_PARTY_NOTICES.md) and [archived frontend notices](gm-web/THIRD_PARTY_NOTICES.md).
+
+
+Activity management is available in the GM section: search and edit activity switches, compare saved and running states, and optionally request a separately confirmed restart through a local broker. Legacy 90CN registration schemas are selected explicitly. See [activity management and deployment](docs/GM_ACTIVITIES.md).

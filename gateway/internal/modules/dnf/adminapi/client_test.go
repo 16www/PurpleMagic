@@ -7,6 +7,8 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"dnf90.local/gateway/internal/modules/dnf/onlineevent"
 )
 
 func TestClientRejectsPublicPlaintextAndRedirects(t *testing.T) {
@@ -52,5 +54,36 @@ func TestClientVersionAuthenticationAndFailure(t *testing.T) {
 	good = false
 	if _, err = c.Call(context.Background(), Request{Action: "online", CharacterID: 7}); err == nil {
 		t.Fatal("failed response accepted")
+	}
+}
+
+func TestActivityWireContractRetainsPrivateGameFields(t *testing.T) {
+	raw, err := json.Marshal(Request{
+		Version:  Version,
+		Action:   SaveActivityAction,
+		Revision: 9,
+		Changes:  []onlineevent.ControlChange{{ID: 2347, Enabled: true}},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	var request map[string]any
+	if err = json.Unmarshal(raw, &request); err != nil {
+		t.Fatal(err)
+	}
+	if len(request) != 4 || request["version"] != float64(Version) || request["action"] != SaveActivityAction || request["revision"] != float64(9) {
+		t.Fatalf("private request fields changed: %s", raw)
+	}
+	changes := request["changes"].([]any)
+	if len(changes) != 1 || len(changes[0].(map[string]any)) != 2 {
+		t.Fatalf("private change fields changed: %s", raw)
+	}
+
+	var response Response
+	if err = json.Unmarshal([]byte(`{"version":1,"ok":true,"activities":{"revision":9,"restartRequired":true,"activities":[{"id":2347,"name":"online","defaultEnabled":true,"enabled":true,"effectiveEnabled":false,"pendingRestart":true}]}}`), &response); err != nil {
+		t.Fatal(err)
+	}
+	if response.Activities == nil || response.Activities.Revision != 9 || !response.Activities.RestartRequired || len(response.Activities.Activities) != 1 || !response.Activities.Activities[0].Enabled || response.Activities.Activities[0].EffectiveEnabled {
+		t.Fatalf("private response fields changed: %+v", response.Activities)
 	}
 }

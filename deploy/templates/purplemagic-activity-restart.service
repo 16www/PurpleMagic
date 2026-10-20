@@ -1,0 +1,24 @@
+[Unit]
+Description=PurpleMagic local activity restart broker
+After=network-online.target dnf90.service
+
+[Service]
+Type=simple
+User=root
+Group=dnf90
+ExecStart=/usr/bin/python3 /opt/purplemagic/control/activity_restart_helper.py --config /etc/purplemagic/gateway.json --state-dir /var/lib/purplemagic-activity-restart --socket /run/purplemagic-activity-restart/restart.sock
+RuntimeDirectory=purplemagic-activity-restart
+RuntimeDirectoryMode=0750
+StateDirectory=purplemagic-activity-restart
+StateDirectoryMode=0700
+UMask=0077
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/purplemagic-activity-restart /run/purplemagic-activity-restart
+
+[Install]
+WantedBy=multi-user.target

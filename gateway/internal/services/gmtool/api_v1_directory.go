@@ -39,7 +39,16 @@ func scanV1Account(row interface{ Scan(...any) error }) (v1AccountRow, error) {
 	return out, err
 }
 func (s *Server) v1AccountSelect() string {
+	if s.cfg.RegistrationProfile == "legacy-90cn" {
+		return "SELECT a.id,a.account_id,a.account,0,a.created_at,a.last_login_at FROM " + quoteIdentifier(s.cfg.Table) + " a"
+	}
 	return "SELECT a.id,a.account_id,a.account,COALESCE(p.disabled,0),a.created_at,a.last_login_at FROM " + quoteIdentifier(s.cfg.Table) + " a LEFT JOIN " + quoteIdentifier(s.cfg.Table+"_player_accounts") + " p ON p.account_id=BINARY a.account_id"
+}
+func (s *Server) v1AccountDisabledExpression() string {
+	if s.cfg.RegistrationProfile == "legacy-90cn" {
+		return "0"
+	}
+	return "COALESCE(p.disabled,0)"
 }
 func (s *Server) v1LoadAccount(ctx context.Context, id string) (v1AccountRow, error) {
 	if s.db == nil {
@@ -82,7 +91,7 @@ func (s *Server) v1Accounts(w http.ResponseWriter, r *http.Request) {
 		args = append(args, pattern, pattern, panel)
 	}
 	if state != "" {
-		query += " AND COALESCE(p.disabled,0)=?"
+		query += " AND " + s.v1AccountDisabledExpression() + "=?"
 		args = append(args, state == "disabled")
 	}
 	query += " ORDER BY a.id LIMIT ?"

@@ -6,6 +6,7 @@ import (
 	"io"
 	"net"
 	"os"
+	"path/filepath"
 	"regexp"
 	"time"
 
@@ -17,25 +18,27 @@ import (
 // Config belongs to GM, not to game instance generation. Secrets stay in a
 // protected config file. No field is echoed by the command or HTTP status.
 type Config struct {
-	Catalog          *servicehttp.Config `json:"catalog,omitempty"`
-	ServiceToken     string              `json:"serviceToken,omitempty"`
-	Listen           string              `json:"listen"`
-	Password         string              `json:"password,omitempty"`
-	LoginKeySHA256   string              `json:"loginKeySha256,omitempty"`
-	WebRoot          string              `json:"webRoot"`
-	SessionStorePath string              `json:"sessionStorePath,omitempty"`
-	RegistrationDSN  string              `json:"registrationDsn"`
-	RepositoryDSN    string              `json:"repositoryDsn"`
-	AccountTable     string              `json:"accountTable"`
-	Databases        []string            `json:"databases"`
-	TablePrefix      string              `json:"tablePrefix"`
-	PVFPath          string              `json:"pvfPath"`
-	PVFSHA256        string              `json:"pvfSha256"`
-	PVFIndexPath     string              `json:"pvfIndexPath,omitempty"`
-	ItemIndexPath    string              `json:"itemIndexPath"`
-	GameAPI          string              `json:"gameApi"`
-	GameToken        string              `json:"gameToken"`
-	ScanSeconds      int                 `json:"scanSeconds"`
+	GameRestartSocket   string              `json:"gameRestartSocket,omitempty"`
+	Catalog             *servicehttp.Config `json:"catalog,omitempty"`
+	ServiceToken        string              `json:"serviceToken,omitempty"`
+	Listen              string              `json:"listen"`
+	Password            string              `json:"password,omitempty"`
+	LoginKeySHA256      string              `json:"loginKeySha256,omitempty"`
+	WebRoot             string              `json:"webRoot"`
+	SessionStorePath    string              `json:"sessionStorePath,omitempty"`
+	RegistrationDSN     string              `json:"registrationDsn"`
+	RepositoryDSN       string              `json:"repositoryDsn"`
+	RegistrationProfile string              `json:"registrationProfile,omitempty"`
+	AccountTable        string              `json:"accountTable"`
+	Databases           []string            `json:"databases"`
+	TablePrefix         string              `json:"tablePrefix"`
+	PVFPath             string              `json:"pvfPath"`
+	PVFSHA256           string              `json:"pvfSha256"`
+	PVFIndexPath        string              `json:"pvfIndexPath,omitempty"`
+	ItemIndexPath       string              `json:"itemIndexPath"`
+	GameAPI             string              `json:"gameApi"`
+	GameToken           string              `json:"gameToken"`
+	ScanSeconds         int                 `json:"scanSeconds"`
 }
 
 func ReadConfig(path string) (Config, error) {
@@ -54,6 +57,12 @@ func ReadConfig(path string) (Config, error) {
 }
 
 func (c Config) Validate() error {
+	if c.GameRestartSocket != "" && (!filepath.IsAbs(c.GameRestartSocket) || filepath.Clean(c.GameRestartSocket) != c.GameRestartSocket) {
+		return errors.New("game restart socket requires a clean absolute path")
+	}
+	if c.RegistrationProfile != "" && c.RegistrationProfile != "legacy-90cn" {
+		return errors.New("unknown registration profile")
+	}
 	host, _, err := net.SplitHostPort(c.Listen)
 	ip := net.ParseIP(host)
 	if err != nil || ip == nil || (!ip.IsLoopback() && !ip.IsPrivate()) {

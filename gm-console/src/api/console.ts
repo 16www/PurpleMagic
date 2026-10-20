@@ -11,6 +11,7 @@ import type {
 import { HttpClient, ApiError, query, segment, safeNumber } from "./http";
 import { emptyState, type DTO, type Pending } from "./model";
 import { prepareOperation, executeOperation } from "./operations";
+import { activityFromDTO, activitySnapshot } from "../activity";
 
 export const containers: Record<InventoryTab, string[]> = {
   bag: [
@@ -504,6 +505,8 @@ export class ConsoleAPI {
         refresh ? this.meta.questFilter.q : "",
       );
     else if (section === "gm") {
+      await this.activities();
+      if (!this.current) return;
       await this.growth();
       await this.benefits();
       await this.tasks();
@@ -817,6 +820,39 @@ export class ConsoleAPI {
         })),
         (b) => b.id,
       ),
+    });
+  }
+  async activities() {
+    const { data } = await this.http.get<DTO>("/api/v1/activities");
+    this.applyActivityData(data || {});
+  }
+  applyActivityData(data: DTO) {
+    const { snapshot, restartAvailable } = activitySnapshot(data || {});
+    if (!Array.isArray(snapshot.activities))
+      throw new Error("活动接口未返回活动列表");
+    const revision = Number(snapshot.revision);
+    if (!Number.isSafeInteger(revision) || revision < 0)
+      throw new Error("活动接口未返回有效版本");
+    const activities = snapshot.activities.map((row: DTO) =>
+      activityFromDTO(row as Record<string, unknown>),
+    );
+    if (
+      activities.some(
+        (row) => !Number.isSafeInteger(row.id) || row.id <= 0 || !row.name,
+      )
+    )
+      throw new Error("活动接口返回了无效活动行");
+    const restartRequired =
+      snapshot.restartRequired === true ||
+      activities.some((row) => row.pendingRestart);
+    const requested = this.state.activityRestartRequestedRevision;
+    this.patch({
+      activities,
+      activityRevision: revision,
+      activityRestartAvailable: restartAvailable,
+      activityRestartRequired: restartRequired,
+      activityRestartRequestedRevision:
+        restartRequired && requested === revision ? requested : undefined,
     });
   }
   async benefitProgress(id: string) {

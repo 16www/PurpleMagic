@@ -170,3 +170,6 @@ python gm/scripts/test_mysql.py
 ## 来源与许可
 
 组件沿用原始许可和版权声明，详见[源码来源](docs/PROVENANCE.md)、[GM 声明](gm/NOTICE.md)、[新版前端声明](gm-console/THIRD_PARTY_NOTICES.md)和[历史前端声明](gm-web/THIRD_PARTY_NOTICES.md)。
+
+
+GM区已接入游戏活动管理：检索与分组、启停草稿、已保存/实际运行/待重启状态，以及通过本机broker独立确认的可选重启。旧90CN注册表需显式配置兼容模式。详见[活动管理与安装契约](docs/GM_ACTIVITIES.md)。

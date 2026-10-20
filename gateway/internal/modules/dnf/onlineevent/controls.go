@@ -20,6 +20,12 @@ type ControlDefinition struct {
 	Description    string `json:"description"`
 	Source         string `json:"source"`
 	DefaultEnabled bool   `json:"defaultEnabled"`
+	// Group is optional display metadata for the GM activity list. It never
+	// selects an event or changes availability.
+	Group string `json:"group,omitempty"`
+	// AvailabilityOnly marks a native activity-entry gate so operators do not
+	// read it as proof that the underlying gameplay and rewards are complete.
+	AvailabilityOnly bool `json:"availabilityOnly,omitempty"`
 }
 
 type ControlRow struct {

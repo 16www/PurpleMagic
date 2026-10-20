@@ -24,14 +24,15 @@ import {
   timestamp,
   type PageProps,
 } from "../ui";
+import { GmActivities } from "./GmActivities";
 
-export function GmPage({ state, character, request }: PageProps) {
+export function GmPage({ state, character, request, notify }: PageProps) {
   const live = useLive();
   const [taskId, setTaskId] = useState("");
   const [campaignId, setCampaignId] = useState("");
   const [tab, setTab] = useState<
-    "growth" | "currency" | "benefits" | "history"
-  >("growth");
+    "activities" | "growth" | "currency" | "benefits" | "history"
+  >("activities");
   const [level, setLevel] = useState(numberDraft(character.level)),
     [job, setJob] = useState(
       live ? `${character.jobCode}:${character.growType}` : character.job,
@@ -81,6 +82,7 @@ export function GmPage({ state, character, request }: PageProps) {
         <Tabs
           label="GM 管理"
           items={[
+            { id: "activities", label: "活动管理" },
             { id: "growth", label: "成长与职业" },
             { id: "currency", label: "金币与点券" },
             { id: "benefits", label: "福利规则" },
@@ -90,7 +92,9 @@ export function GmPage({ state, character, request }: PageProps) {
           onChange={setTab}
         />
       </div>
-      {tab === "growth" ? (
+      {tab === "activities" ? (
+        <GmActivities state={state} request={request} notify={notify} />
+      ) : tab === "growth" ? (
         <div className="form-layout">
           <form
             className="glass content-panel"

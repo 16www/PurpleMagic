@@ -67,7 +67,8 @@ type Config struct {
 	// SessionStorePath persists remembered browser sessions, separate from PVF indexes.
 	SessionStorePath string
 	// Table 是启动器注册账号表（A21 里的 accounts）。
-	Table string
+	Table               string
+	RegistrationProfile string
 	// DSN 指向 90CN 使用的 MySQL/MariaDB。
 	DSN string
 	// WWWRoot 非空时优先从磁盘读取前端文件，便于调试。
@@ -104,11 +105,15 @@ type Config struct {
 // Production uses an independent database/PVF and Runtime HTTP client. Local
 // callbacks are retained for isolated fixtures and domain-only embedding.
 type Deps struct {
-	Catalog            *RemoteCatalog
-	RegistrationDB     *sql.DB
-	Runtime            *adminapi.Client
-	Benefits           *testbenefits.Store
-	Activities         *onlineevent.Controls
+	Catalog        *RemoteCatalog
+	RegistrationDB *sql.DB
+	Runtime        *adminapi.Client
+	Benefits       *testbenefits.Store
+	Activities     *onlineevent.Controls
+	// RestartGame requests the operator-configured fixed game-service restart
+	// after an activity save. It receives only the confirmed settings revision;
+	// browser input never selects a service, command, or executable.
+	RestartGame        func(context.Context, uint64) error
 	Repos              func() (dnfrepo.Group, bool)
 	PVF                func() (dnfpvf.Source, error)
 	PremiumTypes       func() ([]int64, error)
@@ -133,6 +138,9 @@ type Server struct {
 	remembered map[string]time.Time
 	failures   map[string][]time.Time
 	grants     map[string]grantRecord
+
+	activityRestartMu       sync.Mutex
+	activityRestartRevision *uint64
 
 	items        *itemIndex
 	pvf          *pvfCache
