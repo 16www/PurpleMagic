@@ -47,10 +47,10 @@ void main() {
       final context = tester.element(find.byType(PreviewHome));
       await Future.wait(
         [
-          'background.webp',
-          'announcement.webp',
-          'dnf-logo.png',
-        ].map((name) => precacheImage(AssetImage('assets/$name'), context)),
+          'assets/background.webp',
+          'assets/announcement.webp',
+          'brand/witch.png',
+        ].map((name) => precacheImage(AssetImage(name), context)),
       );
     });
     await tester.pumpAndSettle();

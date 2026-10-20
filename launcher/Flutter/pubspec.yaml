@@ -1,7 +1,7 @@
 name: dnf90_preview
 description: 90CN Windows player launcher.
 publish_to: none
-version: 0.2.16+3
+version: 0.2.17+3
 environment:
   sdk: ^3.13.2
 dependencies:
@@ -16,4 +16,4 @@ flutter:
   assets:
     - assets/background.webp
     - assets/announcement.webp
-    - assets/dnf-logo.png
+    - brand/witch.png

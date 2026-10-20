@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="gm-console/public/brand/witch.png" alt="PurpleMagic witch" width="144" height="144">
+
 # PurpleMagic
 
 ![React](https://img.shields.io/badge/GM-React%20%2B%20TypeScript-61DAFB?style=flat-square)
@@ -21,7 +23,7 @@
 
 | 场景 | 当前能力 |
 | --- | --- |
-| 玩家登录 | Windows 注册、登录、客户端目录发现、频道检查与游戏启动；登录器源码对齐 0.2.16 |
+| 玩家登录 | Windows 注册、登录、客户端目录发现、频道检查与游戏启动；登录器源码版本 0.2.17 |
 | 资源更新 | 配置更新源，校验签名清单和文件摘要，处理下载进度、暂停、安装与回退；登录器程序与游戏内容独立更新 |
 | 账号与角色 | 搜索、游标分页、在线筛选、完整账号角色展开，以及批量勾选和收件去重 |
 | 物品管理 | 物品栏、穿戴栏、宠物栏、仓库、账号仓库、宠物、时装、徽章八区；查看实例，调整已支持属性、替换同类物品及批量删除 |
@@ -63,7 +65,7 @@ npm ci
 npm run dev
 ```
 
-打开 **http://127.0.0.1:8778/**，查看使用示例数据的独立视觉预览。生产构建使用真实 API 适配器。本地一次性数据库联调见 [GM Console 接入说明](docs/GM_CONSOLE_INTEGRATION_20261019.md)，服务配置见[外部 GM 运行说明](docs/GM_EXTERNAL_SERVICES.md)。
+打开 **http://127.0.0.1:8778/?demo=1**，查看使用示例数据的独立视觉预览。生产构建使用真实 API 适配器。本地一次性数据库联调见 [GM Console 接入说明](docs/GM_CONSOLE_INTEGRATION_20261019.md)，服务配置见[外部 GM 运行说明](docs/GM_EXTERNAL_SERVICES.md)。
 
 > [!NOTE]
 > `gm-console/` 是当前前端与唯一设计基准。第一版 `gm-web/` 已封存为 `FROZEN_DO_NOT_REFERENCE`，正式打包使用 `gm-console/dist/`。

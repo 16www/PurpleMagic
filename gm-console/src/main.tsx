@@ -7,6 +7,7 @@ import "./purple.css";
 import "./responsive.css";
 import "./live.css";
 import "./motion.css";
+import "./brand.css";
 
 createRoot(document.getElementById("root")!).render(
   <React.StrictMode>

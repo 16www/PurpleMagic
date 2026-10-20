@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { KeyRound, ArrowRight, RefreshCw, CheckCircle2, WandSparkles, Eye, EyeOff, Upload } from "lucide-react";
+import { KeyRound, ArrowRight, RefreshCw, CheckCircle2, Eye, EyeOff, Upload } from "lucide-react";
 import { useLive } from "./context";
 import type { Pending } from "./model";
 import { Modal, Field } from "../ui";
@@ -33,7 +33,7 @@ export function LoginPanel() {
       }}
     >
       <div className="auth-brand">
-        <span className="auth-mark"><WandSparkles size={30} /></span>
+        <span className="auth-mark"><img src="./brand/witch.png" alt="" width="56" height="56" /></span>
         <h1>Purple<span>Magic</span></h1>
         <p>阿拉德 · GM 工作台</p>
       </div>

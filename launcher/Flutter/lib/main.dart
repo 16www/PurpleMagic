@@ -259,7 +259,7 @@ class _PreviewHomeState extends State<PreviewHome> {
         child: Row(
           children: [
             Image.asset(
-              'assets/dnf-logo.png',
+              'brand/witch.png',
               width: 124,
               height: 77,
               fit: BoxFit.contain,
@@ -587,7 +587,7 @@ class _PreviewHomeState extends State<PreviewHome> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Image.asset(
-            'assets/dnf-logo.png',
+            'brand/witch.png',
             width: 108,
             height: 69,
             fit: BoxFit.contain,

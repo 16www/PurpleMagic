@@ -22,7 +22,7 @@ launcher/**/bin/
 launcher/**/obj/
 /launcher/Flutter/assets/
 /launcher/Flutter/artifacts/
-/launcher/Flutter/windows/runner/resources/app_icon.ico
+!/launcher/Flutter/windows/runner/resources/app_icon.ico
 /docs/architecture/*.visual-check.*
 node_modules/
 /gm-console/dist/

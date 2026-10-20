@@ -1,0 +1,36 @@
+{
+  "sourceArchive": "Purple-brand-icons-20261020.zip",
+  "sourceArchiveSha256": "12f816f427079ade4873c3e026d8a21a9cbc828a681a837d592516841a6194ed",
+  "providedBy": "project owner",
+  "assets": [
+    {
+      "source": "witch/witch-256.png",
+      "sha256": "1adcf9c0cc329bb962083444089472fe7c9ce57fbe7fa1fa3fcd3d9e0e0d265c",
+      "targets": [
+        "gm-console/public/brand/witch.png",
+        "launcher/Flutter/brand/witch.png"
+      ]
+    },
+    {
+      "source": "witch/witch.ico",
+      "sha256": "e5b20bf2a373b2abd2551ca2432bff3bb357c3663968aa2b6f1606315beda4fc",
+      "targets": [
+        "launcher/Flutter/windows/runner/resources/app_icon.ico"
+      ]
+    },
+    {
+      "source": "hat/hat-32.png",
+      "sha256": "31e5054ebd9ce1f1d911d43c9a477c1fa985aa2bb451a60162942e37fa2d2264",
+      "targets": [
+        "gm-console/public/brand/hat-32.png"
+      ]
+    },
+    {
+      "source": "hat/hat.ico",
+      "sha256": "46eb5a77c4382cc92361098d6f6f5ee8ed18030482715c3e449a45ed24e4b87c",
+      "targets": [
+        "gm-console/public/brand/hat.ico"
+      ]
+    }
+  ]
+}

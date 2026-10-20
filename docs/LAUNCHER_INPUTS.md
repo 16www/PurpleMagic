@@ -10,10 +10,11 @@ Private input locations:
 - `runtime/launcher-input/profile.json`, or `--profile-dir <protected-directory>`.
 - `launcher/Flutter/assets/background.webp`.
 - `launcher/Flutter/assets/announcement.webp`.
-- `launcher/Flutter/assets/dnf-logo.png`.
-- `launcher/Flutter/windows/runner/resources/app_icon.ico`.
 
 These paths are ignored. Supply the existing approved files for a real build.
+The witch logo at `launcher/Flutter/brand/witch.png` and the Windows icon at
+`launcher/Flutter/windows/runner/resources/app_icon.ico` are tracked brand assets;
+see [brand sources and hashes](BRANDING.md).
 `launcher/profile.example.json` documents the profile fields; its placeholders
 are not valid client compatibility evidence.
 

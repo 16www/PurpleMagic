@@ -302,7 +302,7 @@ export function App() {
             className="brand"
             onClick={() => go("inventory")}
           >
-            <WandSparkles size={29} />
+            <img className="brand-image" src="./brand/witch.png" alt="" width="36" height="36" />
             <div>
               <strong>
                 Purple<span>Magic</span>

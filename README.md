@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="gm-console/public/brand/witch.png" alt="PurpleMagic witch" width="144" height="144">
+
 # PurpleMagic
 
 ![React](https://img.shields.io/badge/GM-React%20%2B%20TypeScript-61DAFB?style=flat-square)
@@ -21,7 +23,7 @@ One source repository with independently built components, from player login and
 
 | Workflow | Current capabilities |
 | --- | --- |
-| Player login | Windows registration and login, client-directory discovery, channel checks and game launch; launcher source aligned with 0.2.16 |
+| Player login | Windows registration and login, client-directory discovery, channel checks and game launch; launcher source version 0.2.17 |
 | Updates | Configurable sources, signed manifests and file hashes, progress, pause, installation and rollback; launcher and game-content updates have separate contracts |
 | Accounts and characters | Search, cursor pagination, online filtering, account expansion and deduplicated recipient selection |
 | Inventory | Eight views for bags, equipment, pet equipment, character/account storage, pets, avatars and emblems; inspect instances and edit supported attributes, replace compatible items or delete selected batches |
@@ -63,7 +65,7 @@ npm ci
 npm run dev
 ```
 
-Open **http://127.0.0.1:8778/** for the standalone sample-data preview. The production build uses the real API adapter. For local integration with a disposable database, follow the [GM Console guide](docs/GM_CONSOLE_INTEGRATION_20261019.md); for service deployment configuration, see [external GM services](docs/GM_EXTERNAL_SERVICES.md).
+Open **http://127.0.0.1:8778/?demo=1** for the standalone sample-data preview. The production build uses the real API adapter. For local integration with a disposable database, follow the [GM Console guide](docs/GM_CONSOLE_INTEGRATION_20261019.md); for service deployment configuration, see [external GM services](docs/GM_EXTERNAL_SERVICES.md).
 
 > [!NOTE]
 > `gm-console/` is the current frontend and design baseline. The first `gm-web/` is archived as `FROZEN_DO_NOT_REFERENCE`; production packaging uses `gm-console/dist/`.

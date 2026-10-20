@@ -16,3 +16,7 @@
 ## 工程依赖
 
 React、React DOM、Vite、TypeScript 及相应类型包按其发布包许可证使用。图标采用 Lucide（ISC），与参考站使用的图标库一致。精确版本见 `package-lock.json`。
+
+## PurpleMagic 品牌
+
+witch 与 hat 来自项目所有者提供的品牌图标包；用于品牌标志、登录器图标与 favicon。来源摘要见 [品牌清单](../docs/brand-assets.json)。

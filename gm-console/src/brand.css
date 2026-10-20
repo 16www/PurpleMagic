@@ -1,0 +1,16 @@
+.brand {
+  gap: 8px;
+  padding-inline: 5px;
+}
+.brand-image {
+  flex: 0 0 36px;
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+}
+.auth-mark img {
+  display: block;
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+}
