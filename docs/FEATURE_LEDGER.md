@@ -49,7 +49,7 @@
 | **GM-25** 标记完成、恢复未完成、重置任务链 | 已接入；任务完成/恢复/重置 | 无奖励完成、普通任务恢复、关联家族重置。<br>后续：编辑保护联合部署；职业变更走专用流程 | [F04](FOUNDATIONS.md#f04) / [F05](FOUNDATIONS.md#f05) / [F06](FOUNDATIONS.md#f06) / [F09](FOUNDATIONS.md#f09)<br>`POST characters/{c}/quest-operations/preview; quest-operations` |
 | **GM-26** 批量处理当前已接任务 | 部分完成；游戏任务本页选择 | 选中最多200项，前后值及整批原子提交。<br>后续：跨页全部已接任务 | [F04](FOUNDATIONS.md#f04) / [F05](FOUNDATIONS.md#f05) / [F06](FOUNDATIONS.md#f06)<br>`characters/{c}/quest-operations` |
 | **GM-27** 按等级/分类处理主线、支线、成就、称号、每日与职业任务 | 待实现；任务库分类批处理 | 主线/支线/成就/称号/每日/职业目标已收录。<br>后续：分类资格、奖励语义及批次事务 | [F04](FOUNDATIONS.md#f04) / [F05](FOUNDATIONS.md#f05) / [F06](FOUNDATIONS.md#f06) / [F07](FOUNDATIONS.md#f07)<br>`无当前分类批次路由` |
-| **GM-28** 游戏活动查询与开关 | 旧版实现；游戏活动页待迁 | 旧版活动读取/保存。<br>后续：v1、实际生效状态和新页面 | [F04](FOUNDATIONS.md#f04) / [F09](FOUNDATIONS.md#f09)<br>`旧 /api/activities；游戏运行适配` |
+| **GM-28** 游戏活动查询与开关 | 已接入；v1/新工作台活动页（无角色入口） | v1查询与变更项保存、搜索/分组、草稿和独立确认；已保存、实际运行与待重启分列。可选固定服务broker重启入口，请求接受不代表重启完成。<br>后续：用户原生实测未验收（真实重启、原生活动入口、玩法与奖励）；systemd作业失败后的同revision人工核对流程待改进 | [F04](FOUNDATIONS.md#f04) / [F09](FOUNDATIONS.md#f09)<br>`GET/POST activities; POST activities/restart` |
 | **GM-29** 账号封禁、IP 封禁、期限、原因及解除 | 待实现；治理·封禁/IP | 账号/IP、期限、原因、解除目标已收录。<br>后续：权威准入执行点、审计及页面 | [F03](FOUNDATIONS.md#f03) / [F04](FOUNDATIONS.md#f04) / [F09](FOUNDATIONS.md#f09) / [F12](FOUNDATIONS.md#f12)<br>`无当前v1封禁路由` |
 | **GM-30** 在线角色、踢下线、登录记录 | 部分完成；在线名单用于邮件 | 完整在线快照、采集时间与代次。<br>后续：独立在线页、踢下线、登录历史 | [F03](FOUNDATIONS.md#f03) / [F09](FOUNDATIONS.md#f09)<br>`POST mail/online-preview → online_snapshot` |
 | **GM-31** 通关记录、排行、间隔、耗时分布、单局详情 | 待实现；通关记录与统计 | 耗时、排行、间隔、单局记录目标已收录。<br>后续：权威事件采集、幂等入库、聚合与页面 | [F03](FOUNDATIONS.md#f03) / [F07](FOUNDATIONS.md#f07) / [F13](FOUNDATIONS.md#f13)<br>`无当前通关查询路由` |

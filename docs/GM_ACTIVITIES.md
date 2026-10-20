@@ -47,14 +47,24 @@ configuration path and keep its receipt directory root-only. The helper can read
 both the gateway's nested `management` configuration and a legacy GM mapping.
 Keep the old helper/configuration available when planning rollback.
 
-The broker persists a prepared receipt before scheduling and an accepted receipt
-after systemd acknowledges it. Replays of an accepted revision return acceptance
-without scheduling again, including after a broker restart. A prepared receipt
-means the scheduling outcome is unknown; the broker will not automatically repeat
-it. Inspect the recorded unit and game state before clearing that receipt for an
-explicit retry. The UI reports an unconfirmed result and refreshes running state;
-`restartRequested` means accepted, not completed. Completion is established by
-reading `restartRequired=false` after the game returns.
+The broker persists a `prepared` receipt before scheduling and an `accepted`
+receipt after systemd accepts the scheduled unit. A `prepared` receipt means the
+scheduling outcome is unknown; the broker does not automatically repeat it.
+
+An `accepted` receipt means only that systemd accepted the scheduled unit. If
+the recorded unit or the `dnf90.service` restart later fails, the broker does not
+receive or persist that failure: the receipt remains `accepted`, the same revision
+is not scheduled again (including after a broker restart), and the management
+process rejects the same revision as already requested while that state remains
+in memory. Check the recorded unit, systemd and `dnf90.service` status, the broker
+receipt, the game process and the current `restartRequired` value before any
+manual recovery. Clearing or altering a receipt requires a separately validated
+operator procedure; this document intentionally provides no file-removal command.
+
+The UI reports an unconfirmed result and refreshes running state; `restartRequested`
+means accepted, not completed. Completion is established only after the game
+returns by reading `restartRequired=false` with `effectiveEnabled` matching the
+intended saved state.
 
 The API allows 25 seconds for this optional action; the socket exchange uses
 22 seconds, covering the helper's bounded snapshot and systemd calls. The private

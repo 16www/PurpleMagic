@@ -450,15 +450,15 @@
       "group": "GM",
       "feature": "游戏活动查询与开关",
       "source": "G/R",
-      "status": "旧版实现",
-      "ui": "游戏活动页待迁",
-      "api": "旧 /api/activities；游戏运行适配",
+      "status": "已接入",
+      "ui": "v1/新工作台活动页（无角色入口）",
+      "api": "GET/POST activities; POST activities/restart",
       "facilities": [
         "F04",
         "F09"
       ],
-      "implementedScope": "旧版活动读取/保存",
-      "remaining": "v1、实际生效状态和新页面"
+      "implementedScope": "v1活动查询与变更项保存、搜索/分组、草稿与独立确认；已保存、实际运行和待重启分列",
+      "remaining": "用户原生实测未验收（真实重启、原生活动入口、玩法与奖励）；重启请求接受不代表重启完成；systemd作业失败后的同revision人工核对流程待改进"
     },
     {
       "id": "GM-29",

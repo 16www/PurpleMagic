@@ -3,6 +3,8 @@
 This release targets the ServerS5A3 90CN MariaDB schema and private game API v1
 from commit `721927e6f6e36598d81126d50ac6fd7466710ccf`.
 It is not a generic SQLite, 86JP, or arbitrary DNF server tool.
+This document describes only the legacy `gm/` module; the new `gm-console/`
+workbench is outside this compatibility contract.
 
 ## Stable data
 
@@ -33,7 +35,14 @@ Do not expose this route through the public player gateway.
 
 Database/PVF operations belong to GM; online state, effective activity state and
 runtime item row encoding belong to the game. A game API outage rejects guarded
-offline writes. The tool does not start or restart the game process.
+offline writes. The legacy `gm` tool does not start or restart the game process.
+
+## New workbench boundary
+
+The new `gm-console/` activity page is outside the legacy `gm/` module. It may use
+an optional, separately deployed, root-owned local broker to schedule a restart
+only for the fixed `dnf90.service`. That broker does not give the legacy `gm`
+module restart capability, and browser requests cannot select a command or service.
 
 ## Updating adapters
 
