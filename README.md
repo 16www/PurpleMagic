@@ -15,7 +15,7 @@
 
 One source repository with independently built components, from player login and updates to inventory, mail and benefit management.
 
-[简体中文](README.zh-CN.md) ｜ [Quick preview](#quick-preview) ｜ [Network and APIs](docs/architecture/NETWORK_AND_CONTRACTS_20261019.md) ｜ [Feature ledger](docs/FEATURE_LEDGER.md) ｜ [Documentation](#documentation)
+[简体中文](README.zh-CN.md) ｜ [Deploy](docs/DEPLOYMENT.md) ｜ [Build a launcher](docs/LAUNCHER_INPUTS.md) ｜ [Benefit rules](#benefit-rules-configure-once-keep-delivering) ｜ [Network and APIs](docs/architecture/NETWORK_AND_CONTRACTS_20261019.md) ｜ [Feature ledger](docs/FEATURE_LEDGER.md) ｜ [Documentation](#documentation)
 
 </div>
 
@@ -23,7 +23,7 @@ One source repository with independently built components, from player login and
 
 | Workflow | Current capabilities |
 | --- | --- |
-| Player login | Windows registration and login, client-directory discovery, channel checks and game launch; launcher source version 0.2.17 |
+| Player login | Windows registration and login, client-directory discovery, channel checks and game launch; launcher source version 0.2.18 |
 | Updates | Configurable sources, signed manifests and file hashes, progress, pause, installation and rollback; launcher and game-content updates have separate contracts |
 | Accounts and characters | Search, cursor pagination, online filtering, account expansion and deduplicated recipient selection |
 | Inventory | Eight views for bags, equipment, pet equipment, character/account storage, pets, avatars and emblems; inspect instances and edit supported attributes, replace compatible items or delete selected batches |
@@ -34,6 +34,33 @@ One source repository with independently built components, from player login and
 | GM workspace | Orchid glass light/dark themes, floating navigation, page transitions, fixed-position loading indicators and a centered Token form with an optional 30-day session |
 
 The [integration guide](docs/GM_CONSOLE_INTEGRATION_20261019.md) maps each page to the actual Go APIs. Pet growth editing, full avatar attribute changes, emblem sockets, equipment enchantments and token-coupon currency remain outside the current write contracts. The [feature ledger](docs/FEATURE_LEDGER.md) tracks the broader roadmap, including moderation, telemetry and public snapshots.
+
+## Screenshots
+
+### PurpleMagic launcher
+
+![PurpleMagic Windows launcher with account login, announcements and updates](docs/images/launcher.webp)
+
+### Inventory workspace
+
+![Orchid GM console with eight container views, item attributes and batch selection](docs/images/inventory.webp)
+
+Account/character identifiers and local paths in these screenshots have been redacted.
+
+## Benefit rules: configure once, keep delivering
+
+Persistent benefit rules are a central part of PurpleMagic. Define a reward and enable the rule: the background service delivers it to eligible characters. Include future characters to extend the same policy to new arrivals without assembling another mailing list.
+
+![Automatic benefits with future-character enrollment, permanent receipts and pause/resume](docs/images/benefits.webp)
+
+For example, a welcome rule can grant 2,000,000 gold once per character, covering existing characters when activated and new characters afterward. Permanent receipts prevent duplicate grants. Closing the browser, restarting the service or pausing/resuming the rule preserves the same identity and delivery history.
+
+- **Explicit eligibility:** the first automatic activation fixes the existing-character cutoff; future characters are an independent option.
+- **Durable deduplication:** mail, attachments and receipts commit together, including across retries and lost responses.
+- **Background delivery:** the external scheduler calls the game gateway in bounded batches.
+- **Traceable recovery:** pause/resume keeps rule IDs, cutoffs and receipts; deleting mail does not reset eligibility.
+
+The quick gold form is once per character; the domain API also supports once per account. A rule supports gold or one item type. Daily resets and recurring rewards are not implemented. See [benefit rule mechanics](docs/BENEFIT_RULES.md) for examples and implementation links.
 
 ## Service layout
 
@@ -54,6 +81,34 @@ The [network and API brief](docs/architecture/NETWORK_AND_CONTRACTS_20261019.md)
 Accounts, inventory, mailboxes and quests load by page, container and cursor. A PVF generation is identified by its complete SHA256; changing the file requires rebuilding and verifying its indexes. The game gateway requests bounded definitions from the external service.
 
 Management writes use revision checks, idempotency keys and durable receipts. Character-specific edits check the selected character's offline state; shared account assets retain account-level protection. Confirmed mail keeps running after the browser closes and resumes after service restarts. Benefit rules preserve their delivery records across retries and index generations.
+
+## Deployment and gateway integration
+
+The repository ships a [Linux Docker Compose recipe](deploy/selfhost/compose.yaml), multi-stage image and private configuration generator. Supply an existing game server/MariaDB, approved PVF, player profile and certificates, then prepare the service files, build six index categories, initialize additive management tables and start PlayerGateway, GMService and the HTTPS edge.
+
+```text
+python3 deploy/selfhost/prepare.py --settings runtime/selfhost-settings.json --output runtime/selfhost
+docker compose --env-file runtime/selfhost/compose.env -f deploy/selfhost/compose.yaml build
+```
+
+The [deployment guide](docs/DEPLOYMENT.md) covers inputs, indexing, schema initialization, startup, ports and persistent data. The [gateway integration contract](docs/GATEWAY_INTEGRATION.md) describes account APIs, proxy credentials, runtime admission, storage mapping and two-way SSH tunnels.
+
+> [!IMPORTANT]
+> The current adapter targets the DNF90/ServerS5A3 login protocol and MySQL save schema. Other game servers need corresponding APIs and repository mappings. Public configuration uses example values; real endpoints, DSNs, tokens and private keys stay in ignored `runtime/` files or outside the checkout.
+
+## Generate a launcher for your game server
+
+The existing command-line pipeline prepares a profile from a connection configuration, approved client, TLS certificate and RSA public key, then builds the Windows launcher:
+
+```text
+python scripts/prepare_launcher_profile.py --connection runtime/launcher-input/server.json --client D:/GameClient --certificate runtime/launcher-input/player-fullchain.pem --public-key runtime/launcher-input/update-public.pem --output runtime/launcher-input/profile.json
+BUILD_FLUTTER.bat --flutter D:/SDKs/flutter --dotnet dotnet --profile-dir runtime/launcher-input --output dist/PurpleMagic-0.2.18
+BUILD_PORTABLE.bat --bundle dist/PurpleMagic-0.2.18.zip --output dist/PurpleMagic-0.2.18.exe --dotnet dotnet
+```
+
+The profile tool hashes the EXE/PVF and certificate and preserves explicit channel compatibility settings. Configure the account `ApiUrl`, direct game `GameHost:BootstrapPort` and update sources separately. The Windows application is named PurpleMagic and uses the native folder picker.
+
+The [build and publishing guide](docs/LAUNCHER_INPUTS.md) explains fields, first-time signing keys, SDK/artwork inputs, channel probes and Hub publication. A web generator and Windows build queue are planned.
 
 ## Quick preview
 

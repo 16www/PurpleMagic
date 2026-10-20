@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "local.dnf90" "\0"
-            VALUE "FileDescription", "dnf90_preview" "\0"
+            VALUE "FileDescription", "PurpleMagic" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "dnf90_preview" "\0"
+            VALUE "InternalName", "PurpleMagic" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 local.dnf90. All rights reserved." "\0"
-            VALUE "OriginalFilename", "dnf90_preview.exe" "\0"
-            VALUE "ProductName", "dnf90_preview" "\0"
+            VALUE "OriginalFilename", "DNF90.exe" "\0"
+            VALUE "ProductName", "PurpleMagic" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

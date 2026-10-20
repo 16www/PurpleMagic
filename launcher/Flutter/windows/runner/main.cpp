@@ -30,7 +30,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   }
   if (!gate || duplicate || core_running) {
     if (!guard_check) {
-      const auto existing = FindWindowW(nullptr, L"DNF 90CN");
+      const auto existing = FindWindowW(nullptr, L"PurpleMagic");
       if (existing) { ShowWindow(existing, SW_RESTORE); SetForegroundWindow(existing); }
     }
     return 2;
@@ -45,6 +45,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   // Initialize COM, so that it is available for use in the library and/or
   // plugins.
   ::CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+  SetCurrentProcessExplicitAppUserModelID(L"PurpleMagic.Launcher");
 
   flutter::DartProject project(L"data");
 
@@ -63,7 +64,7 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
   const auto height = std::min(810u, available_height - 48u);
   Win32Window::Point origin((available_width - width) / 2u, (available_height - height) / 2u);
   Win32Window::Size size(width, height);
-  if (!window.Create(L"DNF 90CN", origin, size)) {
+  if (!window.Create(L"PurpleMagic", origin, size)) {
     return EXIT_FAILURE;
   }
   window.SetQuitOnClose(true);

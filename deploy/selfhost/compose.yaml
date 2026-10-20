@@ -1,0 +1,71 @@
+name: purplemagic
+
+x-app: &app
+  image: purplemagic:local
+  build:
+    context: ../..
+    dockerfile: deploy/selfhost/Dockerfile
+  network_mode: host
+  user: "${PM_UID:?Set PM_UID}:${PM_GID:?Set PM_GID}"
+  read_only: true
+  tmpfs: [/tmp]
+  security_opt: [no-new-privileges:true]
+  cap_drop: [ALL]
+
+x-gateway-volumes: &gateway-volumes
+  - ${PM_DATA:?Set PM_DATA}/gateway.json:/data/gateway.json:ro
+  - ${PM_DATA}/tls-player:/data/tls-player:ro
+  - ${PM_DATA}/private:/data/private:ro
+  - ${PM_DATA}/hub:/data/hub
+  - ${PM_DATA}/releases:/data/releases:ro
+
+x-index: &index
+  <<: *app
+  profiles: [setup]
+  volumes:
+    - ${PM_DATA}/indexer.json:/data/indexer.json:ro
+    - ${PM_DATA}/assets:/data/assets:ro
+    - ${PM_DATA}/indexes:/data/indexes
+
+services:
+  gateway:
+    <<: *app
+    command: [/opt/purplemagic/bin/PlayerGateway, -config, /data/gateway.json]
+    volumes: *gateway-volumes
+    restart: unless-stopped
+  gm:
+    <<: *app
+    volumes:
+      - ${PM_DATA}/service.json:/data/service.json:ro
+      - ${PM_DATA}/tls-player/ca.pem:/data/tls-player/ca.pem:ro
+      - ${PM_DATA}/assets:/data/assets:ro
+      - ${PM_DATA}/indexes:/data/indexes
+      - ${PM_DATA}/gm:/data/gm
+    restart: unless-stopped
+    depends_on: [gateway]
+  edge:
+    image: nginx:1.28-bookworm
+    network_mode: host
+    volumes:
+      - ${PM_DATA}/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ${PM_DATA}/tls-web:/etc/nginx/tls:ro
+      - ${PM_DATA}/tls-player/ca.pem:/etc/nginx/player-ca.pem:ro
+    restart: unless-stopped
+    depends_on: [gm]
+  schema:
+    <<: *app
+    profiles: [setup]
+    command: [/opt/purplemagic/bin/PlayerGateway, -config, /data/gateway.json, -init-management-schema]
+    volumes: *gateway-volumes
+  index-pvf:
+    <<: *index
+    command: [/opt/purplemagic/bin/GMTool, -config, /data/indexer.json, -build-pvf-index]
+  index-items:
+    <<: *index
+    command: [/opt/purplemagic/bin/GMTool, -config, /data/indexer.json, -build-item-details]
+  index-quests:
+    <<: *index
+    command: [/opt/purplemagic/bin/GMTool, -config, /data/indexer.json, -build-quest-index]
+  index-professions:
+    <<: *index
+    command: [/opt/purplemagic/bin/GMIndex, -pvf, /data/assets/Script.pvf, -sha256, "${PM_PVF_SHA256:?Set PM_PVF_SHA256}", -directory-index, /data/indexes/pvf.bin, -item-index, /data/indexes/items.json]

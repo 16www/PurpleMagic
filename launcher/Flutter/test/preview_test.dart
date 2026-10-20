@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:dnf90_preview/main.dart';
+import 'package:purplemagic/main.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -56,6 +56,19 @@ void main() {
     await tester.pumpAndSettle();
   }
 
+  void mockDirectoryPicker(String? selected) {
+    const channel = MethodChannel('dnf90.preview/window');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
+          if (call.method == 'chooseDirectory') return selected;
+          return null;
+        });
+    addTearDown(
+      () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, null),
+    );
+  }
+
   Future<void> screenshot(WidgetTester tester, String name) async {
     await tester.pump();
     await tester.runAsync(() async {
@@ -78,17 +91,17 @@ void main() {
     fake.state['launcherVersion'] = '0.7.31';
     fake.state['version'] = 'client-v999';
     await start(tester, controller: LauncherController(client: fake));
-    expect(find.text('90CN  ·  0.7.31'), findsOneWidget);
-    expect(find.text('90CN  ·  0.2.5'), findsNothing);
+    expect(find.text('PurpleMagic  ·  0.7.31'), findsOneWidget);
+    expect(find.text('PurpleMagic  ·  0.2.5'), findsNothing);
     fake.state['launcherVersion'] = '0.7.32';
     fake.emit();
     await tester.pump();
-    expect(find.text('90CN  ·  0.7.32'), findsOneWidget);
+    expect(find.text('PurpleMagic  ·  0.7.32'), findsOneWidget);
     fake.state.remove('launcherVersion');
     fake.emit();
     await tester.pump();
-    expect(find.text('90CN'), findsOneWidget);
-    expect(find.text('90CN  ·  client-v999'), findsNothing);
+    expect(find.text('PurpleMagic'), findsWidgets);
+    expect(find.text('PurpleMagic  ·  client-v999'), findsNothing);
   });
 
   testWidgets(
@@ -296,13 +309,8 @@ void main() {
     expect(model.reducedEffects, isTrue);
     await tester.tap(find.byTooltip('关闭设置'));
     await tester.pumpAndSettle();
+    mockDirectoryPicker(r'E:\Games\DNF 90CN');
     await tester.tap(find.byKey(const Key('directory')));
-    await tester.pumpAndSettle();
-    await tester.enterText(
-      find.byKey(const Key('directory-input')),
-      r'E:\Games\DNF 90CN',
-    );
-    await tester.tap(find.text('确定'));
     await tester.pumpAndSettle();
     expect(find.text(r'E:\Games\DNF 90CN'), findsOneWidget);
     await tester.pumpWidget(const SizedBox());
@@ -396,13 +404,8 @@ void main() {
       (fake.state['preferences'] as Map<String, dynamic>)['autoCheck'] = true;
       final model = LauncherController(client: fake);
       await start(tester, controller: model);
+      mockDirectoryPicker(r'E:\Games\NewClient');
       await tester.tap(find.byKey(const Key('directory')));
-      await tester.pumpAndSettle();
-      await tester.enterText(
-        find.byKey(const Key('directory-input')),
-        r'E:\Games\NewClient',
-      );
-      await tester.tap(find.text('确定'));
       await tester.pumpAndSettle();
       expect(model.clientDirectory, r'E:\Games\NewClient');
       expect(fake.calls, [
@@ -411,6 +414,52 @@ void main() {
         'preferences',
         'autoUpdate',
       ]);
+    },
+  );
+
+  testWidgets('canceling native directory selection preserves preferences', (
+    tester,
+  ) async {
+    final fake = FakeCore();
+    final model = LauncherController(client: fake);
+    await start(tester, controller: model);
+    final original = model.clientDirectory;
+    final calls = List<String>.from(fake.calls);
+    mockDirectoryPicker(null);
+    await tester.tap(find.byKey(const Key('directory')));
+    await tester.pumpAndSettle();
+    expect(model.clientDirectory, original);
+    expect(fake.calls, calls);
+  });
+
+  testWidgets(
+    'directory picker carries Unicode paths and blocks duplicate dialogs',
+    (tester) async {
+      final fake = FakeCore();
+      final model = LauncherController(client: fake);
+      await start(tester, controller: model);
+      const channel = MethodChannel('dnf90.preview/window');
+      final selection = Completer<String?>();
+      var calls = 0;
+      TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+          .setMockMethodCallHandler(channel, (call) async {
+            expect(call.method, 'chooseDirectory');
+            expect(call.arguments['initialDirectory'], model.clientDirectory);
+            calls++;
+            return selection.future;
+          });
+      addTearDown(
+        () => TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, null),
+      );
+      await tester.tap(find.byKey(const Key('directory')));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('directory')));
+      await tester.pump();
+      expect(calls, 1);
+      selection.complete(r'E:\游戏目录\阿拉德 client');
+      await tester.pumpAndSettle();
+      expect(model.clientDirectory, r'E:\游戏目录\阿拉德 client');
     },
   );
 

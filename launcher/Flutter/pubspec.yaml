@@ -1,7 +1,7 @@
-name: dnf90_preview
-description: 90CN Windows player launcher.
+name: purplemagic
+description: PurpleMagic Windows player launcher.
 publish_to: none
-version: 0.2.17+3
+version: 0.2.18+3
 environment:
   sdk: ^3.13.2
 dependencies:

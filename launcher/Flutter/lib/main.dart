@@ -24,7 +24,7 @@ class LauncherPreview extends StatelessWidget {
   final LauncherController? controller;
   @override
   Widget build(BuildContext context) => MaterialApp(
-    title: 'DNF 90CN',
+    title: 'PurpleMagic',
     debugShowCheckedModeBanner: false,
     theme: ThemeData(
       brightness: Brightness.dark,
@@ -302,7 +302,7 @@ class _PreviewHomeState extends State<PreviewHome> {
         left: 42,
         bottom: 24,
         child: Text(
-          'DNF 90CN',
+          'PurpleMagic',
           style: TextStyle(
             color: Color(0xffc1b9ce),
             fontSize: 11,
@@ -331,7 +331,7 @@ class _PreviewHomeState extends State<PreviewHome> {
         child: Row(
           children: [
             Text(
-              model.connected ? '90CN · 本服账号与更新' : '正在连接核心',
+              model.connected ? 'PurpleMagic · 本服账号与更新' : '正在连接核心',
               style: TextStyle(fontSize: 10, color: Color(0xffb8b0c6)),
             ),
             const SizedBox(width: 16),
@@ -809,8 +809,8 @@ class _PreviewHomeState extends State<PreviewHome> {
           const SizedBox(height: 15),
           Text(
             model.launcherVersion.isEmpty
-                ? '90CN'
-                : '90CN  ·  ${model.launcherVersion}',
+                ? 'PurpleMagic'
+                : 'PurpleMagic  ·  ${model.launcherVersion}',
             style: const TextStyle(
               fontSize: 9,
               color: Color(0xffa59bb4),
@@ -1146,59 +1146,29 @@ class _PreviewHomeState extends State<PreviewHome> {
     ),
   );
 
+  bool _choosingDirectory = false;
+
   Future<void> _chooseDirectory() async {
-    final text = TextEditingController(text: directory);
-    final selected = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xff262332),
-        title: const Text('客户端目录'),
-        content: SizedBox(
-          width: 390,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                '请选择包含 DNF.exe 和 Script.pvf 的配套客户端目录。',
-                style: TextStyle(fontSize: 12, color: muted),
-              ),
-              const SizedBox(height: 18),
-              TextField(
-                key: const Key('directory-input'),
-                controller: text,
-                autofocus: true,
-                decoration: const InputDecoration(labelText: '客户端位置'),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, text.text.trim()),
-            child: const Text('确定'),
-          ),
-        ],
-      ),
-    );
-    await Future<void>.delayed(const Duration(milliseconds: 250));
-    text.dispose();
-    if (mounted && selected != null && selected.isNotEmpty) {
-      try {
-        await model.save(directory: selected);
-        if (mounted) setState(() => directory = selected);
-        if (mounted) await _automaticUpdate();
-      } catch (failure) {
-        if (mounted) {
-          setState(
-            () => error = failure.toString().replaceFirst('Bad state: ', ''),
-          );
-        }
+    if (_choosingDirectory) return;
+    _choosingDirectory = true;
+    try {
+      final selected = await platform.invokeMethod<String>('chooseDirectory', {
+        'initialDirectory': directory,
+      });
+      if (!mounted || selected == null || selected.isEmpty) return;
+      await model.save(directory: selected);
+      if (mounted) setState(() => directory = selected);
+      if (mounted) await _automaticUpdate();
+    } on PlatformException catch (failure) {
+      if (mounted) setState(() => error = failure.message ?? '无法打开目录选择器');
+    } catch (failure) {
+      if (mounted) {
+        setState(
+          () => error = failure.toString().replaceFirst('Bad state: ', ''),
+        );
       }
+    } finally {
+      _choosingDirectory = false;
     }
   }
 

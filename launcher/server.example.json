@@ -1,0 +1,8 @@
+{
+  "ApiUrl": "https://players.example.com:8443",
+  "GameHost": "203.0.113.10",
+  "BootstrapPort": 10000,
+  "ChannelServerId": 1,
+  "MinimumLauncherVersion": "0.2.18",
+  "DefaultClientDirectory": ""
+}

@@ -1,0 +1,24 @@
+{
+  "gmOrigin": "https://gm.example.com",
+  "approvedProfile": "/srv/purplemagic-input/player-profile.json",
+  "signingPrivateKey": "/srv/purplemagic-input/signing-key.pem",
+  "pvfFile": "/srv/purplemagic-input/Script.pvf",
+  "playerCertificate": "/srv/purplemagic-input/player-fullchain.pem",
+  "playerPrivateKey": "/srv/purplemagic-input/player-key.pem",
+  "playerCA": "/srv/purplemagic-input/player-ca.pem",
+  "webCertificate": "/srv/purplemagic-input/gm-fullchain.pem",
+  "webPrivateKey": "/srv/purplemagic-input/gm-key.pem",
+  "database": {
+    "registrationDsn": "gm:CHANGE_ME@tcp(127.0.0.1:3306)/registration?parseTime=true&charset=utf8mb4",
+    "repositoryDsn": "gm:CHANGE_ME@tcp(127.0.0.1:3306)/game?parseTime=true&charset=utf8mb4",
+    "accountTable": "dnf90_web_accounts",
+    "databases": ["game"],
+    "tablePrefix": "dnf"
+  },
+  "game": {
+    "upstream": "http://127.0.0.1:7000",
+    "proxySecret": "CHANGE_ME_TO_EXISTING_GAME_PLAYER_PROXY_SECRET",
+    "adminUrl": "http://127.0.0.1:7000/api/game/admin",
+    "adminToken": "CHANGE_ME_TO_EXISTING_GAME_ADMIN_TOKEN"
+  }
+}
