@@ -38,7 +38,11 @@ the deployment UID and one revision; it rechecks the game snapshot and schedules
 only the fixed `dnf90.service`. Browser requests cannot name commands or services.
 The management listener has no direct root privileges.
 
-Install the helper as root-owned code, adjust the template's protected gateway
+Install the helper as root-owned code under `/usr/local/lib/purplemagic`, with
+root-owned parent directories that the gateway user cannot rename or replace.
+Keep its configuration under a root-owned `/etc/purplemagic` (group-read access
+for the gateway is sufficient; the gateway must not be able to replace it).
+Adjust the template's protected gateway
 configuration path and keep its receipt directory root-only. The helper can read
 both the gateway's nested `management` configuration and a legacy GM mapping.
 Keep the old helper/configuration available when planning rollback.
